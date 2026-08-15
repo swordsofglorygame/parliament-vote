@@ -1,1 +1,130 @@
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Tahoma, sans-serif;
+    background:
+        radial-gradient(circle at top, #3b2a18 0%, #17110b 45%, #090705 100%);
+    color: #f5ead7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+}
+
+.card {
+    background: rgba(25, 19, 13, 0.96);
+    border: 1px solid rgba(190, 145, 70, 0.45);
+    border-radius: 18px;
+    padding: 40px 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    text-align: center;
+}
+
+.logo {
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+h1 {
+    font-size: 30px;
+    margin-bottom: 12px;
+    color: #d9ad5b;
+}
+
+.subtitle {
+    color: #c5b49b;
+    font-size: 15px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #dfcfb5;
+    font-size: 14px;
+}
+
+input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #59462e;
+    background: #100c08;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #c99b4e;
+    box-shadow: 0 0 0 3px rgba(201, 155, 78, 0.12);
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #d4a54f, #9a6b25);
+    color: #171008;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+.message {
+    display: none;
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+.footer {
+    margin-top: 25px;
+    color: #776955;
+    font-size: 12px;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+
+    .card {
+        padding: 30px 22px;
+    }
+
+    h1 {
+        font-size: 25px;
+    }
+
+    .logo {
+        font-size: 35px;
+    }
+}
