@@ -14,29 +14,8 @@ function el(id) {
     return document.getElementById(id);
 }
 
-function showMessage(element, text, type = "error") {
-
-    element.style.display = "block";
-    element.textContent = text;
-
-    if (type === "success") {
-        element.style.background = "rgba(46,125,50,.15)";
-        element.style.border = "1px solid rgba(76,175,80,.4)";
-        element.style.color = "#9be7a0";
-    } else {
-        element.style.background = "rgba(198,40,40,.15)";
-        element.style.border = "1px solid rgba(239,83,80,.4)";
-        element.style.color = "#ff9d9d";
-    }
-}
-
-function hideMessage(element) {
-    element.style.display = "none";
-    element.textContent = "";
-}
 
 function escapeHtml(value) {
-
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -45,26 +24,71 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
+
+function showMessage(
+    element,
+    text,
+    type = "error"
+) {
+
+    element.style.display = "block";
+    element.textContent = text;
+
+    if (type === "success") {
+
+        element.style.background =
+            "rgba(46,125,50,.15)";
+
+        element.style.border =
+            "1px solid rgba(76,175,80,.4)";
+
+        element.style.color =
+            "#9be7a0";
+
+    } else {
+
+        element.style.background =
+            "rgba(198,40,40,.15)";
+
+        element.style.border =
+            "1px solid rgba(239,83,80,.4)";
+
+        element.style.color =
+            "#ff9d9d";
+    }
+}
+
+
+function hideMessage(element) {
+
+    element.style.display = "none";
+    element.textContent = "";
+}
+
+
 function formatDate(value) {
 
     if (!value) {
         return "-";
     }
 
-    const date = new Date(value);
+    const d =
+        new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
+    if (Number.isNaN(d.getTime())) {
         return value;
     }
 
-    return date.toISOString()
+    return d
+        .toISOString()
         .replace("T", " ")
         .replace(".000Z", " UTC");
 }
 
+
 function statusText(status) {
 
-    const map = {
+    const names = {
         draft: "Draft",
         scheduled: "مجدولة",
         open: "جارية",
@@ -72,21 +96,27 @@ function statusText(status) {
         cancelled: "ملغاة"
     };
 
-    return map[status] || status;
+    return (
+        names[status] ||
+        status
+    );
 }
+
 
 function statusBadge(status) {
 
     return `
-        <span class="badge badge-${escapeHtml(status)}">
-            ${escapeHtml(statusText(status))}
+        <span class="badge ${escapeHtml(status)}">
+            ${escapeHtml(
+                statusText(status)
+            )}
         </span>
     `;
 }
 
 
 /* =========================================================
-   AUTH
+   API
 ========================================================= */
 
 async function apiFetch(
@@ -96,8 +126,10 @@ async function apiFetch(
 
     options.headers = {
         ...(options.headers || {}),
-        "Content-Type": "application/json"
+        "Content-Type":
+            "application/json"
     };
+
 
     if (adminSessionToken) {
 
@@ -105,15 +137,17 @@ async function apiFetch(
             `Bearer ${adminSessionToken}`;
     }
 
+
     const response =
         await fetch(
             `${API_URL}${path}`,
             options
         );
 
+
     if (response.status === 401) {
 
-        logoutLocal(
+        forceLogout(
             "انتهت جلسة الإدارة. يرجى تسجيل الدخول مرة أخرى."
         );
 
@@ -122,19 +156,28 @@ async function apiFetch(
         );
     }
 
+
     return response;
 }
 
 
-function logoutLocal(message = "") {
+/* =========================================================
+   LOGOUT
+========================================================= */
 
-    adminSessionToken = null;
+function forceLogout(
+    message = ""
+) {
+
+    adminSessionToken =
+        null;
 
     el("dashboardCard").style.display =
         "none";
 
     el("loginCard").style.display =
         "block";
+
 
     if (message) {
 
@@ -146,82 +189,8 @@ function logoutLocal(message = "") {
 }
 
 
-async function login(
-    email,
-    password
-) {
-
-    const response =
-        await fetch(
-            `${API_URL}/admin/login`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        email,
-                        password
-                    })
-            }
-        );
-
-    const data =
-        await response.json();
-
-    if (
-        !response.ok ||
-        !data.success
-    ) {
-
-        throw new Error(
-            data.message ||
-            "بيانات الدخول غير صحيحة."
-        );
-    }
-
-    adminSessionToken =
-        data.token;
-}
-
-
-async function verifySession() {
-
-    if (!adminSessionToken) {
-        return false;
-    }
-
-    try {
-
-        const response =
-            await apiFetch(
-                "/admin/test",
-                {
-                    method: "GET"
-                }
-            );
-
-        const data =
-            await response.json();
-
-        return (
-            response.ok &&
-            data.success
-        );
-
-    } catch {
-
-        return false;
-    }
-}
-
-
 /* =========================================================
-   LOGIN FORM
+   LOGIN
 ========================================================= */
 
 el("loginForm")
@@ -235,6 +204,7 @@ el("loginForm")
                 el("loginMessage")
             );
 
+
             const email =
                 el("adminEmail")
                     .value
@@ -243,6 +213,7 @@ el("loginForm")
             const password =
                 el("adminPassword")
                     .value;
+
 
             if (!email || !password) {
 
@@ -254,24 +225,67 @@ el("loginForm")
                 return;
             }
 
+
             el("loginButton").disabled =
                 true;
 
             el("loginButton").textContent =
-                "جاري الدخول...";
+                "جاري تسجيل الدخول...";
+
 
             try {
 
-                await login(
-                    email,
-                    password
-                );
+                const response =
+                    await fetch(
+                        `${API_URL}/admin/login`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    email,
+                                    password
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    showMessage(
+                        el("loginMessage"),
+                        data.message ||
+                        "بيانات الدخول غير صحيحة."
+                    );
+
+                    return;
+                }
+
+
+                adminSessionToken =
+                    data.token;
+
 
                 el("adminEmailDisplay")
-                    .textContent = email;
+                    .textContent =
+                    email;
+
 
                 el("adminPassword")
                     .value = "";
+
 
                 el("loginCard").style.display =
                     "none";
@@ -279,14 +293,16 @@ el("loginForm")
                 el("dashboardCard").style.display =
                     "block";
 
-                await refreshDashboard();
+
+                await refreshAll();
 
             } catch (error) {
 
+                console.error(error);
+
                 showMessage(
                     el("loginMessage"),
-                    error.message ||
-                    "تعذر تسجيل الدخول."
+                    "حدث خطأ أثناء الاتصال بالخادم."
                 );
 
             } finally {
@@ -302,7 +318,7 @@ el("loginForm")
 
 
 /* =========================================================
-   LOGOUT
+   LOGOUT BUTTON
 ========================================================= */
 
 el("logoutButton")
@@ -320,7 +336,7 @@ el("logoutButton")
                             method: "POST",
 
                             headers: {
-                                "Authorization":
+                                Authorization:
                                     `Bearer ${adminSessionToken}`
                             }
                         }
@@ -329,18 +345,18 @@ el("logoutButton")
 
             } catch {}
 
-            logoutLocal();
+            forceLogout();
         }
     );
 
 
 /* =========================================================
-   NAVIGATION
+   NAV
 ========================================================= */
 
 document
     .querySelectorAll(
-        ".admin-nav button"
+        ".nav button"
     )
     .forEach(button => {
 
@@ -350,32 +366,38 @@ document
 
                 document
                     .querySelectorAll(
-                        ".admin-nav button"
+                        ".nav button"
                     )
-                    .forEach(btn =>
-                        btn.classList.remove(
-                            "active"
-                        )
+                    .forEach(
+                        btn =>
+                            btn.classList.remove(
+                                "active"
+                            )
                     );
+
 
                 document
                     .querySelectorAll(
-                        ".admin-section"
+                        ".section"
                     )
-                    .forEach(section =>
-                        section.classList.remove(
-                            "active"
-                        )
+                    .forEach(
+                        section =>
+                            section.classList.remove(
+                                "active"
+                            )
                     );
+
 
                 button.classList.add(
                     "active"
                 );
 
+
                 const section =
                     el(
                         button.dataset.section
                     );
+
 
                 if (section) {
                     section.classList.add(
@@ -383,12 +405,14 @@ document
                     );
                 }
 
+
                 if (
                     button.dataset.section ===
-                    "dashboardSection"
+                    "homeSection"
                 ) {
                     await refreshDashboard();
                 }
+
 
                 if (
                     button.dataset.section ===
@@ -397,10 +421,44 @@ document
                     await loadElections(
                         currentFilter
                     );
+
+                    await loadServers();
+                }
+
+
+                if (
+                    button.dataset.section ===
+                    "serversSection"
+                ) {
+                    await loadServers();
+                }
+
+
+                if (
+                    button.dataset.section ===
+                    "playersSection"
+                ) {
+                    await loadServers();
                 }
             }
         );
     });
+
+
+/* =========================================================
+   REFRESH ALL
+========================================================= */
+
+async function refreshAll() {
+
+    await loadServers();
+
+    await refreshDashboard();
+
+    await loadElections(
+        currentFilter
+    );
+}
 
 
 /* =========================================================
@@ -411,93 +469,108 @@ async function refreshDashboard() {
 
     try {
 
-        const response =
+        const statsResponse =
             await apiFetch(
                 "/admin/stats"
+            );
+
+        const stats =
+            await statsResponse.json();
+
+
+        if (
+            statsResponse.ok &&
+            stats.success
+        ) {
+
+            el("statTotal")
+                .textContent =
+                stats.elections
+                    ?.total_elections ??
+                0;
+
+            el("statActive")
+                .textContent =
+                stats.elections
+                    ?.active_count ??
+                0;
+
+            el("statClosed")
+                .textContent =
+                stats.elections
+                    ?.closed_count ??
+                0;
+
+            el("statVotes")
+                .textContent =
+                stats.total_votes ??
+                0;
+        }
+
+
+        const response =
+            await apiFetch(
+                "/admin/elections?status=open"
             );
 
         const data =
             await response.json();
 
-        if (!response.ok) {
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
             return;
         }
 
-        const elections =
-            data.elections || {};
 
-        el("statTotalElections")
-            .textContent =
-            elections.total_elections ?? 0;
-
-        el("statActive")
-            .textContent =
-            elections.active_count ?? 0;
-
-        el("statClosed")
-            .textContent =
-            elections.closed_count ?? 0;
-
-        el("statVotes")
-            .textContent =
-            data.total_votes ?? 0;
+        const list =
+            data.elections || [];
 
 
-        const openResponse =
-            await apiFetch(
-                "/admin/elections?status=open"
-            );
+        if (!list.length) {
 
-        const openData =
-            await openResponse.json();
+            el("homeOpenList")
+                .innerHTML = `
+                    <div class="empty">
+                        لا توجد عمليات تصويت جارية حاليًا.
+                    </div>
+                `;
 
-        renderDashboardOpen(
-            openData.elections || []
-        );
+            return;
+        }
+
+
+        el("homeOpenList")
+            .innerHTML =
+            list
+                .map(
+                    election =>
+                        electionCard(
+                            election
+                        )
+                )
+                .join("");
+
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Dashboard error:",
+            error
+        );
     }
-}
-
-
-function renderDashboardOpen(
-    elections
-) {
-
-    const container =
-        el("dashboardOpenList");
-
-    if (!elections.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                لا توجد عمليات تصويت جارية حاليًا.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        elections
-            .map(election =>
-                electionCardHtml(
-                    election
-                )
-            )
-            .join("");
 }
 
 
 /* =========================================================
-   ELECTIONS LIST
+   ELECTION FILTER
 ========================================================= */
 
 document
     .querySelectorAll(
-        ".filter-btn"
+        ".filter"
     )
     .forEach(button => {
 
@@ -507,7 +580,7 @@ document
 
                 document
                     .querySelectorAll(
-                        ".filter-btn"
+                        ".filter"
                     )
                     .forEach(btn =>
                         btn.classList.remove(
@@ -515,13 +588,16 @@ document
                         )
                     );
 
+
                 button.classList.add(
                     "active"
                 );
 
+
                 currentFilter =
                     button.dataset.status ||
                     "";
+
 
                 await loadElections(
                     currentFilter
@@ -531,64 +607,81 @@ document
     });
 
 
+/* =========================================================
+   LOAD ELECTIONS
+========================================================= */
+
 async function loadElections(
     status = ""
 ) {
 
-    const container =
-        el("electionsList");
+    el("electionsList")
+        .innerHTML = `
+            <div class="empty">
+                جاري تحميل عمليات التصويت...
+            </div>
+        `;
 
-    container.innerHTML = `
-        <div class="empty-state">
-            جاري تحميل البيانات...
-        </div>
-    `;
 
     try {
 
         const query =
             status
-                ? `?status=${encodeURIComponent(status)}`
+                ? `?status=${encodeURIComponent(
+                    status
+                )}`
                 : "";
+
 
         const response =
             await apiFetch(
                 `/admin/elections${query}`
             );
 
+
         const data =
             await response.json();
 
-        if (!response.ok) {
 
-            container.innerHTML = `
-                <div class="empty-state">
-                    تعذر تحميل عمليات التصويت.
-                </div>
-            `;
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            el("electionsList")
+                .innerHTML = `
+                    <div class="empty">
+                        تعذر تحميل عمليات التصويت.
+                    </div>
+                `;
 
             return;
         }
+
 
         const elections =
             data.elections || [];
 
+
         if (!elections.length) {
 
-            container.innerHTML = `
-                <div class="empty-state">
-                    لا توجد عمليات تصويت في هذا القسم.
-                </div>
-            `;
+            el("electionsList")
+                .innerHTML = `
+                    <div class="empty">
+                        لا توجد عمليات تصويت هنا.
+                    </div>
+                `;
 
             return;
         }
 
-        container.innerHTML =
+
+        el("electionsList")
+            .innerHTML =
             elections
                 .map(
                     election =>
-                        electionCardHtml(
+                        electionCard(
                             election
                         )
                 )
@@ -598,27 +691,33 @@ async function loadElections(
 
         console.error(error);
 
-        container.innerHTML = `
-            <div class="empty-state">
-                حدث خطأ أثناء تحميل البيانات.
-            </div>
-        `;
+        el("electionsList")
+            .innerHTML = `
+                <div class="empty">
+                    حدث خطأ أثناء تحميل البيانات.
+                </div>
+            `;
     }
 }
 
 
-function electionCardHtml(
+/* =========================================================
+   ELECTION CARD
+========================================================= */
+
+function electionCard(
     election
 ) {
 
-    const effectiveStatus =
+    const status =
         election.effective_status ||
         election.status;
 
-    return `
-        <div class="election-card">
 
-            <div class="election-header">
+    return `
+        <div class="election">
+
+            <div class="election-head">
 
                 <div>
 
@@ -636,115 +735,155 @@ function electionCardHtml(
 
                 </div>
 
-                <div>
-                    ${statusBadge(
-                        effectiveStatus
-                    )}
-                </div>
+                ${statusBadge(status)}
 
             </div>
 
-            <div class="meta-grid">
 
-                <div class="meta-item">
+            <div class="meta">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         السيرفر
                     </div>
+
                     <div class="meta-value">
                         ${election.server_id}
                     </div>
+
                 </div>
 
-                <div class="meta-item">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         المقاعد
                     </div>
+
                     <div class="meta-value">
                         ${election.seats}
                     </div>
+
                 </div>
 
-                <div class="meta-item">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         المرشحون
                     </div>
+
                     <div class="meta-value">
-                        ${election.candidate_count ?? 0}
+                        ${
+                            election.candidate_count ??
+                            0
+                        }
                     </div>
+
                 </div>
 
-                <div class="meta-item">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         المصوتون
                     </div>
+
                     <div class="meta-value">
-                        ${election.voter_count ?? 0}
+                        ${
+                            election.voter_count ??
+                            0
+                        }
                     </div>
+
                 </div>
 
-                <div class="meta-item">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         المؤهلون
                     </div>
+
                     <div class="meta-value">
-                        ${election.eligible_count ?? 0}
+                        ${
+                            election.eligible_count ??
+                            0
+                        }
                     </div>
+
                 </div>
 
-                <div class="meta-item">
+
+                <div class="meta-box">
+
                     <div class="meta-label">
                         المشاركة
                     </div>
+
                     <div class="meta-value">
-                        ${election.participation_rate ?? 0}%
+                        ${
+                            election.participation_rate ??
+                            0
+                        }%
                     </div>
+
                 </div>
 
             </div>
 
+
             <div style="
-                color:#82745f;
+                color:#81735e;
                 font-size:11px;
+                line-height:1.8;
                 margin-bottom:12px;
             ">
+
                 البداية:
                 ${formatDate(
                     election.start_at
                 )}
+
                 <br>
+
                 النهاية:
                 ${formatDate(
                     election.end_at
                 )}
+
             </div>
 
-            <div class="small-actions">
+
+            <div class="actions">
 
                 <button
-                    class="info-btn"
-                    onclick="openElectionDetails('${escapeHtml(
+                    class="btn-blue"
+                    onclick="openDetails('${escapeHtml(
                         election.election_id
                     )}')"
                 >
                     التفاصيل
                 </button>
 
-                <button
-                    class="secondary-btn"
-                    onclick="editElection('${escapeHtml(
-                        election.election_id
-                    )}')"
-                >
-                    تعديل
-                </button>
 
                 ${
-                    effectiveStatus === "draft" ||
-                    effectiveStatus === "scheduled"
+                    status === "draft" ||
+                    status === "scheduled"
                         ? `
                             <button
-                                class="success-btn"
-                                onclick="openElectionNow('${escapeHtml(
+                                class="btn-dark"
+                                onclick="editElection('${escapeHtml(
+                                    election.election_id
+                                )}')"
+                            >
+                                تعديل
+                            </button>
+
+                            <button
+                                class="btn-green"
+                                onclick="openElection('${escapeHtml(
                                     election.election_id
                                 )}')"
                             >
@@ -754,11 +893,12 @@ function electionCardHtml(
                         : ""
                 }
 
+
                 ${
-                    effectiveStatus === "open"
+                    status === "open"
                         ? `
                             <button
-                                class="danger-btn"
+                                class="btn-red"
                                 onclick="closeElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -769,17 +909,34 @@ function electionCardHtml(
                         : ""
                 }
 
+
                 ${
-                    effectiveStatus !== "closed" &&
-                    effectiveStatus !== "cancelled"
+                    status !== "closed" &&
+                    status !== "cancelled"
                         ? `
                             <button
-                                class="danger-btn"
+                                class="btn-red"
                                 onclick="cancelElection('${escapeHtml(
                                     election.election_id
                                 )}')"
                             >
                                 إلغاء
+                            </button>
+                        `
+                        : ""
+                }
+
+
+                ${
+                    status === "cancelled"
+                        ? `
+                            <button
+                                class="btn-red"
+                                onclick="deleteCancelledElection('${escapeHtml(
+                                    election.election_id
+                                )}')"
+                            >
+                                حذف نهائي
                             </button>
                         `
                         : ""
@@ -793,463 +950,6 @@ function electionCardHtml(
 
 
 /* =========================================================
-   DETAILS MODAL
-========================================================= */
-
-window.openElectionDetails =
-    async function(
-        electionId
-    ) {
-
-        currentElectionId =
-            electionId;
-
-        el("electionModal")
-            .classList.add(
-                "active"
-            );
-
-        el("modalBody")
-            .innerHTML =
-            `<div class="empty-state">جاري التحميل...</div>`;
-
-        try {
-
-            const response =
-                await apiFetch(
-                    `/admin/election/${encodeURIComponent(
-                        electionId
-                    )}`
-                );
-
-            const data =
-                await response.json();
-
-            if (!response.ok) {
-
-                el("modalBody")
-                    .innerHTML =
-                    `<div class="empty-state">تعذر تحميل التفاصيل.</div>`;
-
-                return;
-            }
-
-            const election =
-                data.election;
-
-            el("modalTitle")
-                .textContent =
-                election.title;
-
-            el("modalElectionId")
-                .textContent =
-                election.election_id;
-
-
-            const votersResponse =
-                await apiFetch(
-                    `/admin/election/${encodeURIComponent(
-                        electionId
-                    )}/voters?limit=500`
-                );
-
-            const votersData =
-                await votersResponse.json();
-
-
-            const resultsResponse =
-                await apiFetch(
-                    `/admin/election/${encodeURIComponent(
-                        electionId
-                    )}/results`
-                );
-
-            const resultsData =
-                await resultsResponse.json();
-
-
-            const candidates =
-                data.candidates || [];
-
-            const voters =
-                votersData.voters || [];
-
-            const results =
-                resultsData.results || [];
-
-            let html = `
-
-                <div class="detail-grid">
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            الحالة
-                        </div>
-                        <div class="meta-value">
-                            ${statusBadge(
-                                election.effective_status
-                            )}
-                        </div>
-                    </div>
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            السيرفر
-                        </div>
-                        <div class="meta-value">
-                            ${election.server_id}
-                        </div>
-                    </div>
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            البداية
-                        </div>
-                        <div class="meta-value">
-                            ${formatDate(
-                                election.start_at
-                            )}
-                        </div>
-                    </div>
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            النهاية
-                        </div>
-                        <div class="meta-value">
-                            ${formatDate(
-                                election.end_at
-                            )}
-                        </div>
-                    </div>
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            المصوتون
-                        </div>
-                        <div class="meta-value">
-                            ${election.voter_count}
-                        </div>
-                    </div>
-
-                    <div class="meta-item">
-                        <div class="meta-label">
-                            المشاركة
-                        </div>
-                        <div class="meta-value">
-                            ${election.participation_rate}%
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="admin-box">
-
-                    <h3>
-                        المرشحون
-                    </h3>
-
-                    ${
-                        candidates.length
-                            ? candidates.map(
-                                candidate =>
-                                    `
-                                    <div class="candidate-row">
-
-                                        <div>
-                                            <div class="candidate-name">
-                                                ${escapeHtml(
-                                                    candidate.nickname
-                                                )}
-                                            </div>
-
-                                            <div class="candidate-uid">
-                                                UID: ${escapeHtml(
-                                                    candidate.uid
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        ${
-                                            election.effective_status === "draft" ||
-                                            election.effective_status === "scheduled"
-                                                ? `
-                                                    <button
-                                                        class="danger-btn"
-                                                        style="width:auto;margin:0;padding:7px 10px;font-size:11px;"
-                                                        onclick="deleteCandidate('${escapeHtml(
-                                                            election.election_id
-                                                        )}',${candidate.candidate_id})"
-                                                    >
-                                                        حذف
-                                                    </button>
-                                                `
-                                                : ""
-                                        }
-
-                                    </div>
-                                    `
-                            ).join("")
-                            : `
-                                <div class="empty-state">
-                                    لا يوجد مرشحون.
-                                </div>
-                            `
-                    }
-
-                    ${
-                        election.effective_status === "draft" ||
-                        election.effective_status === "scheduled"
-                            ? `
-                                <div style="margin-top:15px;">
-
-                                    <div class="form-group">
-                                        <label>
-                                            إضافة مرشح بالـUID
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            id="candidateUidInput"
-                                            placeholder="UID"
-                                        >
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        class="success-btn"
-                                        onclick="addCandidate('${escapeHtml(
-                                            election.election_id
-                                        )}')"
-                                    >
-                                        إضافة المرشح
-                                    </button>
-
-                                    <div
-                                        id="candidateActionMessage"
-                                        class="message"
-                                    ></div>
-
-                                </div>
-                            `
-                            : ""
-                    }
-
-                </div>
-
-
-                <div class="admin-box">
-
-                    <h3>
-                        النتائج
-                    </h3>
-
-                    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-
-                        <div class="stat-card">
-                            <div class="stat-label">
-                                المصوتون
-                            </div>
-                            <div class="stat-value">
-                                ${resultsData.stats?.voters ?? 0}
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-label">
-                                المؤهلون
-                            </div>
-                            <div class="stat-value">
-                                ${resultsData.stats?.eligible ?? 0}
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-label">
-                                المشاركة
-                            </div>
-                            <div class="stat-value">
-                                ${resultsData.stats?.participation_rate ?? 0}%
-                            </div>
-                        </div>
-
-                    </div>
-
-                    ${
-                        results.length
-                            ? results.map(
-                                row =>
-                                    `
-                                    <div class="result-row">
-
-                                        <div class="result-top">
-
-                                            <span>
-                                                ${escapeHtml(
-                                                    row.nickname
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                ${row.votes} صوت
-                                                —
-                                                ${row.percentage}%
-                                            </span>
-
-                                        </div>
-
-                                        <div class="result-bar">
-
-                                            <div
-                                                class="result-fill"
-                                                style="width:${Math.min(
-                                                    Number(
-                                                        row.percentage
-                                                    ),
-                                                    100
-                                                )}%"
-                                            ></div>
-
-                                        </div>
-
-                                    </div>
-                                    `
-                            ).join("")
-                            : `
-                                <div class="empty-state">
-                                    لا توجد أصوات مسجلة.
-                                </div>
-                            `
-                    }
-
-                </div>
-
-
-                <div class="admin-box">
-
-                    <h3>
-                        المصوتون
-                    </h3>
-
-                    <p style="
-                        color:#806f5b;
-                        font-size:12px;
-                        line-height:1.8;
-                    ">
-                        تظهر هنا هوية من صوّت ووقت التصويت فقط.
-                        لا يتم عرض اختيار الناخب للمرشحين.
-                    </p>
-
-                    ${
-                        voters.length
-                            ? `
-                                <div class="table-wrap">
-
-                                    <table>
-
-                                        <thead>
-
-                                            <tr>
-                                                <th>UID</th>
-                                                <th>الاسم</th>
-                                                <th>وقت التصويت</th>
-                                            </tr>
-
-                                        </thead>
-
-                                        <tbody>
-
-                                            ${voters.map(
-                                                voter =>
-                                                    `
-                                                    <tr>
-
-                                                        <td>
-                                                            ${escapeHtml(
-                                                                voter.uid
-                                                            )}
-                                                        </td>
-
-                                                        <td>
-                                                            ${escapeHtml(
-                                                                voter.nickname ||
-                                                                "-"
-                                                            )}
-                                                        </td>
-
-                                                        <td dir="ltr">
-                                                            ${formatDate(
-                                                                voter.created_at
-                                                            )}
-                                                        </td>
-
-                                                    </tr>
-                                                    `
-                                            ).join("")}
-
-                                        </tbody>
-
-                                    </table>
-
-                                </div>
-                            `
-                            : `
-                                <div class="empty-state">
-                                    لا يوجد مصوتون حتى الآن.
-                                </div>
-                            `
-                    }
-
-                </div>
-            `;
-
-            el("modalBody")
-                .innerHTML =
-                html;
-
-        } catch (error) {
-
-            console.error(error);
-
-            el("modalBody")
-                .innerHTML =
-                `<div class="empty-state">حدث خطأ أثناء تحميل التفاصيل.</div>`;
-        }
-    };
-
-
-el("closeModal")
-    .addEventListener(
-        "click",
-        () => {
-            el("electionModal")
-                .classList.remove(
-                    "active"
-                );
-        }
-    );
-
-
-el("electionModal")
-    .addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                el("electionModal")
-            ) {
-                el("electionModal")
-                    .classList.remove(
-                        "active"
-                    );
-            }
-        }
-    );
-
-
-/* =========================================================
    CREATE ELECTION
 ========================================================= */
 
@@ -1259,6 +959,7 @@ el("createSeats")
         updateChoiceLimits
     );
 
+
 function updateChoiceLimits() {
 
     const seats =
@@ -1266,11 +967,13 @@ function updateChoiceLimits() {
             el("createSeats").value
         );
 
-    el("createMaxChoices").max =
-        String(seats);
 
     el("createMinChoices").max =
-        String(seats);
+        seats;
+
+    el("createMaxChoices").max =
+        seats;
+
 
     if (
         Number(
@@ -1281,6 +984,7 @@ function updateChoiceLimits() {
             seats;
     }
 
+
     if (
         Number(
             el("createMaxChoices").value
@@ -1289,18 +993,30 @@ function updateChoiceLimits() {
         el("createMaxChoices").value =
             seats;
     }
+}
+
+
+function parseUtcInput(value) {
+
+    const text =
+        value
+            .trim()
+            .replace("T", " ");
+
 
     if (
-        Number(
-            el("createMaxChoices").value
-        ) <
-        Number(
-            el("createMinChoices").value
+        !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(
+            text
         )
     ) {
-        el("createMaxChoices").value =
-            el("createMinChoices").value;
+        return null;
     }
+
+
+    return text.replace(
+        " ",
+        "T"
+    ) + ":00Z";
 }
 
 
@@ -1321,22 +1037,24 @@ el("createElectionForm")
                     .value
                     .trim();
 
+
             const description =
                 el("createDescription")
                     .value
                     .trim();
 
+
             const serverId =
                 Number(
-                    el("createServer")
-                        .value
+                    el("createServer").value
                 );
+
 
             const seats =
                 Number(
-                    el("createSeats")
-                        .value
+                    el("createSeats").value
                 );
+
 
             const minChoices =
                 Number(
@@ -1344,19 +1062,27 @@ el("createElectionForm")
                         .value
                 );
 
+
             const maxChoices =
                 Number(
                     el("createMaxChoices")
                         .value
                 );
 
-            const startInput =
-                el("createStart")
-                    .value;
 
-            const endInput =
-                el("createEnd")
-                    .value;
+            const startAt =
+                parseUtcInput(
+                    el("createStart")
+                        .value
+                );
+
+
+            const endAt =
+                parseUtcInput(
+                    el("createEnd")
+                        .value
+                );
+
 
             const showResults =
                 el("createShowResults")
@@ -1367,11 +1093,12 @@ el("createElectionForm")
 
                 showMessage(
                     el("createMessage"),
-                    "اكتب عنوان التصويت."
+                    "عنوان التصويت مطلوب."
                 );
 
                 return;
             }
+
 
             if (!serverId) {
 
@@ -1383,12 +1110,13 @@ el("createElectionForm")
                 return;
             }
 
+
             if (
+                minChoices < 1 ||
                 maxChoices <
-                minChoices ||
+                    minChoices ||
                 maxChoices >
-                seats ||
-                minChoices < 1
+                    seats
             ) {
 
                 showMessage(
@@ -1399,25 +1127,16 @@ el("createElectionForm")
                 return;
             }
 
-            if (
-                !startInput ||
-                !endInput
-            ) {
+
+            if (!startAt || !endAt) {
 
                 showMessage(
                     el("createMessage"),
-                    "حدد بداية ونهاية التصويت."
+                    "استخدم الصيغة YYYY-MM-DD HH:mm بالتوقيت UTC."
                 );
 
                 return;
             }
-
-
-            const startAt =
-                `${startInput}:00Z`;
-
-            const endAt =
-                `${endInput}:00Z`;
 
 
             if (
@@ -1504,14 +1223,18 @@ el("createElectionForm")
                 el("createElectionForm")
                     .reset();
 
+
                 el("createSeats")
                     .value = "5";
+
 
                 el("createMinChoices")
                     .value = "1";
 
+
                 el("createMaxChoices")
                     .value = "5";
+
 
                 await loadElections(
                     currentFilter
@@ -1542,166 +1265,238 @@ el("createElectionForm")
 
 
 /* =========================================================
-   EDIT ELECTION
+   LOAD SERVERS
 ========================================================= */
 
-window.editElection =
-    async function(electionId) {
+async function loadServers() {
+
+    try {
 
         const response =
             await apiFetch(
-                `/admin/election/${encodeURIComponent(
-                    electionId
-                )}`
+                "/admin/servers"
             );
+
 
         const data =
             await response.json();
 
-        if (!response.ok) {
-            alert(
-                data.message ||
-                "تعذر تحميل الانتخابات."
-            );
-            return;
-        }
-
-        const e =
-            data.election;
-
-        const title =
-            prompt(
-                "عنوان التصويت:",
-                e.title
-            );
-
-        if (title === null) {
-            return;
-        }
-
-        const description =
-            prompt(
-                "الوصف:",
-                e.description || ""
-            );
-
-        if (description === null) {
-            return;
-        }
-
-        let endAt =
-            e.end_at;
 
         if (
-            e.effective_status ===
-            "open"
+            !response.ok ||
+            !data.success
         ) {
+            return;
+        }
 
-            const newEnd =
-                prompt(
-                    "موعد النهاية بصيغة ISO UTC:",
-                    e.end_at
-                );
 
-            if (newEnd === null) {
-                return;
-            }
+        const activeServers =
+            data.servers || [];
 
-            endAt = newEnd;
 
-            try {
+        const createServer =
+            el("createServer");
 
-                const response2 =
-                    await apiFetch(
-                        `/admin/election/${encodeURIComponent(
-                            electionId
-                        )}`,
-                        {
-                            method: "PATCH",
 
-                            body:
-                                JSON.stringify({
-                                    title,
-                                    description,
-                                    end_at:
-                                        endAt
-                                })
-                        }
-                    );
+        const playersServer =
+            el("playersServer");
 
-                const data2 =
-                    await response2.json();
 
-                if (
-                    !response2.ok ||
-                    !data2.success
-                ) {
-                    alert(
-                        data2.message ||
-                        "تعذر التعديل."
-                    );
-                    return;
-                }
+        const options =
+            activeServers
+                .filter(
+                    server =>
+                        Number(
+                            server.active
+                        ) === 1
+                )
+                .map(
+                    server => `
+                        <option
+                            value="${server.server_id}"
+                        >
+                            ${escapeHtml(
+                                server.name
+                            )}
+                        </option>
+                    `
+                )
+                .join("");
 
-            } catch {
 
-                alert(
-                    "تعذر الاتصال بالخادم."
-                );
+        createServer.innerHTML = `
+            <option value="">
+                اختر السيرفر
+            </option>
+            ${options}
+        `;
 
-                return;
-            }
 
-        } else {
+        playersServer.innerHTML =
+            options || `
+                <option value="">
+                    لا توجد سيرفرات نشطة
+                </option>
+            `;
 
-            const newStart =
-                prompt(
-                    "البداية UTC:",
-                    e.start_at
-                );
 
-            if (newStart === null) {
-                return;
-            }
+        renderServers(
+            data.servers || []
+        );
 
-            const newEnd =
-                prompt(
-                    "النهاية UTC:",
-                    e.end_at
-                );
+    } catch (error) {
 
-            if (newEnd === null) {
-                return;
-            }
+        console.error(
+            "Servers error:",
+            error
+        );
+    }
+}
 
-            const newMin =
+
+/* =========================================================
+   SERVERS LIST
+========================================================= */
+
+function renderServers(
+    servers
+) {
+
+    const container =
+        el("serversList");
+
+
+    if (!servers.length) {
+
+        container.innerHTML = `
+            <div class="empty">
+                لا توجد سيرفرات.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        servers
+            .map(
+                server =>
+                    `
+                    <div class="server-row">
+
+                        <div>
+
+                            <div class="server-name">
+                                ${escapeHtml(
+                                    server.name
+                                )}
+                            </div>
+
+                            <div class="server-id">
+                                Server ID:
+                                ${server.server_id}
+                            </div>
+
+                        </div>
+
+                        <div class="server-actions">
+
+                            <button
+                                class="btn-dark"
+                                onclick="renameServer(
+                                    ${server.server_id},
+                                    '${escapeHtml(
+                                        server.name
+                                    )}'
+                                )"
+                            >
+                                تعديل
+                            </button>
+
+                            <button
+                                class="${
+                                    Number(
+                                        server.active
+                                    ) === 1
+                                        ? "btn-red"
+                                        : "btn-green"
+                                }"
+                                onclick="toggleServer(
+                                    ${server.server_id},
+                                    ${Number(
+                                        server.active
+                                    )}
+                                )"
+                            >
+                                ${
+                                    Number(
+                                        server.active
+                                    ) === 1
+                                        ? "تعطيل"
+                                        : "تفعيل"
+                                }
+                            </button>
+
+                        </div>
+
+                    </div>
+                    `
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   ADD SERVER
+========================================================= */
+
+el("serverForm")
+    .addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+            hideMessage(
+                el("serverMessage")
+            );
+
+
+            const serverId =
                 Number(
-                    prompt(
-                        "أقل عدد اختيارات:",
-                        e.min_choices
-                    )
+                    el("serverIdInput")
+                        .value
                 );
 
-            const newMax =
-                Number(
-                    prompt(
-                        "أقصى عدد اختيارات:",
-                        e.max_choices
-                    )
-                );
+
+            const name =
+                el("serverNameInput")
+                    .value
+                    .trim();
 
 
             if (
                 !Number.isInteger(
-                    newMin
+                    serverId
                 ) ||
-                !Number.isInteger(
-                    newMax
-                )
+                serverId <= 0
             ) {
 
-                alert(
-                    "قيم الاختيارات غير صحيحة."
+                showMessage(
+                    el("serverMessage"),
+                    "رقم السيرفر غير صحيح."
+                );
+
+                return;
+            }
+
+
+            if (!name) {
+
+                showMessage(
+                    el("serverMessage"),
+                    "اسم السيرفر مطلوب."
                 );
 
                 return;
@@ -1710,70 +1505,217 @@ window.editElection =
 
             try {
 
-                const response2 =
+                const response =
                     await apiFetch(
-                        `/admin/election/${encodeURIComponent(
-                            electionId
-                        )}`,
+                        "/admin/servers",
                         {
-                            method: "PATCH",
+                            method: "POST",
 
                             body:
                                 JSON.stringify({
-                                    title,
-                                    description,
-                                    min_choices:
-                                        newMin,
-                                    max_choices:
-                                        newMax,
-                                    start_at:
-                                        newStart,
-                                    end_at:
-                                        newEnd
+                                    server_id:
+                                        serverId,
+                                    name
                                 })
                         }
                     );
 
-                const data2 =
-                    await response2.json();
+
+                const data =
+                    await response.json();
+
 
                 if (
-                    !response2.ok ||
-                    !data2.success
+                    !response.ok ||
+                    !data.success
                 ) {
 
-                    alert(
-                        data2.message ||
-                        "تعذر التعديل."
+                    showMessage(
+                        el("serverMessage"),
+                        data.message ||
+                        "تعذر إضافة السيرفر."
                     );
 
                     return;
                 }
 
-            } catch {
+
+                showMessage(
+                    el("serverMessage"),
+                    "تمت إضافة السيرفر بنجاح.",
+                    "success"
+                );
+
+
+                el("serverForm")
+                    .reset();
+
+
+                await loadServers();
+
+            } catch (error) {
+
+                console.error(error);
+
+                showMessage(
+                    el("serverMessage"),
+                    "حدث خطأ أثناء الاتصال بالخادم."
+                );
+            }
+        }
+    );
+
+
+/* =========================================================
+   RENAME SERVER
+========================================================= */
+
+window.renameServer =
+    async function(
+        serverId,
+        oldName
+    ) {
+
+        const name =
+            prompt(
+                "اسم السيرفر الجديد:",
+                oldName
+            );
+
+
+        if (
+            name === null ||
+            !name.trim()
+        ) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await apiFetch(
+                    `/admin/servers/${serverId}`,
+                    {
+                        method: "PATCH",
+
+                        body:
+                            JSON.stringify({
+                                name:
+                                    name.trim()
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
 
                 alert(
-                    "تعذر الاتصال بالخادم."
+                    data.message ||
+                    "تعذر تعديل السيرفر."
                 );
 
                 return;
             }
+
+
+            await loadServers();
+
+        } catch {
+
+            alert(
+                "تعذر الاتصال بالخادم."
+            );
         }
-
-        await loadElections(
-            currentFilter
-        );
-
-        await refreshDashboard();
     };
 
 
 /* =========================================================
-   OPEN NOW
+   TOGGLE SERVER
 ========================================================= */
 
-window.openElectionNow =
-    async function(electionId) {
+window.toggleServer =
+    async function(
+        serverId,
+        active
+    ) {
+
+        const enable =
+            Number(active) !== 1;
+
+
+        if (
+            !confirm(
+                enable
+                    ? "تفعيل هذا السيرفر؟"
+                    : "تعطيل هذا السيرفر؟"
+            )
+        ) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await apiFetch(
+                    `/admin/servers/${serverId}`,
+                    {
+                        method: "PATCH",
+
+                        body:
+                            JSON.stringify({
+                                active:
+                                    enable
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                alert(
+                    data.message ||
+                    "تعذر تحديث السيرفر."
+                );
+
+                return;
+            }
+
+
+            await loadServers();
+
+        } catch {
+
+            alert(
+                "تعذر الاتصال بالخادم."
+            );
+        }
+    };
+
+
+/* =========================================================
+   OPEN ELECTION
+========================================================= */
+
+window.openElection =
+    async function(
+        electionId
+    ) {
 
         if (
             !confirm(
@@ -1782,6 +1724,7 @@ window.openElectionNow =
         ) {
             return;
         }
+
 
         try {
 
@@ -1796,8 +1739,10 @@ window.openElectionNow =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1812,25 +1757,30 @@ window.openElectionNow =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
             await refreshDashboard();
 
-        } catch (error) {
+        } catch {
 
-            console.error(error);
+            alert(
+                "حدث خطأ أثناء فتح التصويت."
+            );
         }
     };
 
 
 /* =========================================================
-   CLOSE
+   CLOSE ELECTION
 ========================================================= */
 
 window.closeElection =
-    async function(electionId) {
+    async function(
+        electionId
+    ) {
 
         if (
             !confirm(
@@ -1839,6 +1789,7 @@ window.closeElection =
         ) {
             return;
         }
+
 
         try {
 
@@ -1853,8 +1804,10 @@ window.closeElection =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1869,30 +1822,39 @@ window.closeElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
             await refreshDashboard();
 
-        } catch {}
+        } catch {
+
+            alert(
+                "حدث خطأ أثناء إنهاء التصويت."
+            );
+        }
     };
 
 
 /* =========================================================
-   CANCEL
+   CANCEL ELECTION
 ========================================================= */
 
 window.cancelElection =
-    async function(electionId) {
+    async function(
+        electionId
+    ) {
 
         if (
             !confirm(
-                "سيتم إلغاء عملية التصويت. لن يتم حذف السجل. هل أنت متأكد؟"
+                "سيتم إلغاء عملية التصويت. لن يتم حذفها. هل أنت متأكد؟"
             )
         ) {
             return;
         }
+
 
         try {
 
@@ -1907,8 +1869,10 @@ window.cancelElection =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1923,38 +1887,809 @@ window.cancelElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
             await refreshDashboard();
 
-        } catch {}
+        } catch {
+
+            alert(
+                "حدث خطأ أثناء إلغاء التصويت."
+            );
+        }
     };
 
 
 /* =========================================================
-   CANDIDATES
+   DELETE CANCELLED ELECTION
+========================================================= */
+
+window.deleteCancelledElection =
+    async function(
+        electionId
+    ) {
+
+        const confirmed =
+            confirm(
+                "تحذير:\n\nسيتم حذف عملية التصويت الملغاة نهائيًا.\n\nلا يمكن التراجع عن هذا الإجراء.\n\nهل تريد المتابعة؟"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                alert(
+                    data.message ||
+                    "تعذر حذف التصويت."
+                );
+
+                return;
+            }
+
+
+            await loadElections(
+                currentFilter
+            );
+
+            await refreshDashboard();
+
+        } catch {
+
+            alert(
+                "حدث خطأ أثناء حذف التصويت."
+            );
+        }
+    };
+
+
+/* =========================================================
+   EDIT ELECTION
+========================================================= */
+
+window.editElection =
+    async function(
+        electionId
+    ) {
+
+        try {
+
+            const response =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                alert(
+                    data.message ||
+                    "تعذر تحميل الانتخابات."
+                );
+
+                return;
+            }
+
+
+            const election =
+                data.election;
+
+
+            const title =
+                prompt(
+                    "عنوان التصويت:",
+                    election.title
+                );
+
+
+            if (title === null) {
+                return;
+            }
+
+
+            const description =
+                prompt(
+                    "الوصف:",
+                    election.description ||
+                    ""
+                );
+
+
+            if (description === null) {
+                return;
+            }
+
+
+            const endAt =
+                prompt(
+                    "النهاية بصيغة UTC:\nYYYY-MM-DDTHH:mm:ssZ",
+                    election.end_at
+                );
+
+
+            if (endAt === null) {
+                return;
+            }
+
+
+            const response2 =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}`,
+                    {
+                        method: "PATCH",
+
+                        body:
+                            JSON.stringify({
+                                title:
+                                    title.trim(),
+                                description:
+                                    description.trim(),
+                                end_at:
+                                    endAt.trim()
+                            })
+                    }
+                );
+
+
+            const data2 =
+                await response2.json();
+
+
+            if (
+                !response2.ok ||
+                !data2.success
+            ) {
+
+                alert(
+                    data2.message ||
+                    "تعذر تعديل التصويت."
+                );
+
+                return;
+            }
+
+
+            await loadElections(
+                currentFilter
+            );
+
+            await refreshDashboard();
+
+        } catch {
+
+            alert(
+                "حدث خطأ أثناء تعديل التصويت."
+            );
+        }
+    };
+
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+window.openDetails =
+    async function(
+        electionId
+    ) {
+
+        currentElectionId =
+            electionId;
+
+
+        el("electionModal")
+            .classList.add("show");
+
+
+        el("modalBody")
+            .innerHTML = `
+                <div class="empty">
+                    جاري تحميل التفاصيل...
+                </div>
+            `;
+
+
+        try {
+
+            const detailsResponse =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}`
+                );
+
+
+            const details =
+                await detailsResponse.json();
+
+
+            if (
+                !detailsResponse.ok ||
+                !details.success
+            ) {
+
+                el("modalBody")
+                    .innerHTML = `
+                        <div class="empty">
+                            تعذر تحميل التفاصيل.
+                        </div>
+                    `;
+
+                return;
+            }
+
+
+            const votersResponse =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}/voters?limit=5000`
+                );
+
+
+            const votersData =
+                await votersResponse.json();
+
+
+            const resultsResponse =
+                await apiFetch(
+                    `/admin/election/${encodeURIComponent(
+                        electionId
+                    )}/results`
+                );
+
+
+            const resultsData =
+                await resultsResponse.json();
+
+
+            const election =
+                details.election;
+
+
+            const candidates =
+                details.candidates ||
+                [];
+
+
+            const voters =
+                votersData.voters ||
+                [];
+
+
+            const results =
+                resultsData.results ||
+                [];
+
+
+            el("modalTitle")
+                .textContent =
+                election.title;
+
+
+            el("modalElectionId")
+                .textContent =
+                election.election_id;
+
+
+            let html = `
+
+                <div class="grid-3">
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            الحالة
+                        </div>
+                        <div class="meta-value">
+                            ${statusBadge(
+                                election.effective_status
+                            )}
+                        </div>
+                    </div>
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            السيرفر
+                        </div>
+                        <div class="meta-value">
+                            ${election.server_id}
+                        </div>
+                    </div>
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            المقاعد
+                        </div>
+                        <div class="meta-value">
+                            ${election.seats}
+                        </div>
+                    </div>
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            المرشحون
+                        </div>
+                        <div class="meta-value">
+                            ${election.candidate_count}
+                        </div>
+                    </div>
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            المصوتون
+                        </div>
+                        <div class="meta-value">
+                            ${election.voter_count}
+                        </div>
+                    </div>
+
+                    <div class="meta-box">
+                        <div class="meta-label">
+                            المشاركة
+                        </div>
+                        <div class="meta-value">
+                            ${election.participation_rate}%
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="box">
+
+                    <h3 class="box-title">
+                        المرشحون
+                    </h3>
+
+                    ${
+                        candidates.length
+                            ? candidates
+                                .map(
+                                    candidate =>
+                                        `
+                                        <div class="candidate">
+
+                                            <div>
+
+                                                <div class="candidate-name">
+                                                    ${escapeHtml(
+                                                        candidate.nickname
+                                                    )}
+                                                </div>
+
+                                                <div class="candidate-uid">
+                                                    UID:
+                                                    ${escapeHtml(
+                                                        candidate.uid
+                                                    )}
+                                                </div>
+
+                                            </div>
+
+                                            ${
+                                                election.effective_status === "draft" ||
+                                                election.effective_status === "scheduled"
+                                                    ? `
+                                                        <button
+                                                            onclick="deleteCandidate(
+                                                                '${escapeHtml(
+                                                                    election.election_id
+                                                                )}',
+                                                                ${candidate.candidate_id}
+                                                            )"
+                                                        >
+                                                            حذف
+                                                        </button>
+                                                    `
+                                                    : ""
+                                            }
+
+                                        </div>
+                                        `
+                                )
+                                .join("")
+                            : `
+                                <div class="empty">
+                                    لا يوجد مرشحون.
+                                </div>
+                            `
+                    }
+
+
+                    ${
+                        election.effective_status === "draft" ||
+                        election.effective_status === "scheduled"
+                            ? `
+                                <div
+                                    style="
+                                        margin-top:18px;
+                                    "
+                                >
+
+                                    <div class="form-group">
+
+                                        <label>
+                                            إضافة مرشح بالـUID
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="candidateUidInput"
+                                            placeholder="UID"
+                                        >
+
+                                    </div>
+
+                                    <button
+                                        class="btn-green"
+                                        onclick="addCandidate(
+                                            '${escapeHtml(
+                                                election.election_id
+                                            )}'
+                                        )"
+                                    >
+                                        إضافة المرشح
+                                    </button>
+
+                                    <div
+                                        class="message"
+                                        id="candidateMessage"
+                                    ></div>
+
+                                </div>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                <div class="box">
+
+                    <h3 class="box-title">
+                        النتائج
+                    </h3>
+
+
+                    <div class="stats">
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                المصوتون
+                            </div>
+
+                            <div class="stat-value">
+                                ${
+                                    resultsData.stats
+                                        ?.voters ??
+                                    0
+                                }
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                المؤهلون
+                            </div>
+
+                            <div class="stat-value">
+                                ${
+                                    resultsData.stats
+                                        ?.eligible ??
+                                    0
+                                }
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                المشاركة
+                            </div>
+
+                            <div class="stat-value">
+                                ${
+                                    resultsData.stats
+                                        ?.participation_rate ??
+                                    0
+                                }%
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                المقاعد
+                            </div>
+
+                            <div class="stat-value">
+                                ${
+                                    election.seats
+                                }
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    ${
+                        results.length
+                            ? results
+                                .map(
+                                    row =>
+                                        `
+                                        <div class="result">
+
+                                            <div class="result-top">
+
+                                                <span>
+                                                    ${escapeHtml(
+                                                        row.nickname
+                                                    )}
+                                                </span>
+
+                                                <span>
+                                                    ${row.votes}
+                                                    صوت
+                                                    —
+                                                    ${row.percentage}%
+                                                </span>
+
+                                            </div>
+
+
+                                            <div class="bar">
+
+                                                <div
+                                                    class="bar-fill"
+                                                    style="
+                                                        width:${Math.min(
+                                                            Number(
+                                                                row.percentage
+                                                            ),
+                                                            100
+                                                        )}%;
+                                                    "
+                                                ></div>
+
+                                            </div>
+
+                                        </div>
+                                        `
+                                )
+                                .join("")
+                            : `
+                                <div class="empty">
+                                    لا توجد أصوات حتى الآن.
+                                </div>
+                            `
+                    }
+
+                </div>
+
+
+                <div class="box">
+
+                    <h3 class="box-title">
+                        المصوتون
+                    </h3>
+
+                    <p
+                        style="
+                            color:#806f5b;
+                            font-size:12px;
+                            line-height:1.8;
+                        "
+                    >
+                        يظهر من قام بالتصويت ووقت تصويته فقط.
+                        لا يتم كشف المرشح الذي اختاره الناخب.
+                    </p>
+
+
+                    ${
+                        voters.length
+                            ? `
+                                <div class="table-wrap">
+
+                                    <table>
+
+                                        <thead>
+
+                                            <tr>
+
+                                                <th>
+                                                    UID
+                                                </th>
+
+                                                <th>
+                                                    الاسم
+                                                </th>
+
+                                                <th>
+                                                    وقت التصويت
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+                                        <tbody>
+
+                                            ${voters
+                                                .map(
+                                                    voter =>
+                                                        `
+                                                        <tr>
+
+                                                            <td>
+                                                                ${escapeHtml(
+                                                                    voter.uid
+                                                                )}
+                                                            </td>
+
+                                                            <td>
+                                                                ${escapeHtml(
+                                                                    voter.nickname ||
+                                                                    "-"
+                                                                )}
+                                                            </td>
+
+                                                            <td dir="ltr">
+                                                                ${formatDate(
+                                                                    voter.created_at
+                                                                )}
+                                                            </td>
+
+                                                        </tr>
+                                                        `
+                                                )
+                                                .join("")}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+                            `
+                            : `
+                                <div class="empty">
+                                    لا يوجد مصوتون حتى الآن.
+                                </div>
+                            `
+                    }
+
+                </div>
+            `;
+
+
+            el("modalBody")
+                .innerHTML =
+                html;
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            el("modalBody")
+                .innerHTML = `
+                    <div class="empty">
+                        حدث خطأ أثناء تحميل التفاصيل.
+                    </div>
+                `;
+        }
+    };
+
+
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
+
+el("closeModal")
+    .addEventListener(
+        "click",
+        () => {
+
+            el("electionModal")
+                .classList.remove(
+                    "show"
+                );
+        }
+    );
+
+
+el("electionModal")
+    .addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                el("electionModal")
+            ) {
+
+                el("electionModal")
+                    .classList.remove(
+                        "show"
+                    );
+            }
+        }
+    );
+
+
+/* =========================================================
+   ADD CANDIDATE
 ========================================================= */
 
 window.addCandidate =
-    async function(electionId) {
+    async function(
+        electionId
+    ) {
 
         const input =
             el("candidateUidInput");
 
+
         const uid =
             input.value.trim();
+
 
         if (!uid) {
 
             showMessage(
-                el("candidateActionMessage"),
+                el("candidateMessage"),
                 "أدخل UID."
             );
 
             return;
         }
+
 
         try {
 
@@ -1965,6 +2700,7 @@ window.addCandidate =
                     )}/candidates`,
                     {
                         method: "POST",
+
                         body:
                             JSON.stringify({
                                 uid
@@ -1972,8 +2708,10 @@ window.addCandidate =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1981,7 +2719,7 @@ window.addCandidate =
             ) {
 
                 showMessage(
-                    el("candidateActionMessage"),
+                    el("candidateMessage"),
                     data.message ||
                     "تعذر إضافة المرشح."
                 );
@@ -1989,27 +2727,27 @@ window.addCandidate =
                 return;
             }
 
-            showMessage(
-                el("candidateActionMessage"),
-                "تمت إضافة المرشح.",
-                "success"
-            );
 
             input.value = "";
 
-            await openElectionDetails(
+
+            await openDetails(
                 electionId
             );
 
         } catch {
 
             showMessage(
-                el("candidateActionMessage"),
-                "حدث خطأ أثناء الاتصال بالخادم."
+                el("candidateMessage"),
+                "حدث خطأ أثناء إضافة المرشح."
             );
         }
     };
 
+
+/* =========================================================
+   DELETE CANDIDATE
+========================================================= */
 
 window.deleteCandidate =
     async function(
@@ -2019,11 +2757,12 @@ window.deleteCandidate =
 
         if (
             !confirm(
-                "هل تريد حذف هذا المرشح؟"
+                "حذف هذا المرشح؟"
             )
         ) {
             return;
         }
+
 
         try {
 
@@ -2037,8 +2776,10 @@ window.deleteCandidate =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2053,11 +2794,18 @@ window.deleteCandidate =
                 return;
             }
 
-            await openElectionDetails(
+
+            await openDetails(
                 electionId
             );
 
-        } catch {}
+
+        } catch {
+
+            alert(
+                "تعذر الاتصال بالخادم."
+            );
+        }
     };
 
 
@@ -2072,14 +2820,14 @@ el("validatePlayersButton")
 
             showMessage(
                 el("playersMessage"),
-                "واجهة رفع اللاعبين جاهزة، لكن Endpoint فحص/استيراد الملفات لم يتم بناؤه في الـWorker بعد."
+                "رفع ملفات اللاعبين لم يتم ربطه بالـAPI بعد."
             );
         }
     );
 
 
 /* =========================================================
-   STARTUP
+   INITIAL
 ========================================================= */
 
 updateChoiceLimits();
