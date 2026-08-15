@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,10 @@
 
 <main class="container">
 
-    <!-- Login -->
+    <!-- =========================
+         LOGIN
+    ========================== -->
+
     <section class="card" id="loginCard">
 
         <div class="logo">🔐</div>
@@ -27,31 +31,60 @@
         <form id="loginForm">
 
             <div class="form-group">
+                <label for="adminEmail">
+                    البريد الإلكتروني
+                </label>
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    name="adminEmail"
+                    placeholder="أدخل البريد الإلكتروني"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
                 <label for="adminPassword">
-                    كلمة مرور الإدارة
+                    كلمة المرور
                 </label>
 
                 <input
                     type="password"
                     id="adminPassword"
+                    name="adminPassword"
                     placeholder="أدخل كلمة المرور"
                     autocomplete="current-password"
                     required
                 >
             </div>
 
-            <button type="submit" id="loginButton">
+            <button
+                type="submit"
+                id="loginButton"
+            >
                 تسجيل الدخول
             </button>
 
         </form>
 
-        <div id="loginMessage" class="message"></div>
+        <div
+            id="loginMessage"
+            class="message"
+        ></div>
+
+        <div class="footer">
+            سيوف المجد — لوحة الإدارة
+        </div>
 
     </section>
 
 
-    <!-- Admin Dashboard -->
+    <!-- =========================
+         ADMIN DASHBOARD
+    ========================== -->
+
     <section
         class="card"
         id="dashboardCard"
@@ -63,20 +96,73 @@
         <h1>لوحة الإدارة</h1>
 
         <p class="subtitle">
-            إنشاء وإدارة انتخابات برلمان سيوف المجد.
+            إدارة انتخابات برلمان سيوف المجد.
         </p>
 
 
-        <!-- Create Election -->
+        <!-- =========================
+             ADMIN HEADER
+        ========================== -->
+
+        <div
+            style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 30px;
+                padding-bottom: 18px;
+                border-bottom: 1px solid rgba(190, 145, 70, 0.25);
+            "
+        >
+
+            <span
+                id="adminEmailDisplay"
+                style="
+                    color: #cdbb9f;
+                    font-size: 13px;
+                "
+            ></span>
+
+            <button
+                type="button"
+                id="logoutButton"
+                style="
+                    width: auto;
+                    margin-top: 0;
+                    padding: 9px 16px;
+                    font-size: 13px;
+                "
+            >
+                تسجيل الخروج
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             CREATE ELECTION
+        ========================== -->
+
         <div id="createElectionSection">
 
-            <h2 style="margin-bottom: 20px; color: #d9ad5b;">
+            <h2
+                style="
+                    margin-bottom: 20px;
+                    color: #d9ad5b;
+                    font-size: 22px;
+                "
+            >
                 إنشاء انتخابات جديدة
             </h2>
 
             <form id="createElectionForm">
 
+
+                <!-- SERVER -->
+
                 <div class="form-group">
+
                     <label for="serverId">
                         السيرفر
                     </label>
@@ -92,8 +178,10 @@
                             background: #100c08;
                             color: #fff;
                             font-size: 16px;
+                            outline: none;
                         "
                     >
+
                         <option value="">
                             اختر السيرفر
                         </option>
@@ -105,13 +193,18 @@
                         <option value="19">
                             Server 19
                         </option>
+
                     </select>
+
                 </div>
 
 
+                <!-- SEATS -->
+
                 <div class="form-group">
+
                     <label for="seats">
-                        عدد المقاعد
+                        عدد مقاعد البرلمان
                     </label>
 
                     <select
@@ -125,8 +218,10 @@
                             background: #100c08;
                             color: #fff;
                             font-size: 16px;
+                            outline: none;
                         "
                     >
+
                         <option value="3">
                             3 مقاعد
                         </option>
@@ -134,13 +229,18 @@
                         <option value="5" selected>
                             5 مقاعد
                         </option>
+
                     </select>
+
                 </div>
 
 
+                <!-- MIN CHOICES -->
+
                 <div class="form-group">
+
                     <label for="minChoices">
-                        أقل عدد مرشحين يمكن اختيارهم
+                        أقل عدد من المرشحين يمكن اختيارهم
                     </label>
 
                     <input
@@ -150,12 +250,16 @@
                         value="1"
                         required
                     >
+
                 </div>
 
 
+                <!-- MAX CHOICES -->
+
                 <div class="form-group">
+
                     <label for="maxChoices">
-                        أقصى عدد مرشحين يمكن اختيارهم
+                        أقصى عدد من المرشحين يمكن اختيارهم
                     </label>
 
                     <input
@@ -165,12 +269,16 @@
                         value="5"
                         required
                     >
+
                 </div>
 
 
+                <!-- START -->
+
                 <div class="form-group">
+
                     <label for="startAt">
-                        وقت البداية — UTC
+                        بداية التصويت — UTC
                     </label>
 
                     <input
@@ -178,12 +286,27 @@
                         id="startAt"
                         required
                     >
+
+                    <small
+                        style="
+                            display: block;
+                            margin-top: 6px;
+                            color: #8f806c;
+                            font-size: 12px;
+                        "
+                    >
+                        أدخل الوقت بالتوقيت الدولي UTC.
+                    </small>
+
                 </div>
 
 
+                <!-- END -->
+
                 <div class="form-group">
+
                     <label for="endAt">
-                        وقت النهاية — UTC
+                        نهاية التصويت — UTC
                     </label>
 
                     <input
@@ -191,8 +314,22 @@
                         id="endAt"
                         required
                     >
+
+                    <small
+                        style="
+                            display: block;
+                            margin-top: 6px;
+                            color: #8f806c;
+                            font-size: 12px;
+                        "
+                    >
+                        أدخل الوقت بالتوقيت الدولي UTC.
+                    </small>
+
                 </div>
 
+
+                <!-- RESULTS -->
 
                 <div
                     class="form-group"
@@ -209,18 +346,24 @@
                         style="
                             width: 20px;
                             height: 20px;
+                            cursor: pointer;
                         "
                     >
 
                     <label
                         for="showResults"
-                        style="margin: 0; cursor: pointer;"
+                        style="
+                            margin: 0;
+                            cursor: pointer;
+                        "
                     >
                         إظهار النتائج أثناء التصويت
                     </label>
 
                 </div>
 
+
+                <!-- CREATE -->
 
                 <button
                     type="submit"
