@@ -3,247 +3,551 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>لوحة إدارة نظام التصويت</title>
 
-    <link rel="stylesheet" href="style.css">
-
     <style>
-        .admin-nav {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
+        * {
+            box-sizing: border-box;
         }
 
-        .admin-nav button {
-            width: auto;
+        body {
             margin: 0;
-            padding: 10px 15px;
-            background: #21180f;
-            color: #d8c5a5;
-            border: 1px solid #5a452b;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at top,
+                    #2b2116 0%,
+                    #17110c 42%,
+                    #0d0906 100%
+                );
+            color: #eadfc9;
+            font-family:
+                Tahoma,
+                Arial,
+                sans-serif;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        .container {
+            width: min(1000px, calc(100% - 30px));
+            margin: 25px auto;
+        }
+
+        .card {
+            background: rgba(20, 14, 9, 0.96);
+            border: 1px solid #6c4e23;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow:
+                0 20px 70px rgba(0, 0, 0, .45);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 46px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #dcae57;
+            font-size: 31px;
+            margin: 0 0 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b9a98d;
+            line-height: 1.9;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #776851;
+            font-size: 11px;
+            margin-top: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ddc7a0;
             font-size: 14px;
         }
 
-        .admin-nav button.active {
-            background: linear-gradient(135deg, #d4a54f, #996925);
-            color: #171008;
-            border-color: transparent;
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #5b4529;
+            background: #100c08;
+            color: #f5ead8;
+            border-radius: 11px;
+            padding: 13px 14px;
+            outline: none;
+            font-size: 15px;
         }
 
-        .admin-section {
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #cf9d42;
+            box-shadow:
+                0 0 0 2px rgba(207, 157, 66, .12);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        select,
+        option {
+            color-scheme: dark;
+            background-color: #100c08;
+        }
+
+        input[type="datetime-local"] {
+            direction: ltr;
+            text-align: center;
+        }
+
+        input[type="checkbox"] {
+            width: 19px;
+            height: 19px;
+            accent-color: #ca9840;
+        }
+
+        input[type="file"] {
+            padding: 11px;
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 11px;
+            padding: 13px 16px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            background:
+                linear-gradient(
+                    135deg,
+                    #d8aa4f,
+                    #9d6d23
+                );
+            color: #171008;
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .login-card {
+            max-width: 520px;
+            margin: 65px auto;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid #3c2e1f;
+        }
+
+        .admin-email {
+            color: #d6c4a3;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .logout-btn {
+            width: auto;
+            background: #21180f;
+            border: 1px solid #59462e;
+            color: #dfcaa4;
+            padding: 9px 16px;
+            font-size: 13px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .nav button {
+            width: auto;
+            min-width: 115px;
+            background: #21180f;
+            color: #d8c5a2;
+            border: 1px solid #5a452b;
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .nav button.active {
+            background:
+                linear-gradient(
+                    135deg,
+                    #d3a348,
+                    #a26f27
+                );
+            color: #171008;
+        }
+
+        .section {
             display: none;
         }
 
-        .admin-section.active {
+        .section.active {
             display: block;
         }
 
         .section-title {
-            color: #d9ad5b;
-            font-size: 22px;
-            margin: 0 0 8px;
+            color: #dcae57;
+            font-size: 23px;
+            margin: 0 0 7px;
         }
 
         .section-description {
-            color: #a99a83;
+            color: #a49378;
             font-size: 13px;
-            line-height: 1.8;
-            margin-bottom: 22px;
+            line-height: 1.9;
+            margin: 0 0 22px;
         }
 
-        .admin-box {
-            background: rgba(255,255,255,.025);
-            border: 1px solid rgba(190,145,70,.25);
-            border-radius: 14px;
-            padding: 18px;
+        .box {
+            background: #17110c;
+            border: 1px solid #493721;
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 18px;
         }
 
-        .admin-box h3 {
-            color: #e0c18b;
-            margin: 0 0 15px;
-            font-size: 17px;
+        .box-title {
+            color: #e0c08a;
+            font-size: 18px;
+            margin: 0 0 16px;
         }
 
-        .two-columns {
+        .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 15px;
         }
 
-        .stat-grid {
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
-            margin-bottom: 20px;
         }
 
-        .stat-card {
-            background: #17110c;
-            border: 1px solid #4f3c26;
-            border-radius: 12px;
-            padding: 16px;
+        .stat {
+            background: #120d08;
+            border: 1px solid #433320;
+            border-radius: 13px;
+            padding: 17px 10px;
             text-align: center;
         }
 
         .stat-label {
-            color: #9c8b73;
-            font-size: 12px;
+            color: #87775f;
+            font-size: 11px;
             margin-bottom: 7px;
         }
 
         .stat-value {
-            color: #e3bd73;
-            font-size: 22px;
+            color: #e1b967;
+            font-size: 25px;
             font-weight: bold;
         }
 
-        .election-card {
-            background: #17110c;
-            border: 1px solid #4e3b25;
-            border-radius: 14px;
-            padding: 17px;
-            margin-bottom: 12px;
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
-        .election-header {
+        .filters button {
+            width: auto;
+            background: #22180e;
+            color: #cdbb99;
+            border: 1px solid #4e3b25;
+            padding: 8px 13px;
+            font-size: 12px;
+        }
+
+        .filters button.active {
+            background: #c7963f;
+            color: #181008;
+        }
+
+        .election {
+            background: #110c08;
+            border: 1px solid #493721;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .election-head {
             display: flex;
             justify-content: space-between;
+            gap: 10px;
             align-items: flex-start;
-            gap: 15px;
         }
 
         .election-title {
-            color: #e2bd73;
-            font-size: 18px;
+            color: #e0b865;
+            font-size: 19px;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .election-id {
-            color: #766853;
-            font-size: 11px;
+            color: #72634f;
             direction: ltr;
             text-align: right;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 14px 0;
-        }
-
-        .meta-item {
-            border: 1px solid #3f3121;
-            border-radius: 10px;
-            padding: 10px;
-            background: #110c08;
-        }
-
-        .meta-label {
-            color: #7f705d;
-            font-size: 11px;
-            margin-bottom: 4px;
-        }
-
-        .meta-value {
-            color: #d7c6a7;
-            font-size: 13px;
+            font-size: 10px;
         }
 
         .badge {
             display: inline-block;
-            padding: 6px 10px;
             border-radius: 20px;
+            padding: 6px 10px;
             font-size: 11px;
+            white-space: nowrap;
         }
 
-        .badge-draft {
-            background: rgba(160,120,40,.15);
-            color: #e4bc68;
+        .draft {
+            background: rgba(169, 125, 42, .14);
+            color: #dfb966;
         }
 
-        .badge-scheduled {
-            background: rgba(78,108,160,.15);
-            color: #9cbcf0;
+        .scheduled {
+            background: rgba(78, 110, 165, .14);
+            color: #9bbbef;
         }
 
-        .badge-open {
-            background: rgba(46,125,50,.15);
-            color: #9be7a0;
+        .open {
+            background: rgba(45, 131, 54, .15);
+            color: #9fe5a4;
         }
 
-        .badge-closed {
-            background: rgba(120,120,120,.15);
-            color: #c6c6c6;
+        .closed {
+            background: rgba(140, 140, 140, .13);
+            color: #cfcfcf;
         }
 
-        .badge-cancelled {
-            background: rgba(198,40,40,.15);
-            color: #ff9d9d;
+        .cancelled {
+            background: rgba(178, 43, 40, .16);
+            color: #ff9e9e;
         }
 
-        .toolbar {
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin: 15px 0;
+        }
+
+        .meta-box {
+            background: #0e0a07;
+            border: 1px solid #372a1b;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .meta-label {
+            color: #766852;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            color: #d9c7a6;
+            font-size: 13px;
+        }
+
+        .actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
         }
 
-        .toolbar button {
+        .actions button {
             width: auto;
-            margin: 0;
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-
-        .toolbar button.active {
-            background: #c8963f;
-            color: #171008;
-        }
-
-        .small-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .small-actions button {
-            width: auto;
-            margin: 0;
             flex: 1;
             min-width: 105px;
             padding: 9px 11px;
             font-size: 12px;
         }
 
-        .secondary-btn {
-            background: #231a10 !important;
-            border: 1px solid #59462e !important;
-            color: #ddc9a7 !important;
+        .btn-dark {
+            background: #20170e;
+            color: #ddc8a5;
+            border: 1px solid #5a452c;
         }
 
-        .danger-btn {
-            background: linear-gradient(135deg,#9d3b34,#6e2420) !important;
-            color: #fff !important;
+        .btn-blue {
+            background: linear-gradient(135deg,#557db7,#37597f);
+            color: #fff;
         }
 
-        .success-btn {
-            background: linear-gradient(135deg,#3f8a46,#28652e) !important;
-            color: #fff !important;
+        .btn-green {
+            background: linear-gradient(135deg,#468a4d,#2c6632);
+            color: #fff;
         }
 
-        .info-btn {
-            background: linear-gradient(135deg,#5277ad,#36567f) !important;
-            color: #fff !important;
+        .btn-red {
+            background: linear-gradient(135deg,#a43c35,#712822);
+            color: #fff;
         }
 
-        .table-wrap {
-            overflow-x: auto;
+        .empty {
+            text-align: center;
+            padding: 40px 18px;
+            border: 1px dashed #453522;
+            border-radius: 13px;
+            color: #746651;
+        }
+
+        .message {
+            display: none;
+            border-radius: 10px;
+            padding: 11px;
+            margin-top: 14px;
+            font-size: 13px;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.75);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(900px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: #17110c;
+            border: 1px solid #654a25;
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .close {
+            width: auto;
+            background: #21180f;
+            border: 1px solid #5a452b;
+            color: #ddc8a6;
+            padding: 8px 12px;
+        }
+
+        .candidate {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 0;
+            border-bottom: 1px solid #35291c;
+        }
+
+        .candidate-name {
+            color: #decaab;
+            font-size: 14px;
+        }
+
+        .candidate-uid {
+            color: #766852;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        .candidate button {
+            width: auto;
+            background: #712822;
+            color: white;
+            padding: 7px 10px;
+            font-size: 11px;
+        }
+
+        .result {
+            margin-bottom: 16px;
+        }
+
+        .result-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: #dbc7a4;
+            font-size: 13px;
+        }
+
+        .bar {
+            height: 9px;
+            background: #2a2017;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                #d7a84e,
+                #8b601f
+            );
         }
 
         table {
@@ -254,151 +558,103 @@
 
         th,
         td {
-            padding: 10px 9px;
-            border-bottom: 1px solid #35291c;
+            padding: 10px;
+            border-bottom: 1px solid #34291c;
             text-align: right;
             font-size: 12px;
         }
 
         th {
-            color: #d9ad5b;
-            background: #130e09;
+            background: #120d08;
+            color: #dbae5a;
         }
 
         td {
-            color: #c8baa2;
+            color: #c8b99f;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 35px 15px;
-            color: #7e705d;
-            border: 1px dashed #493825;
-            border-radius: 12px;
+        .table-wrap {
+            overflow-x: auto;
         }
 
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.72);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-card {
-            width: min(900px, 100%);
-            max-height: 92vh;
-            overflow-y: auto;
-            background: #17110c;
-            border: 1px solid #5a452b;
-            border-radius: 18px;
-            padding: 20px;
-            box-shadow: 0 20px 80px rgba(0,0,0,.5);
-        }
-
-        .modal-header {
+        .server-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .close-btn {
-            width: auto !important;
-            margin: 0 !important;
-            background: #281c12 !important;
-            border: 1px solid #5a452b !important;
-            padding: 7px 12px !important;
-        }
-
-        .candidate-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #35291c;
         }
 
-        .candidate-name {
-            color: #ddc8a5;
-            font-size: 14px;
+        .server-name {
+            color: #ddc8a4;
+            font-weight: bold;
         }
 
-        .candidate-uid {
-            color: #766853;
+        .server-id {
+            color: #796a55;
             font-size: 11px;
         }
 
-        .result-row {
-            margin-bottom: 15px;
-        }
-
-        .result-top {
+        .server-actions {
             display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 6px;
-            color: #ddc8a5;
-            font-size: 13px;
+            gap: 6px;
         }
 
-        .result-bar {
-            height: 10px;
-            background: #281f17;
-            border-radius: 10px;
-            overflow: hidden;
+        .server-actions button {
+            width: auto;
+            padding: 7px 10px;
+            font-size: 11px;
         }
 
-        .result-fill {
-            height: 100%;
-            background: linear-gradient(90deg,#d4a54f,#8b5f1e);
-            border-radius: 10px;
-        }
-
-        .confirm-box {
-            background: rgba(198,40,40,.08);
-            border: 1px solid rgba(198,40,40,.25);
-            border-radius: 12px;
-            padding: 14px;
-            color: #efb7b7;
-            line-height: 1.8;
-            margin-top: 12px;
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2,1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 800px) {
-            .stat-grid {
-                grid-template-columns: repeat(2,1fr);
+        @media (max-width: 780px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
             }
 
-            .meta-grid,
-            .detail-grid {
+            .grid-2 {
                 grid-template-columns: 1fr;
             }
 
-            .two-columns {
+            .grid-3 {
                 grid-template-columns: 1fr;
+            }
+
+            .meta {
+                grid-template-columns: 1fr 1fr;
             }
         }
 
         @media (max-width: 520px) {
-            .stat-grid {
+            .container {
+                width: calc(100% - 16px);
+                margin: 8px auto;
+            }
+
+            .card {
+                padding: 17px;
+                border-radius: 16px;
+            }
+
+            .stats {
                 grid-template-columns: 1fr 1fr;
+            }
+
+            .meta {
+                grid-template-columns: 1fr;
+            }
+
+            .election-head {
+                flex-direction: column;
+            }
+
+            .actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .actions button {
+                min-width: 0;
             }
         }
     </style>
@@ -406,23 +662,27 @@
 
 <body>
 
-<main class="container">
+<div class="container">
 
     <!-- LOGIN -->
 
-    <section class="card" id="loginCard">
+    <section
+        class="card login-card"
+        id="loginCard"
+    >
 
         <div class="logo">🔐</div>
 
-        <h1>نظام إدارة التصويت</h1>
+        <h1>لوحة إدارة التصويت</h1>
 
         <p class="subtitle">
-            لوحة التحكم الكاملة في عمليات التصويت والانتخابات.
+            مركز التحكم الكامل في عمليات التصويت والانتخابات.
         </p>
 
         <form id="loginForm">
 
             <div class="form-group">
+
                 <label for="adminEmail">
                     البريد الإلكتروني
                 </label>
@@ -430,13 +690,15 @@
                 <input
                     type="email"
                     id="adminEmail"
-                    placeholder="أدخل البريد الإلكتروني"
                     autocomplete="username"
+                    placeholder="البريد الإلكتروني"
                     required
                 >
+
             </div>
 
             <div class="form-group">
+
                 <label for="adminPassword">
                     كلمة المرور
                 </label>
@@ -444,26 +706,41 @@
                 <input
                     type="password"
                     id="adminPassword"
-                    placeholder="أدخل كلمة المرور"
                     autocomplete="current-password"
+                    placeholder="كلمة المرور"
                     required
                 >
+
             </div>
 
-            <button type="submit" id="loginButton">
+            <button
+                type="submit"
+                id="loginButton"
+            >
                 تسجيل الدخول
             </button>
 
         </form>
 
-        <div id="loginMessage" class="message"></div>
+        <div
+            class="message"
+            id="loginMessage"
+        ></div>
+
+        <div class="footer">
+            نظام التصويت — سيوف المجد
+        </div>
 
     </section>
 
 
     <!-- DASHBOARD -->
 
-    <section class="card" id="dashboardCard" style="display:none;">
+    <section
+        class="card"
+        id="dashboardCard"
+        style="display:none;"
+    >
 
         <div class="logo">🗳️</div>
 
@@ -473,26 +750,18 @@
             مركز التحكم في جميع عمليات التصويت.
         </p>
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:12px;
-            margin-bottom:22px;
-            padding-bottom:16px;
-            border-bottom:1px solid rgba(190,145,70,.25);
-        ">
+
+        <div class="top-bar">
 
             <span
+                class="admin-email"
                 id="adminEmailDisplay"
-                style="color:#cdbb9f;font-size:13px;"
             ></span>
 
             <button
                 type="button"
+                class="logout-btn"
                 id="logoutButton"
-                class="secondary-btn"
-                style="width:auto;margin:0;padding:8px 14px;"
             >
                 تسجيل الخروج
             </button>
@@ -500,11 +769,11 @@
         </div>
 
 
-        <nav class="admin-nav">
+        <div class="nav">
 
             <button
                 class="active"
-                data-section="dashboardSection"
+                data-section="homeSection"
             >
                 الرئيسية
             </button>
@@ -516,19 +785,25 @@
             </button>
 
             <button
+                data-section="serversSection"
+            >
+                السيرفرات
+            </button>
+
+            <button
                 data-section="playersSection"
             >
                 اللاعبين
             </button>
 
-        </nav>
+        </div>
 
 
-        <!-- DASHBOARD -->
+        <!-- HOME -->
 
         <section
-            class="admin-section active"
-            id="dashboardSection"
+            class="section active"
+            id="homeSection"
         >
 
             <h2 class="section-title">
@@ -536,27 +811,30 @@
             </h2>
 
             <p class="section-description">
-                نظرة عامة على نظام التصويت.
+                إحصائيات عامة ومتابعة التصويتات الجارية.
             </p>
 
-            <div class="stat-grid">
 
-                <div class="stat-card">
+            <div class="stats">
+
+                <div class="stat">
                     <div class="stat-label">
                         إجمالي التصويتات
                     </div>
+
                     <div
                         class="stat-value"
-                        id="statTotalElections"
+                        id="statTotal"
                     >
                         -
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat">
                     <div class="stat-label">
                         الجارية / المجدولة
                     </div>
+
                     <div
                         class="stat-value"
                         id="statActive"
@@ -565,10 +843,11 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat">
                     <div class="stat-label">
                         المنتهية
                     </div>
+
                     <div
                         class="stat-value"
                         id="statClosed"
@@ -577,10 +856,11 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat">
                     <div class="stat-label">
                         إجمالي الأصوات
                     </div>
+
                     <div
                         class="stat-value"
                         id="statVotes"
@@ -591,14 +871,15 @@
 
             </div>
 
-            <div class="admin-box">
 
-                <h3>
+            <div class="box">
+
+                <h3 class="box-title">
                     التصويتات الجارية
                 </h3>
 
-                <div id="dashboardOpenList">
-                    <div class="empty-state">
+                <div id="homeOpenList">
+                    <div class="empty">
                         جاري التحميل...
                     </div>
                 </div>
@@ -611,7 +892,7 @@
         <!-- ELECTIONS -->
 
         <section
-            class="admin-section"
+            class="section"
             id="electionsSection"
         >
 
@@ -620,28 +901,29 @@
             </h2>
 
             <p class="section-description">
-                إنشاء، تعديل، فتح، إغلاق، إلغاء ومتابعة جميع عمليات التصويت.
+                إنشاء ومتابعة وتعديل وإلغاء عمليات التصويت.
             </p>
 
 
-            <div class="admin-box">
+            <div class="box">
 
-                <h3>
-                    إنشاء عملية تصويت
+                <h3 class="box-title">
+                    إنشاء عملية تصويت جديدة
                 </h3>
+
 
                 <form id="createElectionForm">
 
                     <div class="form-group">
 
-                        <label for="createTitle">
+                        <label>
                             عنوان التصويت
                         </label>
 
                         <input
                             type="text"
                             id="createTitle"
-                            placeholder="مثال: انتخابات برلمان السيرفر 19"
+                            placeholder="انتخابات برلمان السيرفر 19"
                             required
                         >
 
@@ -650,24 +932,24 @@
 
                     <div class="form-group">
 
-                        <label for="createDescription">
+                        <label>
                             الوصف
                         </label>
 
                         <textarea
                             id="createDescription"
                             rows="3"
-                            placeholder="وصف اختياري للتصويت"
+                            placeholder="وصف التصويت"
                         ></textarea>
 
                     </div>
 
 
-                    <div class="two-columns">
+                    <div class="grid-2">
 
                         <div class="form-group">
 
-                            <label for="createServer">
+                            <label>
                                 السيرفر
                             </label>
 
@@ -677,24 +959,17 @@
                             >
 
                                 <option value="">
-                                    اختر السيرفر
-                                </option>
-
-                                <option value="18">
-                                    Server 18
-                                </option>
-
-                                <option value="19">
-                                    Server 19
+                                    جاري تحميل السيرفرات...
                                 </option>
 
                             </select>
 
                         </div>
 
+
                         <div class="form-group">
 
-                            <label for="createSeats">
+                            <label>
                                 عدد المقاعد
                             </label>
 
@@ -704,7 +979,10 @@
                                     3
                                 </option>
 
-                                <option value="5" selected>
+                                <option
+                                    value="5"
+                                    selected
+                                >
                                     5
                                 </option>
 
@@ -715,11 +993,11 @@
                     </div>
 
 
-                    <div class="two-columns">
+                    <div class="grid-2">
 
                         <div class="form-group">
 
-                            <label for="createMinChoices">
+                            <label>
                                 أقل عدد اختيارات
                             </label>
 
@@ -733,9 +1011,10 @@
 
                         </div>
 
+
                         <div class="form-group">
 
-                            <label for="createMaxChoices">
+                            <label>
                                 أقصى عدد اختيارات
                             </label>
 
@@ -752,31 +1031,36 @@
                     </div>
 
 
-                    <div class="two-columns">
+                    <div class="grid-2">
 
                         <div class="form-group">
 
-                            <label for="createStart">
+                            <label>
                                 البداية — UTC
                             </label>
 
                             <input
-                                type="datetime-local"
+                                type="text"
                                 id="createStart"
+                                placeholder="2026-08-20 00:00"
+                                inputmode="numeric"
                                 required
                             >
 
                         </div>
 
+
                         <div class="form-group">
 
-                            <label for="createEnd">
+                            <label>
                                 النهاية — UTC
                             </label>
 
                             <input
-                                type="datetime-local"
+                                type="text"
                                 id="createEnd"
+                                placeholder="2026-08-22 21:00"
+                                inputmode="numeric"
                                 required
                             >
 
@@ -789,7 +1073,7 @@
                         style="
                             display:flex;
                             align-items:center;
-                            gap:10px;
+                            gap:9px;
                             margin-bottom:18px;
                         "
                     >
@@ -797,7 +1081,6 @@
                         <input
                             type="checkbox"
                             id="createShowResults"
-                            style="width:19px;height:19px;"
                         >
 
                         <label
@@ -819,60 +1102,61 @@
 
                 </form>
 
+
                 <div
-                    id="createMessage"
                     class="message"
+                    id="createMessage"
                 ></div>
 
             </div>
 
 
-            <div class="admin-box">
+            <div class="box">
 
-                <h3>
+                <h3 class="box-title">
                     عمليات التصويت
                 </h3>
 
 
-                <div class="toolbar">
+                <div class="filters">
 
                     <button
-                        class="filter-btn active"
+                        class="filter active"
                         data-status=""
                     >
                         الكل
                     </button>
 
                     <button
-                        class="filter-btn"
+                        class="filter"
                         data-status="draft"
                     >
                         Draft
                     </button>
 
                     <button
-                        class="filter-btn"
+                        class="filter"
                         data-status="scheduled"
                     >
                         مجدولة
                     </button>
 
                     <button
-                        class="filter-btn"
+                        class="filter"
                         data-status="open"
                     >
                         جارية
                     </button>
 
                     <button
-                        class="filter-btn"
+                        class="filter"
                         data-status="closed"
                     >
                         منتهية
                     </button>
 
                     <button
-                        class="filter-btn"
+                        class="filter"
                         data-status="cancelled"
                     >
                         ملغاة
@@ -882,8 +1166,101 @@
 
 
                 <div id="electionsList">
-                    <div class="empty-state">
-                        جاري تحميل عمليات التصويت...
+                    <div class="empty">
+                        جاري التحميل...
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SERVERS -->
+
+        <section
+            class="section"
+            id="serversSection"
+        >
+
+            <h2 class="section-title">
+                إدارة السيرفرات
+            </h2>
+
+            <p class="section-description">
+                إضافة السيرفرات وتفعيلها أو تعطيلها. السيرفرات النشطة تظهر تلقائيًا في نماذج التصويت.
+            </p>
+
+
+            <div class="box">
+
+                <h3 class="box-title">
+                    إضافة سيرفر
+                </h3>
+
+
+                <form id="serverForm">
+
+                    <div class="grid-2">
+
+                        <div class="form-group">
+
+                            <label>
+                                رقم السيرفر
+                            </label>
+
+                            <input
+                                type="number"
+                                id="serverIdInput"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                اسم السيرفر
+                            </label>
+
+                            <input
+                                type="text"
+                                id="serverNameInput"
+                                placeholder="Server 20"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <button type="submit">
+                        إضافة السيرفر
+                    </button>
+
+                </form>
+
+
+                <div
+                    class="message"
+                    id="serverMessage"
+                ></div>
+
+            </div>
+
+
+            <div class="box">
+
+                <h3 class="box-title">
+                    السيرفرات الحالية
+                </h3>
+
+                <div id="serversList">
+                    <div class="empty">
+                        جاري التحميل...
                     </div>
                 </div>
 
@@ -895,39 +1272,38 @@
         <!-- PLAYERS -->
 
         <section
-            class="admin-section"
+            class="section"
             id="playersSection"
         >
 
             <h2 class="section-title">
-                إدارة اللاعبين
+                بيانات اللاعبين
             </h2>
 
             <p class="section-description">
-                رفع وتحديث بيانات UID وRID واسم اللاعب.
+                رفع ملفات UID وRID وNAME الخاصة بكل سيرفر.
             </p>
 
 
-            <div class="admin-box">
+            <div class="box">
 
-                <h3>
-                    استيراد بيانات اللاعبين
+                <h3 class="box-title">
+                    استيراد اللاعبين
                 </h3>
+
 
                 <div class="form-group">
 
-                    <label for="playersServer">
+                    <label>
                         السيرفر
                     </label>
 
-                    <select id="playersServer">
+                    <select
+                        id="playersServer"
+                    >
 
-                        <option value="18">
-                            Server 18
-                        </option>
-
-                        <option value="19">
-                            Server 19
+                        <option value="">
+                            جاري تحميل السيرفرات...
                         </option>
 
                     </select>
@@ -937,7 +1313,7 @@
 
                 <div class="form-group">
 
-                    <label for="playersFile">
+                    <label>
                         الملف
                     </label>
 
@@ -959,8 +1335,8 @@
 
 
                 <div
-                    id="playersMessage"
                     class="message"
+                    id="playersMessage"
                 ></div>
 
             </div>
@@ -969,16 +1345,19 @@
 
     </section>
 
-</main>
+</div>
 
 
-<!-- DETAIL MODAL -->
+<!-- DETAILS MODAL -->
 
-<div class="modal" id="electionModal">
+<div
+    class="modal"
+    id="electionModal"
+>
 
     <div class="modal-card">
 
-        <div class="modal-header">
+        <div class="modal-head">
 
             <div>
 
@@ -999,8 +1378,7 @@
             </div>
 
             <button
-                type="button"
-                class="close-btn"
+                class="close"
                 id="closeModal"
             >
                 إغلاق
@@ -1010,9 +1388,7 @@
 
 
         <div id="modalBody">
-
             جاري التحميل...
-
         </div>
 
     </div>
