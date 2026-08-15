@@ -13,7 +13,8 @@
 
     <main class="container">
 
-        <section class="card">
+        <!-- Verification Card -->
+        <section class="card" id="verificationCard">
 
             <div class="logo">⚔️</div>
 
@@ -53,7 +54,7 @@
                     >
                 </div>
 
-                <button type="submit">
+                <button type="submit" id="verifyButton">
                     متابعة
                 </button>
 
@@ -64,6 +65,26 @@
             <div class="footer">
                 سيوف المجد — اللاعبون جزء من الإدارة
             </div>
+
+        </section>
+
+
+        <!-- Election Card -->
+        <section class="card" id="electionCard" style="display: none;">
+
+            <div class="logo">🏛️</div>
+
+            <h1 id="electionTitle">
+                انتخابات البرلمان
+            </h1>
+
+            <p class="subtitle" id="electionInfo">
+                جاري تحميل الانتخابات...
+            </p>
+
+            <div id="candidatesContainer"></div>
+
+            <div id="electionMessage" class="message"></div>
 
         </section>
 
