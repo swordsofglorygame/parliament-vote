@@ -14,21 +14,21 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .admin-nav button {
             width: auto;
             margin: 0;
-            padding: 10px 16px;
-            font-size: 14px;
+            padding: 10px 15px;
             background: #21180f;
-            color: #d9c6a7;
+            color: #d8c5a5;
             border: 1px solid #5a452b;
+            font-size: 14px;
         }
 
         .admin-nav button.active {
-            background: linear-gradient(135deg, #d4a54f, #9a6b25);
+            background: linear-gradient(135deg, #d4a54f, #996925);
             color: #171008;
             border-color: transparent;
         }
@@ -44,39 +44,39 @@
         .section-title {
             color: #d9ad5b;
             font-size: 22px;
-            margin-bottom: 10px;
+            margin: 0 0 8px;
         }
 
         .section-description {
             color: #a99a83;
             font-size: 13px;
             line-height: 1.8;
-            margin-bottom: 25px;
+            margin-bottom: 22px;
         }
 
         .admin-box {
-            background: rgba(255, 255, 255, 0.025);
-            border: 1px solid rgba(190, 145, 70, 0.25);
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(190,145,70,.25);
             border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 18px;
+            margin-bottom: 18px;
         }
 
         .admin-box h3 {
             color: #e0c18b;
-            margin-bottom: 15px;
+            margin: 0 0 15px;
             font-size: 17px;
         }
 
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 14px;
         }
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -85,86 +85,320 @@
             background: #17110c;
             border: 1px solid #4f3c26;
             border-radius: 12px;
-            padding: 18px;
+            padding: 16px;
             text-align: center;
         }
 
         .stat-label {
             color: #9c8b73;
             font-size: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
         }
 
         .stat-value {
             color: #e3bd73;
-            font-size: 23px;
+            font-size: 22px;
             font-weight: bold;
+        }
+
+        .election-card {
+            background: #17110c;
+            border: 1px solid #4e3b25;
+            border-radius: 14px;
+            padding: 17px;
+            margin-bottom: 12px;
+        }
+
+        .election-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .election-title {
+            color: #e2bd73;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .election-id {
+            color: #766853;
+            font-size: 11px;
+            direction: ltr;
+            text-align: right;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .meta-item {
+            border: 1px solid #3f3121;
+            border-radius: 10px;
+            padding: 10px;
+            background: #110c08;
+        }
+
+        .meta-label {
+            color: #7f705d;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            color: #d7c6a7;
+            font-size: 13px;
         }
 
         .badge {
             display: inline-block;
             padding: 6px 10px;
             border-radius: 20px;
-            font-size: 12px;
-            background: #2c251d;
-            color: #d9c6a7;
+            font-size: 11px;
         }
 
         .badge-draft {
-            background: rgba(160, 120, 40, 0.15);
-            color: #e6bd6a;
+            background: rgba(160,120,40,.15);
+            color: #e4bc68;
+        }
+
+        .badge-scheduled {
+            background: rgba(78,108,160,.15);
+            color: #9cbcf0;
         }
 
         .badge-open {
-            background: rgba(46, 125, 50, 0.15);
+            background: rgba(46,125,50,.15);
             color: #9be7a0;
         }
 
         .badge-closed {
-            background: rgba(198, 40, 40, 0.15);
+            background: rgba(120,120,120,.15);
+            color: #c6c6c6;
+        }
+
+        .badge-cancelled {
+            background: rgba(198,40,40,.15);
             color: #ff9d9d;
         }
 
-        .placeholder {
-            text-align: center;
-            padding: 40px 20px;
-            color: #82735e;
-            border: 1px dashed #4a3926;
-            border-radius: 12px;
-        }
-
-        .danger-button {
-            background: linear-gradient(135deg, #9d3b34, #6e2420) !important;
-            color: #fff !important;
-        }
-
-        .secondary-button {
-            background: #231a10 !important;
-            color: #dfcba8 !important;
-            border: 1px solid #59462e !important;
-        }
-
-        .inline-actions {
+        .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .toolbar button {
+            width: auto;
+            margin: 0;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .toolbar button.active {
+            background: #c8963f;
+            color: #171008;
+        }
+
+        .small-actions {
+            display: flex;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
-        .inline-actions button {
+        .small-actions button {
             width: auto;
+            margin: 0;
             flex: 1;
-            min-width: 140px;
+            min-width: 105px;
+            padding: 9px 11px;
+            font-size: 12px;
         }
 
-        input,
-        select {
+        .secondary-btn {
+            background: #231a10 !important;
+            border: 1px solid #59462e !important;
+            color: #ddc9a7 !important;
+        }
+
+        .danger-btn {
+            background: linear-gradient(135deg,#9d3b34,#6e2420) !important;
+            color: #fff !important;
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg,#3f8a46,#28652e) !important;
+            color: #fff !important;
+        }
+
+        .info-btn {
+            background: linear-gradient(135deg,#5277ad,#36567f) !important;
+            color: #fff !important;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
             width: 100%;
+            border-collapse: collapse;
+            min-width: 580px;
         }
 
-        @media (max-width: 700px) {
-            .two-columns,
+        th,
+        td {
+            padding: 10px 9px;
+            border-bottom: 1px solid #35291c;
+            text-align: right;
+            font-size: 12px;
+        }
+
+        th {
+            color: #d9ad5b;
+            background: #130e09;
+        }
+
+        td {
+            color: #c8baa2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 35px 15px;
+            color: #7e705d;
+            border: 1px dashed #493825;
+            border-radius: 12px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(900px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: #17110c;
+            border: 1px solid #5a452b;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 20px 80px rgba(0,0,0,.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .close-btn {
+            width: auto !important;
+            margin: 0 !important;
+            background: #281c12 !important;
+            border: 1px solid #5a452b !important;
+            padding: 7px 12px !important;
+        }
+
+        .candidate-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 0;
+            border-bottom: 1px solid #35291c;
+        }
+
+        .candidate-name {
+            color: #ddc8a5;
+            font-size: 14px;
+        }
+
+        .candidate-uid {
+            color: #766853;
+            font-size: 11px;
+        }
+
+        .result-row {
+            margin-bottom: 15px;
+        }
+
+        .result-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            color: #ddc8a5;
+            font-size: 13px;
+        }
+
+        .result-bar {
+            height: 10px;
+            background: #281f17;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .result-fill {
+            height: 100%;
+            background: linear-gradient(90deg,#d4a54f,#8b5f1e);
+            border-radius: 10px;
+        }
+
+        .confirm-box {
+            background: rgba(198,40,40,.08);
+            border: 1px solid rgba(198,40,40,.25);
+            border-radius: 12px;
+            padding: 14px;
+            color: #efb7b7;
+            line-height: 1.8;
+            margin-top: 12px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 800px) {
             .stat-grid {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .meta-grid,
+            .detail-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .stat-grid {
+                grid-template-columns: 1fr 1fr;
             }
         }
     </style>
@@ -174,18 +408,16 @@
 
 <main class="container">
 
-    <!-- =====================================================
-         LOGIN
-    ====================================================== -->
+    <!-- LOGIN -->
 
     <section class="card" id="loginCard">
 
         <div class="logo">🔐</div>
 
-        <h1>لوحة إدارة نظام التصويت</h1>
+        <h1>نظام إدارة التصويت</h1>
 
         <p class="subtitle">
-            إدارة الانتخابات والاستطلاعات وعمليات التصويت في سيوف المجد.
+            لوحة التحكم الكاملة في عمليات التصويت والانتخابات.
         </p>
 
         <form id="loginForm">
@@ -218,78 +450,49 @@
                 >
             </div>
 
-            <button
-                type="submit"
-                id="loginButton"
-            >
+            <button type="submit" id="loginButton">
                 تسجيل الدخول
             </button>
 
         </form>
 
-        <div
-            id="loginMessage"
-            class="message"
-        ></div>
-
-        <div class="footer">
-            لوحة إدارة نظام التصويت — سيوف المجد
-        </div>
+        <div id="loginMessage" class="message"></div>
 
     </section>
 
 
-    <!-- =====================================================
-         DASHBOARD
-    ====================================================== -->
+    <!-- DASHBOARD -->
 
-    <section
-        class="card"
-        id="dashboardCard"
-        style="display: none;"
-    >
+    <section class="card" id="dashboardCard" style="display:none;">
 
         <div class="logo">🗳️</div>
 
-        <h1>نظام إدارة التصويت</h1>
+        <h1>لوحة إدارة التصويت</h1>
 
         <p class="subtitle">
-            مركز التحكم في جميع عمليات التصويت والانتخابات.
+            مركز التحكم في جميع عمليات التصويت.
         </p>
 
-
-        <!-- ADMIN HEADER -->
-
-        <div
-            style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 25px;
-                padding-bottom: 18px;
-                border-bottom: 1px solid rgba(190, 145, 70, 0.25);
-            "
-        >
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-bottom:22px;
+            padding-bottom:16px;
+            border-bottom:1px solid rgba(190,145,70,.25);
+        ">
 
             <span
                 id="adminEmailDisplay"
-                style="
-                    color: #cdbb9f;
-                    font-size: 13px;
-                "
+                style="color:#cdbb9f;font-size:13px;"
             ></span>
 
             <button
                 type="button"
                 id="logoutButton"
-                class="secondary-button"
-                style="
-                    width: auto;
-                    margin: 0;
-                    padding: 9px 14px;
-                    font-size: 13px;
-                "
+                class="secondary-btn"
+                style="width:auto;margin:0;padding:8px 14px;"
             >
                 تسجيل الخروج
             </button>
@@ -297,93 +500,165 @@
         </div>
 
 
-        <!-- NAVIGATION -->
-
         <nav class="admin-nav">
 
             <button
-                type="button"
                 class="active"
+                data-section="dashboardSection"
+            >
+                الرئيسية
+            </button>
+
+            <button
                 data-section="electionsSection"
             >
-                🗳️ التصويت
+                التصويتات
             </button>
 
             <button
-                type="button"
                 data-section="playersSection"
             >
-                👥 اللاعبين
-            </button>
-
-            <button
-                type="button"
-                data-section="candidatesSection"
-            >
-                🏛️ المرشحون
-            </button>
-
-            <button
-                type="button"
-                data-section="resultsSection"
-            >
-                📊 النتائج
+                اللاعبين
             </button>
 
         </nav>
 
 
-        <!-- =================================================
-             ELECTIONS
-        ================================================== -->
+        <!-- DASHBOARD -->
 
         <section
-            id="electionsSection"
             class="admin-section active"
+            id="dashboardSection"
         >
 
             <h2 class="section-title">
-                إدارة التصويت
+                الرئيسية
             </h2>
 
             <p class="section-description">
-                إنشاء انتخابات أو عمليات تصويت جديدة وتحديد السيرفر،
-                المدة، عدد الاختيارات، وسياسة عرض النتائج.
+                نظرة عامة على نظام التصويت.
+            </p>
+
+            <div class="stat-grid">
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        إجمالي التصويتات
+                    </div>
+                    <div
+                        class="stat-value"
+                        id="statTotalElections"
+                    >
+                        -
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        الجارية / المجدولة
+                    </div>
+                    <div
+                        class="stat-value"
+                        id="statActive"
+                    >
+                        -
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        المنتهية
+                    </div>
+                    <div
+                        class="stat-value"
+                        id="statClosed"
+                    >
+                        -
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        إجمالي الأصوات
+                    </div>
+                    <div
+                        class="stat-value"
+                        id="statVotes"
+                    >
+                        -
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="admin-box">
+
+                <h3>
+                    التصويتات الجارية
+                </h3>
+
+                <div id="dashboardOpenList">
+                    <div class="empty-state">
+                        جاري التحميل...
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ELECTIONS -->
+
+        <section
+            class="admin-section"
+            id="electionsSection"
+        >
+
+            <h2 class="section-title">
+                إدارة عمليات التصويت
+            </h2>
+
+            <p class="section-description">
+                إنشاء، تعديل، فتح، إغلاق، إلغاء ومتابعة جميع عمليات التصويت.
             </p>
 
 
             <div class="admin-box">
 
                 <h3>
-                    إنشاء عملية تصويت جديدة
+                    إنشاء عملية تصويت
                 </h3>
 
                 <form id="createElectionForm">
 
                     <div class="form-group">
 
-                        <label for="serverId">
-                            السيرفر
+                        <label for="createTitle">
+                            عنوان التصويت
                         </label>
 
-                        <select
-                            id="serverId"
+                        <input
+                            type="text"
+                            id="createTitle"
+                            placeholder="مثال: انتخابات برلمان السيرفر 19"
                             required
                         >
 
-                            <option value="">
-                                اختر السيرفر
-                            </option>
+                    </div>
 
-                            <option value="18">
-                                Server 18
-                            </option>
 
-                            <option value="19">
-                                Server 19
-                            </option>
+                    <div class="form-group">
 
-                        </select>
+                        <label for="createDescription">
+                            الوصف
+                        </label>
+
+                        <textarea
+                            id="createDescription"
+                            rows="3"
+                            placeholder="وصف اختياري للتصويت"
+                        ></textarea>
 
                     </div>
 
@@ -392,11 +667,39 @@
 
                         <div class="form-group">
 
-                            <label for="seats">
+                            <label for="createServer">
+                                السيرفر
+                            </label>
+
+                            <select
+                                id="createServer"
+                                required
+                            >
+
+                                <option value="">
+                                    اختر السيرفر
+                                </option>
+
+                                <option value="18">
+                                    Server 18
+                                </option>
+
+                                <option value="19">
+                                    Server 19
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label for="createSeats">
                                 عدد المقاعد
                             </label>
 
-                            <select id="seats">
+                            <select id="createSeats">
+
                                 <option value="3">
                                     3
                                 </option>
@@ -404,43 +707,10 @@
                                 <option value="5" selected>
                                     5
                                 </option>
+
                             </select>
 
                         </div>
-
-
-                        <div class="form-group">
-
-                            <label for="minChoices">
-                                أقل عدد اختيارات
-                            </label>
-
-                            <input
-                                type="number"
-                                id="minChoices"
-                                min="1"
-                                value="1"
-                                required
-                            >
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="maxChoices">
-                            أقصى عدد اختيارات
-                        </label>
-
-                        <input
-                            type="number"
-                            id="maxChoices"
-                            min="1"
-                            value="5"
-                            required
-                        >
 
                     </div>
 
@@ -449,28 +719,64 @@
 
                         <div class="form-group">
 
-                            <label for="startAt">
-                                بداية التصويت — UTC
+                            <label for="createMinChoices">
+                                أقل عدد اختيارات
                             </label>
 
                             <input
-                                type="datetime-local"
-                                id="startAt"
+                                type="number"
+                                id="createMinChoices"
+                                value="1"
+                                min="1"
                                 required
                             >
 
                         </div>
 
+                        <div class="form-group">
+
+                            <label for="createMaxChoices">
+                                أقصى عدد اختيارات
+                            </label>
+
+                            <input
+                                type="number"
+                                id="createMaxChoices"
+                                value="5"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="two-columns">
 
                         <div class="form-group">
 
-                            <label for="endAt">
-                                نهاية التصويت — UTC
+                            <label for="createStart">
+                                البداية — UTC
                             </label>
 
                             <input
                                 type="datetime-local"
-                                id="endAt"
+                                id="createStart"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label for="createEnd">
+                                النهاية — UTC
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="createEnd"
                                 required
                             >
 
@@ -480,29 +786,23 @@
 
 
                     <div
-                        class="form-group"
                         style="
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
+                            margin-bottom:18px;
                         "
                     >
 
                         <input
                             type="checkbox"
-                            id="showResults"
-                            style="
-                                width: 20px;
-                                height: 20px;
-                            "
+                            id="createShowResults"
+                            style="width:19px;height:19px;"
                         >
 
                         <label
-                            for="showResults"
-                            style="
-                                margin: 0;
-                                cursor: pointer;
-                            "
+                            for="createShowResults"
+                            style="margin:0;"
                         >
                             إظهار النتائج أثناء التصويت
                         </label>
@@ -519,9 +819,8 @@
 
                 </form>
 
-
                 <div
-                    id="createElectionMessage"
+                    id="createMessage"
                     class="message"
                 ></div>
 
@@ -531,47 +830,61 @@
             <div class="admin-box">
 
                 <h3>
-                    حالة النظام
+                    عمليات التصويت
                 </h3>
 
-                <div class="stat-grid">
 
-                    <div class="stat-card">
+                <div class="toolbar">
 
-                        <div class="stat-label">
-                            السيرفرات
-                        </div>
+                    <button
+                        class="filter-btn active"
+                        data-status=""
+                    >
+                        الكل
+                    </button>
 
-                        <div class="stat-value">
-                            2
-                        </div>
+                    <button
+                        class="filter-btn"
+                        data-status="draft"
+                    >
+                        Draft
+                    </button>
 
+                    <button
+                        class="filter-btn"
+                        data-status="scheduled"
+                    >
+                        مجدولة
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-status="open"
+                    >
+                        جارية
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-status="closed"
+                    >
+                        منتهية
+                    </button>
+
+                    <button
+                        class="filter-btn"
+                        data-status="cancelled"
+                    >
+                        ملغاة
+                    </button>
+
+                </div>
+
+
+                <div id="electionsList">
+                    <div class="empty-state">
+                        جاري تحميل عمليات التصويت...
                     </div>
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            نوع المنصة
-                        </div>
-
-                        <div class="stat-value">
-                            Voting
-                        </div>
-
-                    </div>
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            المنطقة الزمنية
-                        </div>
-
-                        <div class="stat-value">
-                            UTC
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -579,34 +892,27 @@
         </section>
 
 
-        <!-- =================================================
-             PLAYERS
-        ================================================== -->
+        <!-- PLAYERS -->
 
         <section
-            id="playersSection"
             class="admin-section"
+            id="playersSection"
         >
 
             <h2 class="section-title">
-                بيانات اللاعبين
+                إدارة اللاعبين
             </h2>
 
             <p class="section-description">
-                رفع وتحديث بيانات اللاعبين التي يعتمد عليها النظام في التحقق من أهلية التصويت.
+                رفع وتحديث بيانات UID وRID واسم اللاعب.
             </p>
 
 
             <div class="admin-box">
 
                 <h3>
-                    استيراد اللاعبين
+                    استيراد بيانات اللاعبين
                 </h3>
-
-                <p class="section-description">
-                    الصيغة المطلوبة: UID وRID وNAME.
-                    يفضّل أن يكون لكل سيرفر ملف مستقل.
-                </p>
 
                 <div class="form-group">
 
@@ -632,7 +938,7 @@
                 <div class="form-group">
 
                     <label for="playersFile">
-                        ملف اللاعبين
+                        الملف
                     </label>
 
                     <input
@@ -644,25 +950,12 @@
                 </div>
 
 
-                <div class="inline-actions">
-
-                    <button
-                        type="button"
-                        id="validatePlayersButton"
-                        class="secondary-button"
-                    >
-                        فحص الملف
-                    </button>
-
-                    <button
-                        type="button"
-                        id="importPlayersButton"
-                        disabled
-                    >
-                        استيراد اللاعبين
-                    </button>
-
-                </div>
+                <button
+                    type="button"
+                    id="validatePlayersButton"
+                >
+                    فحص الملف
+                </button>
 
 
                 <div
@@ -672,174 +965,60 @@
 
             </div>
 
-
-            <div
-                id="playersPreview"
-                class="admin-box"
-                style="display: none;"
-            >
-
-                <h3>
-                    معاينة البيانات
-                </h3>
-
-                <div
-                    id="playersPreviewContent"
-                    class="placeholder"
-                ></div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             CANDIDATES
-        ================================================== -->
-
-        <section
-            id="candidatesSection"
-            class="admin-section"
-        >
-
-            <h2 class="section-title">
-                إدارة المرشحين
-            </h2>
-
-            <p class="section-description">
-                إضافة أو إزالة المرشحين من عملية التصويت.
-            </p>
-
-
-            <div class="admin-box">
-
-                <h3>
-                    اختيار عملية التصويت
-                </h3>
-
-                <div class="form-group">
-
-                    <label for="candidateElection">
-                        الانتخابات
-                    </label>
-
-                    <select id="candidateElection">
-
-                        <option value="">
-                            اختر عملية التصويت
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <div class="admin-box">
-
-                <h3>
-                    إضافة مرشح بالـ UID
-                </h3>
-
-                <div class="form-group">
-
-                    <label for="candidateUid">
-                        UID
-                    </label>
-
-                    <input
-                        type="text"
-                        id="candidateUid"
-                        placeholder="أدخل UID اللاعب"
-                    >
-
-                </div>
-
-                <button
-                    type="button"
-                    id="addCandidateButton"
-                >
-                    إضافة المرشح
-                </button>
-
-                <div
-                    id="candidateMessage"
-                    class="message"
-                ></div>
-
-            </div>
-
-
-            <div class="admin-box">
-
-                <h3>
-                    المرشحون الحاليون
-                </h3>
-
-                <div
-                    id="candidateList"
-                    class="placeholder"
-                >
-                    اختر عملية تصويت لعرض المرشحين.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             RESULTS
-        ================================================== -->
-
-        <section
-            id="resultsSection"
-            class="admin-section"
-        >
-
-            <h2 class="section-title">
-                النتائج والإحصائيات
-            </h2>
-
-            <p class="section-description">
-                متابعة المشاركة والنتائج الإجمالية لعمليات التصويت.
-            </p>
-
-
-            <div class="admin-box">
-
-                <h3>
-                    عملية التصويت
-                </h3>
-
-                <select id="resultsElection">
-
-                    <option value="">
-                        اختر عملية التصويت
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div
-                id="resultsContent"
-                class="admin-box"
-            >
-
-                <div class="placeholder">
-                    اختر عملية تصويت لعرض النتائج.
-                </div>
-
-            </div>
-
         </section>
 
     </section>
 
 </main>
+
+
+<!-- DETAIL MODAL -->
+
+<div class="modal" id="electionModal">
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div>
+
+                <div
+                    class="election-title"
+                    id="modalTitle"
+                >
+                    -
+                </div>
+
+                <div
+                    class="election-id"
+                    id="modalElectionId"
+                >
+                    -
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="close-btn"
+                id="closeModal"
+            >
+                إغلاق
+            </button>
+
+        </div>
+
+
+        <div id="modalBody">
+
+            جاري التحميل...
+
+        </div>
+
+    </div>
+
+</div>
+
 
 <script src="admin.js"></script>
 
