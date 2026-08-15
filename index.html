@@ -3,25 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>برلمان سيوف المجد</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <h1>برلمان سيوف المجد</h1>
+    <main class="container">
 
-    <p>أدخل بيانات حسابك للمشاركة في الانتخابات.</p>
+        <section class="card">
 
-    <label>رقم هوية الحساب</label>
-    <input type="text" id="uid">
+            <div class="logo">⚔️</div>
 
-    <br><br>
+            <h1>برلمان سيوف المجد</h1>
 
-    <label>البريد الإلكتروني المسجل باللعبة</label>
-    <input type="email" id="email">
+            <p class="subtitle">
+                أدخل بيانات حسابك للتحقق من أهليتك والمشاركة في انتخابات البرلمان.
+            </p>
 
-    <br><br>
+            <form id="verificationForm">
 
-    <button>متابعة</button>
+                <div class="form-group">
+                    <label for="uid">رقم هوية الحساب</label>
+
+                    <input
+                        type="text"
+                        id="uid"
+                        name="uid"
+                        placeholder="أدخل رقم الهوية"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني المسجل باللعبة</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="أدخل البريد الإلكتروني"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <button type="submit">
+                    متابعة
+                </button>
+
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <div class="footer">
+                سيوف المجد — اللاعبون جزء من الإدارة
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
 
 </body>
 </html>
