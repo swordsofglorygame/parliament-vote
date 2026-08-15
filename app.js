@@ -15,6 +15,9 @@ const electionInfo = document.getElementById("electionInfo");
 const candidatesContainer = document.getElementById("candidatesContainer");
 const electionMessage = document.getElementById("electionMessage");
 
+let currentPlayer = null;
+let currentElection = null;
+
 
 function showMessage(element, text, type = "error") {
     element.style.display = "block";
@@ -39,14 +42,12 @@ function hideMessage(element) {
 
 
 async function loadElection(serverId) {
-
     electionTitle.textContent = `انتخابات برلمان السيرفر ${serverId}`;
     electionInfo.textContent = "جاري تحميل بيانات الانتخابات...";
     candidatesContainer.innerHTML = "";
     hideMessage(electionMessage);
 
     try {
-
         const response = await fetch(
             `${API_URL}/election?server_id=${encodeURIComponent(serverId)}`
         );
@@ -62,37 +63,33 @@ async function loadElection(serverId) {
         }
 
         if (!data.open) {
-
             electionInfo.textContent =
                 "لا توجد انتخابات مفتوحة حاليًا لهذا السيرفر.";
 
             showMessage(
                 electionMessage,
-                "لا توجد انتخابات مفتوحة حاليًا.",
-                "error"
+                "لا توجد انتخابات مفتوحة حاليًا."
             );
 
             return;
         }
 
-        const election = data.election;
-        const candidates = data.candidates || [];
+        currentElection = data.election;
 
         electionInfo.textContent =
-            `عدد المقاعد: ${election.seats} — يمكنك اختيار من ${election.min_choices} إلى ${election.max_choices} مرشحين.`;
+            `عدد المقاعد: ${data.election.seats} — يمكنك اختيار من ${data.election.min_choices} إلى ${data.election.max_choices} مرشحين.`;
+
+        const candidates = data.candidates || [];
 
         if (candidates.length === 0) {
-
             showMessage(
                 electionMessage,
                 "لا يوجد مرشحون مسجلون في هذه الانتخابات حاليًا."
             );
-
             return;
         }
 
         candidates.forEach(candidate => {
-
             const candidateBox = document.createElement("div");
 
             candidateBox.style.marginBottom = "12px";
@@ -128,48 +125,20 @@ async function loadElection(serverId) {
             label.appendChild(name);
 
             candidateBox.appendChild(label);
-
             candidatesContainer.appendChild(candidateBox);
         });
-
 
         const voteButton = document.createElement("button");
 
         voteButton.type = "button";
-        voteButton.textContent = "تأكيد الاختيارات";
+        voteButton.id = "voteButton";
+        voteButton.textContent = "تأكيد التصويت";
 
-        voteButton.addEventListener("click", () => {
-
-            const selected = Array.from(
-                document.querySelectorAll(
-                    'input[name="candidate"]:checked'
-                )
-            );
-
-            if (
-                selected.length < election.min_choices ||
-                selected.length > election.max_choices
-            ) {
-
-                showMessage(
-                    electionMessage,
-                    `يجب اختيار من ${election.min_choices} إلى ${election.max_choices} مرشحين.`
-                );
-
-                return;
-            }
-
-            showMessage(
-                electionMessage,
-                `تم اختيار ${selected.length} مرشحين. سيتم إضافة التصويت في الخطوة التالية.`,
-                "success"
-            );
-        });
+        voteButton.addEventListener("click", submitVote);
 
         candidatesContainer.appendChild(voteButton);
 
     } catch (error) {
-
         console.error(error);
 
         electionInfo.textContent =
@@ -183,8 +152,120 @@ async function loadElection(serverId) {
 }
 
 
-form.addEventListener("submit", async (event) => {
+async function submitVote() {
+    if (!currentPlayer || !currentElection) {
+        showMessage(
+            electionMessage,
+            "بيانات التصويت غير مكتملة."
+        );
+        return;
+    }
 
+    const selected = Array.from(
+        document.querySelectorAll('input[name="candidate"]:checked')
+    );
+
+    const selectedIds = selected.map(
+        checkbox => Number(checkbox.value)
+    );
+
+    if (
+        selectedIds.length < currentElection.min_choices ||
+        selectedIds.length > currentElection.max_choices
+    ) {
+        showMessage(
+            electionMessage,
+            `يجب اختيار من ${currentElection.min_choices} إلى ${currentElection.max_choices} مرشحين.`
+        );
+        return;
+    }
+
+    const voteButton = document.getElementById("voteButton");
+
+    if (voteButton) {
+        voteButton.disabled = true;
+        voteButton.textContent = "جاري تسجيل التصويت...";
+    }
+
+    hideMessage(electionMessage);
+
+    try {
+        const response = await fetch(`${API_URL}/vote`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                uid: currentPlayer.uid,
+                rid: currentPlayer.rid,
+                election_id: currentElection.election_id,
+                candidate_ids: selectedIds
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+
+            if (data.error === "ALREADY_VOTED") {
+                showMessage(
+                    electionMessage,
+                    "لقد قمت بالتصويت بالفعل في هذه الانتخابات."
+                );
+            } else if (data.error === "RID_MISMATCH") {
+                showMessage(
+                    electionMessage,
+                    "تعذر التحقق من بيانات الحساب."
+                );
+            } else if (data.error === "ELECTION_CLOSED") {
+                showMessage(
+                    electionMessage,
+                    "انتهت فترة التصويت."
+                );
+            } else {
+                showMessage(
+                    electionMessage,
+                    data.message || "تعذر تسجيل التصويت."
+                );
+            }
+
+            if (voteButton) {
+                voteButton.disabled = false;
+                voteButton.textContent = "تأكيد التصويت";
+            }
+
+            return;
+        }
+
+        // نجاح التصويت
+        candidatesContainer.innerHTML = "";
+
+        electionInfo.textContent =
+            "تم تسجيل صوتك بنجاح. لا يمكن تعديل التصويت بعد إرساله.";
+
+        showMessage(
+            electionMessage,
+            "✅ تم تسجيل تصويتك بنجاح.",
+            "success"
+        );
+
+    } catch (error) {
+        console.error(error);
+
+        showMessage(
+            electionMessage,
+            "حدث خطأ أثناء الاتصال بخادم التصويت."
+        );
+
+        if (voteButton) {
+            voteButton.disabled = false;
+            voteButton.textContent = "تأكيد التصويت";
+        }
+    }
+}
+
+
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     hideMessage(message);
@@ -206,7 +287,6 @@ form.addEventListener("submit", async (event) => {
     verifyButton.textContent = "جاري التحقق...";
 
     try {
-
         const response = await fetch(`${API_URL}/verify`, {
             method: "POST",
             headers: {
@@ -223,21 +303,18 @@ form.addEventListener("submit", async (event) => {
         if (!response.ok || !data.valid) {
 
             if (data.error === "UID_NOT_FOUND") {
-
                 showMessage(
                     message,
                     "رقم هوية الحساب غير صحيح."
                 );
 
             } else if (data.error === "RID_MISMATCH") {
-
                 showMessage(
                     message,
                     "رقم الهوية بالمملكة غير مطابق."
                 );
 
             } else {
-
                 showMessage(
                     message,
                     data.message || "تعذر التحقق من بيانات الحساب."
@@ -247,24 +324,21 @@ form.addEventListener("submit", async (event) => {
             return;
         }
 
-        showMessage(
-            message,
-            `تم التحقق بنجاح — السيرفر: ${data.server_id}`,
-            "success"
-        );
+        currentPlayer = {
+            uid,
+            rid,
+            server_id: data.server_id,
+            nickname: data.nickname
+        };
 
-        // ننتظر لحظة بسيطة ثم نعرض الانتخابات
         setTimeout(() => {
-
             verificationCard.style.display = "none";
             electionCard.style.display = "block";
 
             loadElection(data.server_id);
-
-        }, 700);
+        }, 500);
 
     } catch (error) {
-
         console.error(error);
 
         showMessage(
@@ -273,7 +347,6 @@ form.addEventListener("submit", async (event) => {
         );
 
     } finally {
-
         verifyButton.disabled = false;
         verifyButton.textContent = "متابعة";
     }
