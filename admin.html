@@ -5,27 +5,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>إدارة برلمان سيوف المجد</title>
+    <title>لوحة إدارة نظام التصويت</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        .admin-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .admin-nav button {
+            width: auto;
+            margin: 0;
+            padding: 10px 16px;
+            font-size: 14px;
+            background: #21180f;
+            color: #d9c6a7;
+            border: 1px solid #5a452b;
+        }
+
+        .admin-nav button.active {
+            background: linear-gradient(135deg, #d4a54f, #9a6b25);
+            color: #171008;
+            border-color: transparent;
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        .section-title {
+            color: #d9ad5b;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .section-description {
+            color: #a99a83;
+            font-size: 13px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .admin-box {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(190, 145, 70, 0.25);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .admin-box h3 {
+            color: #e0c18b;
+            margin-bottom: 15px;
+            font-size: 17px;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #17110c;
+            border: 1px solid #4f3c26;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #9c8b73;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            color: #e3bd73;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: #2c251d;
+            color: #d9c6a7;
+        }
+
+        .badge-draft {
+            background: rgba(160, 120, 40, 0.15);
+            color: #e6bd6a;
+        }
+
+        .badge-open {
+            background: rgba(46, 125, 50, 0.15);
+            color: #9be7a0;
+        }
+
+        .badge-closed {
+            background: rgba(198, 40, 40, 0.15);
+            color: #ff9d9d;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #82735e;
+            border: 1px dashed #4a3926;
+            border-radius: 12px;
+        }
+
+        .danger-button {
+            background: linear-gradient(135deg, #9d3b34, #6e2420) !important;
+            color: #fff !important;
+        }
+
+        .secondary-button {
+            background: #231a10 !important;
+            color: #dfcba8 !important;
+            border: 1px solid #59462e !important;
+        }
+
+        .inline-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .inline-actions button {
+            width: auto;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        input,
+        select {
+            width: 100%;
+        }
+
+        @media (max-width: 700px) {
+            .two-columns,
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
 <main class="container">
 
-    <!-- =========================
+    <!-- =====================================================
          LOGIN
-    ========================== -->
+    ====================================================== -->
 
     <section class="card" id="loginCard">
 
         <div class="logo">🔐</div>
 
-        <h1>لوحة إدارة البرلمان</h1>
+        <h1>لوحة إدارة نظام التصويت</h1>
 
         <p class="subtitle">
-            تسجيل الدخول إلى لوحة إدارة انتخابات سيوف المجد.
+            إدارة الانتخابات والاستطلاعات وعمليات التصويت في سيوف المجد.
         </p>
 
         <form id="loginForm">
@@ -38,7 +198,6 @@
                 <input
                     type="email"
                     id="adminEmail"
-                    name="adminEmail"
                     placeholder="أدخل البريد الإلكتروني"
                     autocomplete="username"
                     required
@@ -53,7 +212,6 @@
                 <input
                     type="password"
                     id="adminPassword"
-                    name="adminPassword"
                     placeholder="أدخل كلمة المرور"
                     autocomplete="current-password"
                     required
@@ -75,15 +233,15 @@
         ></div>
 
         <div class="footer">
-            سيوف المجد — لوحة الإدارة
+            لوحة إدارة نظام التصويت — سيوف المجد
         </div>
 
     </section>
 
 
-    <!-- =========================
-         ADMIN DASHBOARD
-    ========================== -->
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
 
     <section
         class="card"
@@ -91,26 +249,24 @@
         style="display: none;"
     >
 
-        <div class="logo">🏛️</div>
+        <div class="logo">🗳️</div>
 
-        <h1>لوحة الإدارة</h1>
+        <h1>نظام إدارة التصويت</h1>
 
         <p class="subtitle">
-            إدارة انتخابات برلمان سيوف المجد.
+            مركز التحكم في جميع عمليات التصويت والانتخابات.
         </p>
 
 
-        <!-- =========================
-             ADMIN HEADER
-        ========================== -->
+        <!-- ADMIN HEADER -->
 
         <div
             style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                gap: 10px;
-                margin-bottom: 30px;
+                gap: 12px;
+                margin-bottom: 25px;
                 padding-bottom: 18px;
                 border-bottom: 1px solid rgba(190, 145, 70, 0.25);
             "
@@ -127,10 +283,11 @@
             <button
                 type="button"
                 id="logoutButton"
+                class="secondary-button"
                 style="
                     width: auto;
-                    margin-top: 0;
-                    padding: 9px 16px;
+                    margin: 0;
+                    padding: 9px 14px;
                     font-size: 13px;
                 "
             >
@@ -140,51 +297,324 @@
         </div>
 
 
-        <!-- =========================
-             CREATE ELECTION
-        ========================== -->
+        <!-- NAVIGATION -->
 
-        <div id="createElectionSection">
+        <nav class="admin-nav">
 
-            <h2
-                style="
-                    margin-bottom: 20px;
-                    color: #d9ad5b;
-                    font-size: 22px;
-                "
+            <button
+                type="button"
+                class="active"
+                data-section="electionsSection"
             >
-                إنشاء انتخابات جديدة
+                🗳️ التصويت
+            </button>
+
+            <button
+                type="button"
+                data-section="playersSection"
+            >
+                👥 اللاعبين
+            </button>
+
+            <button
+                type="button"
+                data-section="candidatesSection"
+            >
+                🏛️ المرشحون
+            </button>
+
+            <button
+                type="button"
+                data-section="resultsSection"
+            >
+                📊 النتائج
+            </button>
+
+        </nav>
+
+
+        <!-- =================================================
+             ELECTIONS
+        ================================================== -->
+
+        <section
+            id="electionsSection"
+            class="admin-section active"
+        >
+
+            <h2 class="section-title">
+                إدارة التصويت
             </h2>
 
-            <form id="createElectionForm">
+            <p class="section-description">
+                إنشاء انتخابات أو عمليات تصويت جديدة وتحديد السيرفر،
+                المدة، عدد الاختيارات، وسياسة عرض النتائج.
+            </p>
 
 
-                <!-- SERVER -->
+            <div class="admin-box">
 
-                <div class="form-group">
+                <h3>
+                    إنشاء عملية تصويت جديدة
+                </h3>
 
-                    <label for="serverId">
-                        السيرفر
-                    </label>
+                <form id="createElectionForm">
 
-                    <select
-                        id="serverId"
-                        required
+                    <div class="form-group">
+
+                        <label for="serverId">
+                            السيرفر
+                        </label>
+
+                        <select
+                            id="serverId"
+                            required
+                        >
+
+                            <option value="">
+                                اختر السيرفر
+                            </option>
+
+                            <option value="18">
+                                Server 18
+                            </option>
+
+                            <option value="19">
+                                Server 19
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="two-columns">
+
+                        <div class="form-group">
+
+                            <label for="seats">
+                                عدد المقاعد
+                            </label>
+
+                            <select id="seats">
+                                <option value="3">
+                                    3
+                                </option>
+
+                                <option value="5" selected>
+                                    5
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="minChoices">
+                                أقل عدد اختيارات
+                            </label>
+
+                            <input
+                                type="number"
+                                id="minChoices"
+                                min="1"
+                                value="1"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="maxChoices">
+                            أقصى عدد اختيارات
+                        </label>
+
+                        <input
+                            type="number"
+                            id="maxChoices"
+                            min="1"
+                            value="5"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="two-columns">
+
+                        <div class="form-group">
+
+                            <label for="startAt">
+                                بداية التصويت — UTC
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="startAt"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="endAt">
+                                نهاية التصويت — UTC
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="endAt"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="form-group"
                         style="
-                            width: 100%;
-                            padding: 14px 16px;
-                            border-radius: 10px;
-                            border: 1px solid #59462e;
-                            background: #100c08;
-                            color: #fff;
-                            font-size: 16px;
-                            outline: none;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
                         "
                     >
 
-                        <option value="">
-                            اختر السيرفر
-                        </option>
+                        <input
+                            type="checkbox"
+                            id="showResults"
+                            style="
+                                width: 20px;
+                                height: 20px;
+                            "
+                        >
+
+                        <label
+                            for="showResults"
+                            style="
+                                margin: 0;
+                                cursor: pointer;
+                            "
+                        >
+                            إظهار النتائج أثناء التصويت
+                        </label>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        id="createElectionButton"
+                    >
+                        إنشاء عملية التصويت
+                    </button>
+
+                </form>
+
+
+                <div
+                    id="createElectionMessage"
+                    class="message"
+                ></div>
+
+            </div>
+
+
+            <div class="admin-box">
+
+                <h3>
+                    حالة النظام
+                </h3>
+
+                <div class="stat-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-label">
+                            السيرفرات
+                        </div>
+
+                        <div class="stat-value">
+                            2
+                        </div>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <div class="stat-label">
+                            نوع المنصة
+                        </div>
+
+                        <div class="stat-value">
+                            Voting
+                        </div>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <div class="stat-label">
+                            المنطقة الزمنية
+                        </div>
+
+                        <div class="stat-value">
+                            UTC
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PLAYERS
+        ================================================== -->
+
+        <section
+            id="playersSection"
+            class="admin-section"
+        >
+
+            <h2 class="section-title">
+                بيانات اللاعبين
+            </h2>
+
+            <p class="section-description">
+                رفع وتحديث بيانات اللاعبين التي يعتمد عليها النظام في التحقق من أهلية التصويت.
+            </p>
+
+
+            <div class="admin-box">
+
+                <h3>
+                    استيراد اللاعبين
+                </h3>
+
+                <p class="section-description">
+                    الصيغة المطلوبة: UID وRID وNAME.
+                    يفضّل أن يكون لكل سيرفر ملف مستقل.
+                </p>
+
+                <div class="form-group">
+
+                    <label for="playersServer">
+                        السيرفر
+                    </label>
+
+                    <select id="playersServer">
 
                         <option value="18">
                             Server 18
@@ -199,188 +629,213 @@
                 </div>
 
 
-                <!-- SEATS -->
+                <div class="form-group">
+
+                    <label for="playersFile">
+                        ملف اللاعبين
+                    </label>
+
+                    <input
+                        type="file"
+                        id="playersFile"
+                        accept=".csv,.xlsx,.xls"
+                    >
+
+                </div>
+
+
+                <div class="inline-actions">
+
+                    <button
+                        type="button"
+                        id="validatePlayersButton"
+                        class="secondary-button"
+                    >
+                        فحص الملف
+                    </button>
+
+                    <button
+                        type="button"
+                        id="importPlayersButton"
+                        disabled
+                    >
+                        استيراد اللاعبين
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="playersMessage"
+                    class="message"
+                ></div>
+
+            </div>
+
+
+            <div
+                id="playersPreview"
+                class="admin-box"
+                style="display: none;"
+            >
+
+                <h3>
+                    معاينة البيانات
+                </h3>
+
+                <div
+                    id="playersPreviewContent"
+                    class="placeholder"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CANDIDATES
+        ================================================== -->
+
+        <section
+            id="candidatesSection"
+            class="admin-section"
+        >
+
+            <h2 class="section-title">
+                إدارة المرشحين
+            </h2>
+
+            <p class="section-description">
+                إضافة أو إزالة المرشحين من عملية التصويت.
+            </p>
+
+
+            <div class="admin-box">
+
+                <h3>
+                    اختيار عملية التصويت
+                </h3>
 
                 <div class="form-group">
 
-                    <label for="seats">
-                        عدد مقاعد البرلمان
+                    <label for="candidateElection">
+                        الانتخابات
                     </label>
 
-                    <select
-                        id="seats"
-                        required
-                        style="
-                            width: 100%;
-                            padding: 14px 16px;
-                            border-radius: 10px;
-                            border: 1px solid #59462e;
-                            background: #100c08;
-                            color: #fff;
-                            font-size: 16px;
-                            outline: none;
-                        "
-                    >
+                    <select id="candidateElection">
 
-                        <option value="3">
-                            3 مقاعد
-                        </option>
-
-                        <option value="5" selected>
-                            5 مقاعد
+                        <option value="">
+                            اختر عملية التصويت
                         </option>
 
                     </select>
 
                 </div>
 
-
-                <!-- MIN CHOICES -->
-
-                <div class="form-group">
-
-                    <label for="minChoices">
-                        أقل عدد من المرشحين يمكن اختيارهم
-                    </label>
-
-                    <input
-                        type="number"
-                        id="minChoices"
-                        min="1"
-                        value="1"
-                        required
-                    >
-
-                </div>
+            </div>
 
 
-                <!-- MAX CHOICES -->
+            <div class="admin-box">
+
+                <h3>
+                    إضافة مرشح بالـ UID
+                </h3>
 
                 <div class="form-group">
 
-                    <label for="maxChoices">
-                        أقصى عدد من المرشحين يمكن اختيارهم
+                    <label for="candidateUid">
+                        UID
                     </label>
 
                     <input
-                        type="number"
-                        id="maxChoices"
-                        min="1"
-                        value="5"
-                        required
+                        type="text"
+                        id="candidateUid"
+                        placeholder="أدخل UID اللاعب"
                     >
 
                 </div>
-
-
-                <!-- START -->
-
-                <div class="form-group">
-
-                    <label for="startAt">
-                        بداية التصويت — UTC
-                    </label>
-
-                    <input
-                        type="datetime-local"
-                        id="startAt"
-                        required
-                    >
-
-                    <small
-                        style="
-                            display: block;
-                            margin-top: 6px;
-                            color: #8f806c;
-                            font-size: 12px;
-                        "
-                    >
-                        أدخل الوقت بالتوقيت الدولي UTC.
-                    </small>
-
-                </div>
-
-
-                <!-- END -->
-
-                <div class="form-group">
-
-                    <label for="endAt">
-                        نهاية التصويت — UTC
-                    </label>
-
-                    <input
-                        type="datetime-local"
-                        id="endAt"
-                        required
-                    >
-
-                    <small
-                        style="
-                            display: block;
-                            margin-top: 6px;
-                            color: #8f806c;
-                            font-size: 12px;
-                        "
-                    >
-                        أدخل الوقت بالتوقيت الدولي UTC.
-                    </small>
-
-                </div>
-
-
-                <!-- RESULTS -->
-
-                <div
-                    class="form-group"
-                    style="
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-                    "
-                >
-
-                    <input
-                        type="checkbox"
-                        id="showResults"
-                        style="
-                            width: 20px;
-                            height: 20px;
-                            cursor: pointer;
-                        "
-                    >
-
-                    <label
-                        for="showResults"
-                        style="
-                            margin: 0;
-                            cursor: pointer;
-                        "
-                    >
-                        إظهار النتائج أثناء التصويت
-                    </label>
-
-                </div>
-
-
-                <!-- CREATE -->
 
                 <button
-                    type="submit"
-                    id="createElectionButton"
+                    type="button"
+                    id="addCandidateButton"
                 >
-                    إنشاء الانتخابات
+                    إضافة المرشح
                 </button>
 
-            </form>
+                <div
+                    id="candidateMessage"
+                    class="message"
+                ></div>
+
+            </div>
+
+
+            <div class="admin-box">
+
+                <h3>
+                    المرشحون الحاليون
+                </h3>
+
+                <div
+                    id="candidateList"
+                    class="placeholder"
+                >
+                    اختر عملية تصويت لعرض المرشحين.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RESULTS
+        ================================================== -->
+
+        <section
+            id="resultsSection"
+            class="admin-section"
+        >
+
+            <h2 class="section-title">
+                النتائج والإحصائيات
+            </h2>
+
+            <p class="section-description">
+                متابعة المشاركة والنتائج الإجمالية لعمليات التصويت.
+            </p>
+
+
+            <div class="admin-box">
+
+                <h3>
+                    عملية التصويت
+                </h3>
+
+                <select id="resultsElection">
+
+                    <option value="">
+                        اختر عملية التصويت
+                    </option>
+
+                </select>
+
+            </div>
 
 
             <div
-                id="createElectionMessage"
-                class="message"
-            ></div>
+                id="resultsContent"
+                class="admin-box"
+            >
 
-        </div>
+                <div class="placeholder">
+                    اختر عملية تصويت لعرض النتائج.
+                </div>
+
+            </div>
+
+        </section>
 
     </section>
 
