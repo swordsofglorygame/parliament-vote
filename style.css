@@ -128,3 +128,89 @@ button:hover {
         font-size: 35px;
     }
 }
+
+/* =========================================================
+   ADMIN UI
+========================================================= */
+
+#dashboardCard select,
+#dashboardCard input[type="datetime-local"],
+#dashboardCard input[type="text"],
+#dashboardCard input[type="number"],
+#dashboardCard textarea {
+    box-sizing: border-box;
+    width: 100%;
+    background: #100c08;
+    color: #f4ead8;
+    border: 1px solid #5a452b;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 15px;
+    outline: none;
+    color-scheme: dark;
+}
+
+#dashboardCard select:focus,
+#dashboardCard input:focus,
+#dashboardCard textarea:focus {
+    border-color: #c8963f;
+    box-shadow: 0 0 0 2px rgba(200, 150, 63, 0.12);
+}
+
+#dashboardCard select {
+    appearance: auto;
+    cursor: pointer;
+}
+
+#dashboardCard input[type="datetime-local"] {
+    direction: ltr;
+    text-align: center;
+}
+
+#dashboardCard input[type="checkbox"] {
+    accent-color: #c8963f;
+}
+
+.admin-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.admin-nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    width: auto !important;
+    min-width: 110px;
+    margin: 0 !important;
+    padding: 11px 16px !important;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d9c6a5;
+}
+
+.admin-box {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 650px) {
+
+    .admin-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-nav button {
+        width: 100% !important;
+        min-width: 0;
+    }
+}
