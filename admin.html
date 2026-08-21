@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -1429,6 +1430,7 @@
             إدارة كاملة للانتخابات وعمليات التصويت.
         </p>
 
+
         <form id="loginForm">
 
             <div class="form-group">
@@ -1446,6 +1448,7 @@
 
             </div>
 
+
             <div class="form-group">
 
                 <label>
@@ -1460,6 +1463,7 @@
                 >
 
             </div>
+
 
             <button id="loginButton">
                 تسجيل الدخول
@@ -1498,8 +1502,6 @@
         </p>
 
 
-        <!-- TOP -->
-
         <div class="top">
 
             <span
@@ -1517,8 +1519,6 @@
 
         </div>
 
-
-        <!-- NAV -->
 
         <div class="nav">
 
@@ -1859,24 +1859,91 @@
                     </div>
 
 
-                    <label
+                    <!-- =================================================
+                         RESULTS VISIBILITY SETTINGS
+                    ================================================== -->
+
+                    <div
                         style="
-                            display:flex;
-                            align-items:center;
-                            gap:8px;
-                            margin-bottom:15px
+                            margin-bottom:18px;
+                            padding:14px;
+                            border:1px solid #473620;
+                            border-radius:12px;
+                            background:#100c08;
                         "
                     >
 
-                        <input
-                            type="checkbox"
-                            id="createShowResults"
-                            style="width:18px"
+                        <div
+                            style="
+                                color:#e4c287;
+                                font-size:13px;
+                                font-weight:800;
+                                margin-bottom:12px;
+                            "
+                        >
+                            إعدادات ظهور النتائج
+                        </div>
+
+
+                        <label
+                            style="
+                                display:flex;
+                                align-items:center;
+                                gap:8px;
+                                margin-bottom:12px;
+                            "
                         >
 
-                        إظهار النتائج أثناء التصويت
+                            <input
+                                type="checkbox"
+                                id="createShowResultsDuring"
+                                style="width:18px"
+                            >
 
-                    </label>
+                            إظهار النتائج أثناء التصويت
+
+                        </label>
+
+
+                        <label
+                            style="
+                                display:flex;
+                                align-items:center;
+                                gap:8px;
+                                margin-bottom:12px;
+                            "
+                        >
+
+                            <input
+                                type="checkbox"
+                                id="createShowResultsAfter"
+                                style="width:18px"
+                            >
+
+                            إظهار النتائج بعد انتهاء التصويت
+
+                        </label>
+
+
+                        <label
+                            style="
+                                display:flex;
+                                align-items:center;
+                                gap:8px;
+                            "
+                        >
+
+                            <input
+                                type="checkbox"
+                                id="createShowResultsPublic"
+                                style="width:18px"
+                            >
+
+                            السماح بعرض النتائج بدون تسجيل دخول
+
+                        </label>
+
+                    </div>
 
 
                     <button
@@ -2076,9 +2143,7 @@
             </div>
 
         </section>
-
-
-        <!-- =================================================
+                <!-- =================================================
              PLAYERS
         ================================================== -->
 
@@ -2162,10 +2227,10 @@
                 </h3>
 
 
-                <div
-                    class="players-import-info"
-                >
+                <div class="players-import-info">
+
                     الملف يجب أن يحتوي على الأعمدة التالية:
+
                     <strong>
                         UID | RID | NAME
                     </strong>
@@ -2177,6 +2242,7 @@
                     <br>
 
                     عملية الاستبدال تخص السيرفر المختار فقط ولا تؤثر على السيرفرات الأخرى.
+
                 </div>
 
 
@@ -2219,7 +2285,7 @@
                     id="playersPreview"
                     style="
                         display:none;
-                        margin-top:15px
+                        margin-top:15px;
                     "
                 >
 
@@ -2324,7 +2390,7 @@
                         disabled
                         style="
                             width:100%;
-                            margin-top:15px
+                            margin-top:15px;
                         "
                     >
                         تأكيد واستبدال بيانات السيرفر
@@ -2334,7 +2400,7 @@
                     <div
                         id="playersPreviewTable"
                         style="
-                            margin-top:15px
+                            margin-top:15px;
                         "
                     ></div>
 
@@ -2414,4 +2480,5 @@
 <script src="admin.js"></script>
 
 </body>
+
 </html>
