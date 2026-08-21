@@ -49,6 +49,8 @@ const PLAYER_STORAGE_KEY =
 let currentPlayer = null;
 let currentElection = null;
 let currentElections = [];
+let electionEndTimer = null;
+let electionsRefreshTimer = null;
 
 
 /* =========================================================
@@ -291,6 +293,163 @@ function getElectionHasVoted(
 }
 
 
+function getElectionTimeState(election) {
+
+    if (!election) {
+        return "unknown";
+    }
+
+    const start = Date.parse(
+        election.start_at || ""
+    );
+
+    const end = Date.parse(
+        election.end_at || ""
+    );
+
+    if (
+        Number.isNaN(start) ||
+        Number.isNaN(end)
+    ) {
+        return "unknown";
+    }
+
+    const now = Date.now();
+
+    if (now < start) {
+        return "scheduled";
+    }
+
+    if (now > end) {
+        return "closed";
+    }
+
+    return "open";
+}
+
+
+function clearElectionEndTimer() {
+
+    if (electionEndTimer) {
+
+        clearTimeout(
+            electionEndTimer
+        );
+
+        electionEndTimer =
+            null;
+    }
+}
+
+
+function startElectionsRefresh() {
+
+    if (electionsRefreshTimer) {
+        return;
+    }
+
+    electionsRefreshTimer =
+        setInterval(
+            async () => {
+
+                if (
+                    !currentPlayer ||
+                    currentElection
+                ) {
+                    return;
+                }
+
+                await loadElectionsList();
+            },
+            30000
+        );
+}
+
+
+function stopElectionsRefresh() {
+
+    if (electionsRefreshTimer) {
+
+        clearInterval(
+            electionsRefreshTimer
+        );
+
+        electionsRefreshTimer =
+            null;
+    }
+}
+
+
+function scheduleElectionEnd(
+    election
+) {
+
+    clearElectionEndTimer();
+
+    if (!election?.end_at) {
+        return;
+    }
+
+    const end =
+        Date.parse(
+            election.end_at
+        );
+
+    if (Number.isNaN(end)) {
+        return;
+    }
+
+    const delay =
+        Math.max(
+            end -
+                Date.now() +
+                1000,
+            1000
+        );
+
+    electionEndTimer =
+        setTimeout(
+            async () => {
+
+                electionEndTimer =
+                    null;
+
+                if (
+                    !currentElection ||
+                    currentElection.election_id !==
+                        election.election_id
+                ) {
+                    return;
+                }
+
+                await showResults(
+                    election.election_id
+                );
+            },
+            delay
+        );
+}
+
+
+function getPublicResultsElectionId() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return (
+        params.get(
+            "results"
+        ) ||
+        params.get(
+            "result"
+        ) ||
+        null
+    );
+}
+
+
 /* =========================================================
    DYNAMIC NAVIGATION
 ========================================================= */
@@ -461,26 +620,23 @@ async function loadElectionsList() {
         return;
     }
 
+    clearElectionEndTimer();
+    startElectionsRefresh();
 
     electionTitle.textContent =
         "عمليات التصويت";
 
-
     electionInfo.textContent =
         "جاري تحميل التصويتات المتاحة لسيرفرك...";
 
-
     candidatesContainer.innerHTML =
         "";
-
 
     hideMessage(
         electionMessage
     );
 
-
     showNavigation();
-
 
     try {
 
@@ -495,7 +651,6 @@ async function loadElectionsList() {
                     currentPlayer.uid
                 )}`
             );
-
 
         if (
             !response.ok ||
@@ -514,14 +669,25 @@ async function loadElectionsList() {
             return;
         }
 
-
+        /*
+         * حماية إضافية من الواجهة:
+         * أي تصويت بدأ وانتهى فعليًا لا يظهر ضمن
+         * قائمة التصويتات المتاحة حتى لو أعاده
+         * الخادم بالخطأ.
+         */
         currentElections =
-            Array.isArray(
-                data.elections
-            )
-                ? data.elections
-                : [];
-
+            (
+                Array.isArray(
+                    data.elections
+                )
+                    ? data.elections
+                    : []
+            ).filter(
+                election =>
+                    getElectionTimeState(
+                        election
+                    ) === "open"
+            );
 
         renderElectionsList();
 
@@ -529,7 +695,9 @@ async function loadElectionsList() {
         error
     ) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
         electionInfo.textContent =
             "تعذر الاتصال بخادم التصويت.";
@@ -551,26 +719,23 @@ function renderElectionsList() {
     candidatesContainer.innerHTML =
         "";
 
-
     if (
         !currentElections.length
     ) {
 
         electionInfo.textContent =
-            "لا توجد عمليات تصويت متاحة حاليًا لهذا السيرفر.";
+            "لا توجد عمليات تصويت جارية حاليًا.";
 
         showMessage(
             electionMessage,
-            "لا توجد عمليات تصويت متاحة حاليًا."
+            "لا توجد عمليات تصويت متاحة الآن. النتائج تصبح متاحة بعد انتهاء كل عملية."
         );
 
         return;
     }
 
-
     electionInfo.textContent =
-        `تم العثور على ${currentElections.length} عملية تصويت متاحة. اختر العملية التي تريد المشاركة فيها.`;
-
+        `تم العثور على ${currentElections.length} عملية تصويت جارية. اختر العملية التي تريد المشاركة فيها.`;
 
     currentElections.forEach(
         election => {
@@ -579,7 +744,6 @@ function renderElectionsList() {
                 document.createElement(
                     "div"
                 );
-
 
             box.style.marginBottom =
                 "14px";
@@ -595,7 +759,6 @@ function renderElectionsList() {
 
             box.style.background =
                 "rgba(255, 255, 255, 0.02)";
-
 
             const title =
                 document.createElement(
@@ -618,7 +781,6 @@ function renderElectionsList() {
             title.style.marginBottom =
                 "8px";
 
-
             const description =
                 document.createElement(
                     "div"
@@ -640,7 +802,6 @@ function renderElectionsList() {
             description.style.marginBottom =
                 "10px";
 
-
             const meta =
                 document.createElement(
                     "div"
@@ -655,7 +816,6 @@ function renderElectionsList() {
             meta.style.color =
                 "#918068";
 
-
             const hasVoted =
                 getElectionHasVoted(
                     election
@@ -665,7 +825,6 @@ function renderElectionsList() {
                         election.election_id
                     )
                 );
-
 
             meta.innerHTML = `
                 المقاعد: ${escapeHtml(
@@ -702,7 +861,6 @@ function renderElectionsList() {
                     : "متاح للتصويت"}
             `;
 
-
             const button =
                 document.createElement(
                     "button"
@@ -713,12 +871,11 @@ function renderElectionsList() {
 
             button.textContent =
                 hasVoted
-                    ? "عرض التصويت"
+                    ? "عرض تصويتي"
                     : "دخول للتصويت";
 
             button.style.marginTop =
                 "12px";
-
 
             button.addEventListener(
                 "click",
@@ -727,7 +884,6 @@ function renderElectionsList() {
                         election
                     )
             );
-
 
             box.appendChild(
                 title
@@ -745,7 +901,6 @@ function renderElectionsList() {
                 button
             );
 
-
             candidatesContainer.appendChild(
                 box
             );
@@ -762,51 +917,64 @@ async function openElection(
     election
 ) {
 
+    const state =
+        getElectionTimeState(
+            election
+        );
+
+    if (state === "closed") {
+
+        await showResults(
+            election.election_id
+        );
+
+        return;
+    }
+
+    if (state !== "open") {
+
+        showMessage(
+            electionMessage,
+            "هذه العملية غير متاحة للتصويت في الوقت الحالي."
+        );
+
+        return;
+    }
+
     currentElection =
         election;
 
+    stopElectionsRefresh();
 
     hideMessage(
         electionMessage
     );
 
-
     electionTitle.textContent =
         election.title ||
         "عملية تصويت";
 
-
     electionInfo.textContent =
         "جاري تحميل بيانات التصويت...";
-
 
     candidatesContainer.innerHTML =
         "";
 
-
     showNavigation();
 
+    scheduleElectionEnd(
+        election
+    );
 
     try {
 
         let selectedElection =
             election;
 
-
         let candidates =
             getElectionCandidates(
                 selectedElection
             );
-
-
-        /*
-         * الـEndpoint الجديد الأفضل أن يعيد
-         * المرشحين داخل كل عملية تصويت.
-         *
-         * كحل احتياطي ندعم الـEndpoint القديم
-         * لو كان التصويت المطلوب هو التصويت
-         * الوحيد الذي يعيده.
-         */
 
         if (
             !candidates.length
@@ -821,7 +989,6 @@ async function openElection(
                         currentPlayer.server_id
                     )}`
                 );
-
 
             if (
                 response.ok &&
@@ -844,10 +1011,8 @@ async function openElection(
                             : []
                 };
 
-
                 currentElection =
                     selectedElection;
-
 
                 candidates =
                     getElectionCandidates(
@@ -856,6 +1021,18 @@ async function openElection(
             }
         }
 
+        if (
+            getElectionTimeState(
+                selectedElection
+            ) !== "open"
+        ) {
+
+            await showResults(
+                selectedElection.election_id
+            );
+
+            return;
+        }
 
         if (
             !candidates.length
@@ -871,7 +1048,6 @@ async function openElection(
 
             return;
         }
-
 
         renderSelectedElection(
             selectedElection,
@@ -906,6 +1082,27 @@ function renderSelectedElection(
     candidates
 ) {
 
+    const state =
+        getElectionTimeState(
+            election
+        );
+
+    if (state === "closed") {
+
+        showResults(
+            election.election_id
+        );
+
+        return;
+    }
+
+    if (state !== "open") {
+
+        showElectionsList();
+
+        return;
+    }
+
     const hasVoted =
         getElectionHasVoted(
             election
@@ -916,27 +1113,22 @@ function renderSelectedElection(
             )
         );
 
-
     electionTitle.textContent =
         election.title ||
         "عملية تصويت";
-
 
     electionInfo.textContent =
         hasVoted
             ? "لقد شاركت في هذه العملية بالفعل. يمكنك مشاهدة تصويتك فقط."
             : `المقاعد: ${election.seats} — يمكنك اختيار من ${election.min_choices} إلى ${election.max_choices} مرشحين.`;
 
-
     candidatesContainer.innerHTML =
         "";
-
 
     const vote =
         getLocalVote(
             election.election_id
         );
-
 
     const selectedIds =
         Array.isArray(
@@ -944,7 +1136,6 @@ function renderSelectedElection(
         )
             ? vote.candidate_ids
             : [];
-
 
     candidates.forEach(
         candidate => {
@@ -969,7 +1160,6 @@ function renderSelectedElection(
             candidateBox.style.background =
                 "rgba(255, 255, 255, 0.02)";
 
-
             const label =
                 document.createElement(
                     "label"
@@ -991,7 +1181,6 @@ function renderSelectedElection(
 
             label.style.margin =
                 "0";
-
 
             const checkbox =
                 document.createElement(
@@ -1028,7 +1217,6 @@ function renderSelectedElection(
                     ? "default"
                     : "pointer";
 
-
             const name =
                 document.createElement(
                     "span"
@@ -1043,7 +1231,6 @@ function renderSelectedElection(
             name.style.color =
                 "#f5ead7";
 
-
             label.appendChild(
                 checkbox
             );
@@ -1052,18 +1239,15 @@ function renderSelectedElection(
                 name
             );
 
-
             candidateBox.appendChild(
                 label
             );
-
 
             candidatesContainer.appendChild(
                 candidateBox
             );
         }
     );
-
 
     if (hasVoted) {
 
@@ -1093,14 +1277,16 @@ function renderSelectedElection(
         notice.textContent =
             "تم تسجيل تصويتك في هذه العملية. لا يمكن تعديل التصويت.";
 
-
         candidatesContainer.appendChild(
             notice
         );
 
+        scheduleElectionEnd(
+            election
+        );
+
         return;
     }
-
 
     const voteButton =
         document.createElement(
@@ -1121,10 +1307,386 @@ function renderSelectedElection(
         submitVote
     );
 
-
     candidatesContainer.appendChild(
         voteButton
     );
+
+    scheduleElectionEnd(
+        election
+    );
+}
+
+
+/* =========================================================
+   PUBLIC RESULTS VIEW
+========================================================= */
+
+async function showResults(
+    electionId,
+    publicMode = false
+) {
+
+    clearElectionEndTimer();
+    stopElectionsRefresh();
+
+    currentElection =
+        null;
+
+    const navigation =
+        ensureVotingNavigation();
+
+    navigation.style.display =
+        publicMode
+            ? "none"
+            : "flex";
+
+    electionTitle.textContent =
+        "نتائج التصويت";
+
+    electionInfo.textContent =
+        "جاري تحميل النتائج...";
+
+    candidatesContainer.innerHTML =
+        "";
+
+    hideMessage(
+        electionMessage
+    );
+
+    try {
+
+        const {
+            response,
+            data
+        } =
+            await fetchJson(
+                `/results?election_id=${encodeURIComponent(
+                    electionId
+                )}`
+            );
+
+        if (
+            !response.ok ||
+            !data?.success
+        ) {
+
+            electionInfo.textContent =
+                "النتائج غير متاحة حاليًا.";
+
+            showMessage(
+                electionMessage,
+                data?.message ||
+                "تعذر تحميل نتائج التصويت."
+            );
+
+            return;
+        }
+
+        const election =
+            data.election || {};
+
+        electionTitle.textContent =
+            election.title ||
+            "نتائج التصويت";
+
+        electionInfo.textContent =
+            `انتهت عملية التصويت بتاريخ ${formatDate(
+                election.end_at
+            )}.`;
+
+        renderResults(
+            data
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Results error:",
+            error
+        );
+
+        electionInfo.textContent =
+            "تعذر تحميل النتائج.";
+
+        showMessage(
+            electionMessage,
+            "حدث خطأ أثناء تحميل النتائج."
+        );
+    }
+}
+
+
+function renderResults(
+    data
+) {
+
+    const stats =
+        data.stats || {};
+
+    const results =
+        Array.isArray(
+            data.results
+        )
+            ? data.results
+            : [];
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.style.marginTop =
+        "10px";
+
+    const statsBox =
+        document.createElement(
+            "div"
+        );
+
+    statsBox.style.display =
+        "grid";
+
+    statsBox.style.gridTemplateColumns =
+        "repeat(auto-fit, minmax(130px, 1fr))";
+
+    statsBox.style.gap =
+        "10px";
+
+    statsBox.style.marginBottom =
+        "18px";
+
+    const statsItems = [
+        ["المصوتون", stats.voters ?? 0],
+        ["غير المصوتين", stats.not_voted ?? 0],
+        ["نسبة المشاركة", `${stats.participation_rate ?? 0}%`]
+    ];
+
+    statsItems.forEach(
+        ([label, value]) => {
+
+            const box =
+                document.createElement(
+                    "div"
+                );
+
+            box.style.padding =
+                "14px";
+
+            box.style.border =
+                "1px solid rgba(190,145,70,.3)";
+
+            box.style.borderRadius =
+                "12px";
+
+            box.style.textAlign =
+                "center";
+
+            box.innerHTML = `
+                <div
+                    style="
+                        font-size:12px;
+                        color:#917e62;
+                        margin-bottom:7px;
+                    "
+                >
+                    ${escapeHtml(label)}
+                </div>
+
+                <div
+                    style="
+                        font-size:22px;
+                        font-weight:700;
+                        color:#d9ad5b;
+                    "
+                >
+                    ${escapeHtml(value)}
+                </div>
+            `;
+
+            statsBox.appendChild(
+                box
+            );
+        }
+    );
+
+    wrapper.appendChild(
+        statsBox
+    );
+
+    if (!results.length) {
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+        empty.style.padding =
+            "20px";
+
+        empty.style.border =
+            "1px dashed rgba(190,145,70,.35)";
+
+        empty.style.borderRadius =
+            "12px";
+
+        empty.style.textAlign =
+            "center";
+
+        empty.style.color =
+            "#9b8b72";
+
+        empty.textContent =
+            "لا توجد أصوات مسجلة في هذه العملية.";
+
+        wrapper.appendChild(
+            empty
+        );
+
+    } else {
+
+        results.forEach(
+            (row, index) => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.style.marginBottom =
+                    "12px";
+
+                item.style.padding =
+                    "14px";
+
+                item.style.border =
+                    "1px solid rgba(190,145,70,.3)";
+
+                item.style.borderRadius =
+                    "12px";
+
+                const percent =
+                    Number(
+                        row.percentage
+                    ) || 0;
+
+                item.innerHTML = `
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:10px;
+                            margin-bottom:8px;
+                        "
+                    >
+                        <strong
+                            style="
+                                color:#f5ead7;
+                            "
+                        >
+                            ${index + 1}.
+                            ${escapeHtml(
+                                row.nickname
+                            )}
+                        </strong>
+
+                        <span
+                            style="
+                                color:#d9ad5b;
+                                font-weight:700;
+                            "
+                        >
+                            ${escapeHtml(
+                                row.votes ??
+                                0
+                            )}
+                            صوت
+                            —
+                            ${escapeHtml(
+                                percent
+                            )}%
+                        </span>
+                    </div>
+
+                    <div
+                        style="
+                            height:10px;
+                            background:#261c12;
+                            border-radius:999px;
+                            overflow:hidden;
+                        "
+                    >
+                        <div
+                            style="
+                                width:${Math.max(
+                                    0,
+                                    Math.min(
+                                        100,
+                                        percent
+                                    )
+                                )}%;
+                                height:100%;
+                                background:linear-gradient(
+                                    90deg,
+                                    #d4a54f,
+                                    #9a6b25
+                                );
+                            "
+                        ></div>
+                    </div>
+                `;
+
+                wrapper.appendChild(
+                    item
+                );
+            }
+        );
+    }
+
+    candidatesContainer.appendChild(
+        wrapper
+    );
+
+    if (
+        !new URLSearchParams(
+            window.location.search
+        ).has("results")
+    ) {
+
+        const backButton =
+            document.createElement(
+                "button"
+            );
+
+        backButton.type =
+            "button";
+
+        backButton.textContent =
+            currentPlayer
+                ? "رجوع إلى التصويتات"
+                : "العودة";
+
+        backButton.style.marginTop =
+            "14px";
+
+        backButton.addEventListener(
+            "click",
+            () => {
+
+                if (currentPlayer) {
+
+                    showElectionsList();
+
+                } else {
+
+                    window.history.back();
+                }
+            }
+        );
+
+        candidatesContainer.appendChild(
+            backButton
+        );
+    }
 }
 
 
@@ -1142,6 +1704,19 @@ async function submitVote() {
         showMessage(
             electionMessage,
             "بيانات التصويت غير مكتملة."
+        );
+
+        return;
+    }
+
+    if (
+        getElectionTimeState(
+            currentElection
+        ) !== "open"
+    ) {
+
+        await showResults(
+            currentElection.election_id
         );
 
         return;
@@ -1394,6 +1969,7 @@ function showElectionsList() {
         return;
     }
 
+    clearElectionEndTimer();
 
     currentElection =
         null;
@@ -1421,6 +1997,9 @@ function showElectionsList() {
 ========================================================= */
 
 function logoutPlayer() {
+
+    clearElectionEndTimer();
+    stopElectionsRefresh();
 
     currentPlayer =
         null;
@@ -1758,10 +2337,31 @@ async function restorePlayerSession() {
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    async () => {
 
         ensureVotingNavigation();
 
-        restorePlayerSession();
+        const publicResultId =
+            getPublicResultsElectionId();
+
+        if (publicResultId) {
+
+            verificationCard.style.display =
+                "none";
+
+            electionCard.style.display =
+                "block";
+
+            hideNavigation();
+
+            await showResults(
+                publicResultId,
+                true
+            );
+
+            return;
+        }
+
+        await restorePlayerSession();
     }
 );
