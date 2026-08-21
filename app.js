@@ -1521,19 +1521,11 @@ function renderResults(
 
 
     const statsList = [
-        [
-            "المصوتون",
-            stats.voters ?? 0
-        ],
-        [
-            "غير المصوتين",
-            stats.not_voted ?? 0
-        ],
-        [
-            "نسبة المشاركة",
-            `${stats.participation_rate ?? 0}%`
-        ]
-    ];
+    [
+        "المصوتون",
+        stats.voters ?? 0
+    ]
+];
 
 
     statsList.forEach(
