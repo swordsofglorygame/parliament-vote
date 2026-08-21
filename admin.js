@@ -976,20 +976,14 @@ function electionCard(election) {
                         : ""
                 }
 
-                ${
-                    status === "cancelled"
-                        ? `
-                            <button
-                                class="red"
-                                onclick="deleteCancelledElection('${escapeHtml(
-                                    election.election_id
-                                )}')"
-                            >
-                                حذف نهائي
-                            </button>
-                        `
-                        : ""
-                }
+                <button
+                    class="red"
+                    onclick="deleteElection('${escapeHtml(
+                        election.election_id
+                    )}')"
+                >
+                    حذف التصويت
+                </button>
 
             </div>
 
@@ -1057,6 +1051,7 @@ function updateChoiceLimits() {
         ) || seats;
 
     if (minValue > seats) {
+
         minValue =
             seats;
 
@@ -1950,6 +1945,7 @@ window.openElection =
                 "هل تريد فتح التصويت الآن؟"
             )
         ) {
+
             return;
         }
 
@@ -2011,6 +2007,7 @@ window.closeElection =
                 "سيتم إنهاء التصويت نهائيًا. هل أنت متأكد؟"
             )
         ) {
+
             return;
         }
 
@@ -2072,6 +2069,7 @@ window.cancelElection =
                 "سيتم إلغاء عملية التصويت ولن يتم حذفها. هل أنت متأكد؟"
             )
         ) {
+
             return;
         }
 
@@ -2123,7 +2121,7 @@ window.cancelElection =
    DELETE ELECTION
 ========================================================= */
 
-window.deleteCancelledElection =
+window.deleteElection =
     async function(
         electionId
     ) {
@@ -2133,6 +2131,7 @@ window.deleteCancelledElection =
                 "تحذير:\n\nسيتم حذف التصويت وجميع الأصوات والمرشحين المرتبطين به نهائيًا.\n\nهل تريد المتابعة؟"
             )
         ) {
+
             return;
         }
 
@@ -2979,11 +2978,19 @@ window.addCandidate =
                 return;
             }
 
+            showMessage(
+                el("candidateMessage"),
+                "تمت إضافة المرشح.",
+                "success"
+            );
+
             await openDetails(
                 electionId
             );
 
-        } catch {
+        } catch (error) {
+
+            console.error(error);
 
             showMessage(
                 el("candidateMessage"),
@@ -3001,10 +3008,9 @@ window.deleteCandidate =
 
         if (
             !confirm(
-                "هل تريد حذف هذا المرشح؟"
+                "حذف هذا المرشح؟"
             )
         ) {
-
             return;
         }
 
@@ -3043,14 +3049,14 @@ window.deleteCandidate =
         } catch {
 
             alert(
-                "تعذر الاتصال بالخادم."
+                "حدث خطأ أثناء حذف المرشح."
             );
         }
     };
 
 
 /* =========================================================
-   PLAYERS - VIEW / IMPORT / REPLACE
+   PLAYER STATS / IMPORT
 ========================================================= */
 
 let currentPlayersPreview = null;
@@ -3064,13 +3070,19 @@ function normalizeHeader(value) {
 }
 
 function detectPlayerColumns(row) {
+
     const mapping = {
         uid: null,
         rid: null,
         name: null
     };
 
-    for (const key of Object.keys(row || {})) {
+    for (
+        const key of Object.keys(
+            row || {}
+        )
+    ) {
+
         const normalized =
             normalizeHeader(key);
 
@@ -3078,12 +3090,14 @@ function detectPlayerColumns(row) {
             normalized === "uid" ||
             normalized === "playeruid"
         ) {
+
             mapping.uid = key;
 
         } else if (
             normalized === "rid" ||
             normalized === "playerrid"
         ) {
+
             mapping.rid = key;
 
         } else if (
@@ -3091,6 +3105,7 @@ function detectPlayerColumns(row) {
             normalized === "nickname" ||
             normalized === "playername"
         ) {
+
             mapping.name = key;
         }
     }
@@ -3098,9 +3113,110 @@ function detectPlayerColumns(row) {
     return mapping;
 }
 
+async function loadPlayerStats() {
+
+    const serverId =
+        Number(
+            el("playersServer")?.value
+        );
+
+    const statsEl =
+        el("playersCurrentStats");
+
+    if (
+        !Number.isInteger(
+            serverId
+        ) ||
+        serverId <= 0
+    ) {
+
+        if (statsEl) {
+
+            statsEl.textContent =
+                "اختر سيرفرًا لعرض عدد اللاعبين.";
+        }
+
+        return 0;
+    }
+
+    try {
+
+        const response =
+            await apiFetch(
+                `/admin/players?server_id=${encodeURIComponent(
+                    serverId
+                )}&limit=1`
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            if (statsEl) {
+
+                statsEl.textContent =
+                    "تعذر قراءة بيانات اللاعبين.";
+            }
+
+            return 0;
+        }
+
+        const count =
+            Number(
+                data.total
+            ) || 0;
+
+        if (statsEl) {
+
+            statsEl.textContent =
+                `عدد اللاعبين الحالي: ${count}`;
+        }
+
+        return count;
+
+    } catch (error) {
+
+        console.error(
+            "Player stats error:",
+            error
+        );
+
+        if (statsEl) {
+
+            statsEl.textContent =
+                "تعذر الاتصال بالخادم.";
+        }
+
+        return 0;
+    }
+}
+
+el("playersServer")
+    ?.addEventListener(
+        "change",
+        async () => {
+
+            currentPlayersPreview =
+                null;
+
+            await loadPlayerStats();
+        }
+    );
+
 
 /* =========================================================
-   CSV READER
+   INITIALIZE
+========================================================= */
+
+updateChoiceLimits();
+
+restoreAdminSession();
+/* =========================================================
+   PLAYER IMPORT HELPERS
 ========================================================= */
 
 function parseCSV(text) {
@@ -3117,21 +3233,29 @@ function parseCSV(text) {
         i++
     ) {
 
-        const char = text[i];
-        const next = text[i + 1];
+        const char =
+            text[i];
+
+        const next =
+            text[i + 1];
 
         if (
             char === '"' &&
             quoted &&
             next === '"'
         ) {
+
             value += '"';
             i++;
+
             continue;
         }
 
         if (char === '"') {
-            quoted = !quoted;
+
+            quoted =
+                !quoted;
+
             continue;
         }
 
@@ -3139,14 +3263,21 @@ function parseCSV(text) {
             char === "," &&
             !quoted
         ) {
-            row.push(value);
+
+            row.push(
+                value
+            );
+
             value = "";
+
             continue;
         }
 
         if (
-            (char === "\n" ||
-                char === "\r") &&
+            (
+                char === "\n" ||
+                char === "\r"
+            ) &&
             !quoted
         ) {
 
@@ -3154,18 +3285,26 @@ function parseCSV(text) {
                 char === "\r" &&
                 next === "\n"
             ) {
+
                 i++;
             }
 
-            row.push(value);
+            row.push(
+                value
+            );
 
             if (
                 row.some(
-                    v =>
-                        String(v).trim() !== ""
+                    item =>
+                        String(
+                            item
+                        ).trim() !== ""
                 )
             ) {
-                rows.push(row);
+
+                rows.push(
+                    row
+                );
             }
 
             row = [];
@@ -3177,83 +3316,106 @@ function parseCSV(text) {
         value += char;
     }
 
-    row.push(value);
+    row.push(
+        value
+    );
 
     if (
         row.some(
-            v =>
-                String(v).trim() !== ""
+            item =>
+                String(
+                    item
+                ).trim() !== ""
         )
     ) {
-        rows.push(row);
+
+        rows.push(
+            row
+        );
     }
 
-    if (!rows.length) {
+    if (
+        !rows.length
+    ) {
+
         return [];
     }
 
     const headers =
         rows[0].map(
-            v =>
-                String(v).trim()
+            header =>
+                String(
+                    header
+                ).trim()
         );
 
     return rows
         .slice(1)
-        .map(cells => {
+        .map(
+            cells => {
 
-            const result = {};
+                const object = {};
 
-            headers.forEach(
-                (
-                    header,
-                    index
-                ) => {
+                headers.forEach(
+                    (
+                        header,
+                        index
+                    ) => {
 
-                    result[header] =
-                        cells[index] ?? "";
-                }
-            );
+                        object[header] =
+                            cells[index] ??
+                            "";
+                    }
+                );
 
-            return result;
-        });
+                return object;
+            }
+        );
 }
 
 
-/* =========================================================
-   READ PLAYER FILE
-========================================================= */
-
-async function readPlayersFile(file) {
+async function readPlayersFile(
+    file
+) {
 
     if (!file) {
+
         throw new Error(
-            "اختر ملفًا أولًا."
+            "اختر ملف اللاعبين أولًا."
         );
     }
 
-    const name =
-        file.name.toLowerCase();
+    const fileName =
+        file.name
+            .toLowerCase();
 
     if (
-        name.endsWith(".csv")
+        fileName.endsWith(
+            ".csv"
+        )
     ) {
+
         return parseCSV(
             await file.text()
         );
     }
 
     if (
-        name.endsWith(".xlsx") ||
-        name.endsWith(".xls")
+        fileName.endsWith(
+            ".xlsx"
+        ) ||
+        fileName.endsWith(
+            ".xls"
+        )
     ) {
 
         if (
             typeof XLSX ===
             "undefined"
         ) {
+
             throw new Error(
-                "مكتبة Excel غير محملة."
+                "مكتبة Excel غير محملة في الصفحة."
             );
         }
 
@@ -3271,8 +3433,9 @@ async function readPlayersFile(file) {
         if (
             !workbook.SheetNames.length
         ) {
+
             throw new Error(
-                "ملف Excel فارغ."
+                "ملف Excel لا يحتوي على أوراق."
             );
         }
 
@@ -3290,21 +3453,22 @@ async function readPlayersFile(file) {
     }
 
     throw new Error(
-        "الملف يجب أن يكون CSV أو XLS أو XLSX."
+        "نوع الملف غير مدعوم. استخدم CSV أو XLS أو XLSX."
     );
 }
 
 
-/* =========================================================
-   PREPARE PLAYERS
-========================================================= */
-
-function preparePlayerRows(rawRows) {
+function preparePlayerRows(
+    rawRows
+) {
 
     if (
-        !Array.isArray(rawRows) ||
+        !Array.isArray(
+            rawRows
+        ) ||
         !rawRows.length
     ) {
+
         return {
             rows: [],
             errors: [
@@ -3320,25 +3484,37 @@ function preparePlayerRows(rawRows) {
 
     const errors = [];
 
-    if (!mapping.uid) {
+    if (
+        !mapping.uid
+    ) {
+
         errors.push(
             "عمود UID غير موجود."
         );
     }
 
-    if (!mapping.rid) {
+    if (
+        !mapping.rid
+    ) {
+
         errors.push(
             "عمود RID غير موجود."
         );
     }
 
-    if (!mapping.name) {
+    if (
+        !mapping.name
+    ) {
+
         errors.push(
-            "عمود NAME غير موجود."
+            "عمود NAME أو NICKNAME غير موجود."
         );
     }
 
-    if (errors.length) {
+    if (
+        errors.length
+    ) {
+
         return {
             rows: [],
             errors
@@ -3404,13 +3580,17 @@ function preparePlayerRows(rawRows) {
             if (!name) {
 
                 errors.push(
-                    `السطر ${line}: NAME فارغ.`
+                    `السطر ${line}: اسم اللاعب فارغ.`
                 );
 
                 return;
             }
 
-            if (uids.has(uid)) {
+            if (
+                uids.has(
+                    uid
+                )
+            ) {
 
                 errors.push(
                     `السطر ${line}: UID مكرر (${uid}).`
@@ -3419,7 +3599,11 @@ function preparePlayerRows(rawRows) {
                 return;
             }
 
-            if (rids.has(rid)) {
+            if (
+                rids.has(
+                    rid
+                )
+            ) {
 
                 errors.push(
                     `السطر ${line}: RID مكرر (${rid}).`
@@ -3428,8 +3612,13 @@ function preparePlayerRows(rawRows) {
                 return;
             }
 
-            uids.add(uid);
-            rids.add(rid);
+            uids.add(
+                uid
+            );
+
+            rids.add(
+                rid
+            );
 
             rows.push({
                 uid,
@@ -3447,158 +3636,379 @@ function preparePlayerRows(rawRows) {
 
 
 /* =========================================================
-   PLAYER STATS
+   PLAYER PREVIEW
 ========================================================= */
 
-async function loadPlayerStats() {
+function renderPlayersPreview(
+    rows,
+    errors,
+    currentCount
+) {
 
-    const serverId =
-        Number(
-            el("playersServer")?.value
-        );
+    const preview =
+        el("playersPreview");
 
-    const statsEl =
-        el("playersCurrentStats");
-
-    if (
-        !Number.isInteger(
-            serverId
-        ) ||
-        serverId <= 0
-    ) {
-
-        if (statsEl) {
-            statsEl.textContent =
-                "اختر سيرفرًا لعرض عدد اللاعبين.";
-        }
-
-        return 0;
-    }
-
-    try {
-
-        const response =
-            await apiFetch(
-                `/admin/players?server_id=${encodeURIComponent(
-                    serverId
-                )}&limit=1`
-            );
-
-        const data =
-            await response.json();
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            if (statsEl) {
-                statsEl.textContent =
-                    "تعذر قراءة بيانات اللاعبين.";
-            }
-
-            return 0;
-        }
-
-        const count =
-            Number(
-                data.total
-            ) || 0;
-
-        if (statsEl) {
-
-            statsEl.textContent =
-                `السيرفر: ${
-                    data.server?.name ||
-                    serverId
-                } — عدد اللاعبين الحالي: ${count}`;
-        }
-
-        return count;
-
-    } catch (error) {
-
-        console.error(
-            "Player stats error:",
-            error
-        );
-
-        if (statsEl) {
-            statsEl.textContent =
-                "تعذر الاتصال بالخادم.";
-        }
-
-        return 0;
-    }
-}
-
-
-/* =========================================================
-   OPEN PLAYERS PAGE
-========================================================= */
-
-function openPlayersPage(serverId) {
-
-    if (
-        !Number.isInteger(
-            serverId
-        ) ||
-        serverId <= 0
-    ) {
-
-        showMessage(
-            el("playersMessage"),
-            "اختر السيرفر أولًا."
-        );
-
+    if (!preview) {
         return;
     }
 
-    location.href =
-        `players.html?server_id=${encodeURIComponent(
-            serverId
-        )}`;
+    preview.style.display =
+        "block";
+
+    if (
+        el("playersFileCount")
+    ) {
+
+        el("playersFileCount")
+            .textContent =
+            String(
+                rows.length +
+                errors.length
+            );
+    }
+
+    if (
+        el("playersCurrentCount")
+    ) {
+
+        el("playersCurrentCount")
+            .textContent =
+            String(
+                currentCount
+            );
+    }
+
+    if (
+        el("playersAfterCount")
+    ) {
+
+        el("playersAfterCount")
+            .textContent =
+            String(
+                rows.length
+            );
+    }
+
+    if (
+        el("playersReplaceCount")
+    ) {
+
+        el("playersReplaceCount")
+            .textContent =
+            String(
+                Math.abs(
+                    currentCount -
+                    rows.length
+                )
+            );
+    }
+
+    const table =
+        el(
+            "playersPreviewTable"
+        );
+
+    if (!table) {
+        return;
+    }
+
+    let html = "";
+
+    if (
+        rows.length
+    ) {
+
+        html += `
+            <div class="table">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>#</th>
+                            <th>UID</th>
+                            <th>RID</th>
+                            <th>NAME</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${
+                            rows
+                                .slice(
+                                    0,
+                                    20
+                                )
+                                .map(
+                                    (
+                                        player,
+                                        index
+                                    ) => `
+                                        <tr>
+
+                                            <td>
+                                                ${
+                                                    index +
+                                                    1
+                                                }
+                                            </td>
+
+                                            <td dir="ltr">
+                                                ${escapeHtml(
+                                                    player.uid
+                                                )}
+                                            </td>
+
+                                            <td dir="ltr">
+                                                ${escapeHtml(
+                                                    player.rid
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                ${escapeHtml(
+                                                    player.name
+                                                )}
+                                            </td>
+
+                                        </tr>
+                                    `
+                                )
+                                .join("")
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+        if (
+            rows.length >
+            20
+        ) {
+
+            html += `
+                <div
+                    style="
+                        margin-top:8px;
+                        color:#766751;
+                        font-size:10px;
+                    "
+                >
+                    يتم عرض أول 20 لاعبًا فقط في المعاينة.
+                </div>
+            `;
+        }
+    }
+
+    if (
+        errors.length
+    ) {
+
+        html += `
+            <div
+                class="players-warning"
+            >
+
+                <strong>
+                    يوجد ${errors.length} خطأ:
+                </strong>
+
+                <div
+                    style="
+                        margin-top:6px;
+                    "
+                >
+
+                    ${
+                        errors
+                            .slice(
+                                0,
+                                30
+                            )
+                            .map(
+                                error =>
+                                    `<div>${escapeHtml(
+                                        error
+                                    )}</div>`
+                            )
+                            .join("")
+                    }
+
+                </div>
+
+            </div>
+        `;
+    }
+
+    table.innerHTML =
+        html;
+
+    const replaceButton =
+        el(
+            "replacePlayersButton"
+        );
+
+    if (
+        replaceButton
+    ) {
+
+        replaceButton.disabled =
+            !rows.length ||
+            errors.length > 0;
+    }
 }
 
 
 /* =========================================================
-   SERVER CHANGE
+   VALIDATE PLAYERS FILE
 ========================================================= */
 
-el("playersServer")
+el("validatePlayersButton")
     ?.addEventListener(
-        "change",
+        "click",
         async () => {
 
-            currentPlayersPreview =
-                null;
+            hideMessage(
+                el("playersMessage")
+            );
+
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
+
+            const file =
+                el("playersFile")
+                    ?.files?.[0];
 
             if (
-                el("playersPreview")
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
             ) {
 
-                el("playersPreview")
-                    .style.display =
-                    "none";
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر أولًا."
+                );
+
+                return;
             }
 
-            if (
-                el("playersPreviewTable")
+            if (!file) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "اختر ملف اللاعبين أولًا."
+                );
+
+                return;
+            }
+
+            const button =
+                el(
+                    "validatePlayersButton"
+                );
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "جاري فحص الملف...";
+
+            try {
+
+                const rawRows =
+                    await readPlayersFile(
+                        file
+                    );
+
+                const prepared =
+                    preparePlayerRows(
+                        rawRows
+                    );
+
+                const currentCount =
+                    await loadPlayerStats();
+
+                currentPlayersPreview = {
+
+                    rows:
+                        prepared.rows,
+
+                    errors:
+                        prepared.errors,
+
+                    currentCount
+                };
+
+                renderPlayersPreview(
+                    prepared.rows,
+                    prepared.errors,
+                    currentCount
+                );
+
+                if (
+                    prepared.errors.length
+                ) {
+
+                    showMessage(
+                        el("playersMessage"),
+                        `تم فحص الملف، لكن يوجد ${prepared.errors.length} خطأ. لن يتم تنفيذ الاستبدال.`,
+                        "error"
+                    );
+
+                } else {
+
+                    showMessage(
+                        el("playersMessage"),
+                        `الملف صالح ويحتوي على ${prepared.rows.length} لاعب.`,
+                        "success"
+                    );
+                }
+
+            } catch (
+                error
             ) {
 
-                el("playersPreviewTable")
-                    .innerHTML =
-                    "";
-            }
+                console.error(
+                    error
+                );
 
-            if (
-                el("replacePlayersButton")
-            ) {
+                showMessage(
+                    el("playersMessage"),
+                    error.message ||
+                    "تعذر قراءة الملف."
+                );
 
-                el("replacePlayersButton")
-                    .disabled =
-                    true;
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "فحص الملف";
             }
+        }
+    );
+
+
+/* =========================================================
+   REPLACE PLAYERS
+========================================================= */
+
+el("replacePlayersButton")
+    ?.addEventListener(
+        "click",
+        async () => {
 
             hideMessage(
                 el("playersMessage")
@@ -3617,27 +4027,294 @@ el("playersServer")
                 serverId <= 0
             ) {
 
-                if (
-                    el("playersCurrentStats")
-                ) {
-
-                    el("playersCurrentStats")
-                        .textContent =
-                        "اختر سيرفرًا لعرض عدد اللاعبين.";
-                }
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر أولًا."
+                );
 
                 return;
             }
 
-            /*
-             * هنا نعرض العدد فقط.
-             * قائمة اللاعبين أصبحت في players.html.
-             */
-            await loadPlayerStats();
+            if (
+                !currentPlayersPreview ||
+                !currentPlayersPreview.rows.length ||
+                currentPlayersPreview.errors.length
+            ) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "افحص ملفًا صالحًا أولًا."
+                );
+
+                return;
+            }
+
+            const total =
+                currentPlayersPreview
+                    .rows
+                    .length;
+
+            const currentCount =
+                currentPlayersPreview
+                    .currentCount;
+
+            const confirmed =
+                confirm(
+                    "تحذير مهم:\n\n" +
+                    `سيتم استبدال جميع لاعبي السيرفر ${serverId}.\n\n` +
+                    `الحالي: ${currentCount} لاعب\n` +
+                    `الجديد: ${total} لاعب\n\n` +
+                    "أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n" +
+                    "هل تريد المتابعة؟"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            const button =
+                el(
+                    "replacePlayersButton"
+                );
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "جاري الاستبدال...";
+
+            try {
+
+                const response =
+                    await apiFetch(
+                        "/admin/players/replace",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify({
+
+                                    server_id:
+                                        serverId,
+
+                                    players:
+                                        currentPlayersPreview
+                                            .rows,
+
+                                    confirm:
+                                        true
+
+                                })
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    showMessage(
+                        el("playersMessage"),
+                        data.message ||
+                        "تعذر استبدال بيانات اللاعبين."
+                    );
+
+                    return;
+                }
+
+                const finalCount =
+                    Number(
+                        data.final_count ??
+                        data.result
+                            ?.current_players ??
+                        total
+                    );
+
+                showMessage(
+                    el("playersMessage"),
+                    `تم استبدال بيانات اللاعبين بنجاح.\nالعدد الحالي: ${finalCount}`,
+                    "success"
+                );
+
+                currentPlayersPreview =
+                    null;
+
+                if (
+                    el("playersFile")
+                ) {
+
+                    el("playersFile")
+                        .value =
+                        "";
+                }
+
+                if (
+                    el("playersPreview")
+                ) {
+
+                    el("playersPreview")
+                        .style.display =
+                        "none";
+                }
+
+                if (
+                    el("replacePlayersButton")
+                ) {
+
+                    el("replacePlayersButton")
+                        .disabled =
+                        true;
+                }
+
+                await loadPlayerStats();
+
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    error
+                );
+
+                showMessage(
+                    el("playersMessage"),
+                    "حدث خطأ أثناء استبدال بيانات اللاعبين."
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "تأكيد واستبدال بيانات السيرفر";
+            }
         }
     );
 
 
+/* =========================================================
+   PLAYERS PAGE
+========================================================= */
+
+el("loadPlayersButton")
+    ?.addEventListener(
+        "click",
+        async () => {
+
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
+
+            if (
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
+            ) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر أولًا."
+                );
+
+                return;
+            }
+
+            location.href =
+                `players.html?server_id=${encodeURIComponent(
+                    serverId
+                )}`;
+        }
+    );
+
+
+/* =========================================================
+   INITIAL PAGE DATA
+========================================================= */
+
+if (
+    el("playersServer")
+) {
+
+    el("playersServer")
+        .addEventListener(
+            "change",
+            async () => {
+
+                currentPlayersPreview =
+                    null;
+
+                if (
+                    el("playersPreview")
+                ) {
+
+                    el("playersPreview")
+                        .style.display =
+                        "none";
+                }
+
+                if (
+                    el("replacePlayersButton")
+                ) {
+
+                    el("replacePlayersButton")
+                        .disabled =
+                        true;
+                }
+
+                hideMessage(
+                    el("playersMessage")
+                );
+
+                await loadPlayerStats();
+            }
+        );
+}
+
+
+/* =========================================================
+   EXTRA REFRESH
+========================================================= */
+
+async function refreshPlayersSection() {
+
+    try {
+
+        await loadServers();
+
+        await loadPlayerStats();
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "refreshPlayersSection:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   FINAL BOOTSTRAP
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        updateChoiceLimits();
+
+        await refreshPlayersSection();
+    }
+);
 /* =========================================================
    SHOW PLAYERS PAGE
 ========================================================= */
@@ -4143,7 +4820,8 @@ el("replacePlayersButton")
 
                 showMessage(
                     el("playersMessage"),
-                    `تم استبدال بيانات السيرفر بنجاح.\nعدد اللاعبين الآن: ${
+                    `تم استبدال بيانات السيرفر بنجاح.
+عدد اللاعبين الآن: ${
                         data.final_count ??
                         data.result?.current_players ??
                         total
@@ -4211,5 +4889,3 @@ el("replacePlayersButton")
 ========================================================= */
 
 updateChoiceLimits();
-
-restoreAdminSession();
