@@ -3567,10 +3567,11 @@ el("replacePlayersButton")?.addEventListener("click", async () => {
             "/admin/players/replace",
             {
                 method: "POST",
-                body: JSON.stringify({
-                    server_id: serverId,
-                    players: currentPlayersPreview.rows
-                })
+body: JSON.stringify({
+    server_id: serverId,
+    players: currentPlayersPreview.rows,
+    confirm: true
+})
             }
         );
 
