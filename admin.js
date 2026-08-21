@@ -1,7 +1,12 @@
 const API_URL =
     "https://parliament-api.sog-parliament.workers.dev";
 
-let adminSessionToken = null;
+let adminSessionToken =
+    localStorage.getItem("admin_session_token") || null;
+
+let adminEmail =
+    localStorage.getItem("admin_email") || "";
+
 let currentFilter = "";
 let currentElectionId = null;
 
