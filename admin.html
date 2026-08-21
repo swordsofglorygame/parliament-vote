@@ -26,7 +26,7 @@
 <section class="section" id="electionsSection"><h2 class="section-title">إدارة عمليات التصويت</h2><p class="section-desc">إنشاء وتعديل ومتابعة الانتخابات والمرشحين والنتائج.</p>
 <div class="box"><h3>إنشاء عملية تصويت جديدة</h3>
 <form id="createElectionForm">
-<div class="form-group"><label>عنوان التصويت</label><input id="createTitle" placeholder="انتخابات برلمان السيرفر 19" required></div>
+<div class="form-group"><label>عنوان التصويت</label><input id="createTitle" placeholder="تصويت" required></div>
 <div class="form-group"><label>الوصف</label><textarea id="createDescription" rows="3" placeholder="وصف اختياري"></textarea></div>
 <div class="grid2"><div class="form-group"><label>السيرفر</label><select id="createServer" required><option value="">جاري التحميل...</option></select></div><div class="form-group"><label>عدد المقاعد</label><input type="number" id="createSeats" min="1" max="100" value="5" required><div style="font-size:10px;color:#766751;margin-top:5px">يمكنك تغييره لهذه العملية، أو ضبط العدد الافتراضي من قسم السيرفرات.</div></div></div>
 <div class="grid2"><div class="form-group"><label>أقل عدد اختيارات</label><input type="number" id="createMinChoices" min="1" value="1" required></div><div class="form-group"><label>أقصى عدد اختيارات</label><input type="number" id="createMaxChoices" min="1" value="5" required></div></div>
@@ -56,9 +56,120 @@
 <section class="section" id="serversSection"><h2 class="section-title">إدارة السيرفرات</h2><p class="section-desc">هنا تحدد عدد المقاعد الافتراضي لكل سيرفر. هذا العدد يظهر تلقائيًا في إنشاء التصويت.</p>
 <div class="box"><h3>إضافة سيرفر</h3><form id="serverForm"><div class="grid3"><div class="form-group"><label>رقم السيرفر</label><input type="number" id="serverIdInput" min="1" required></div><div class="form-group"><label>اسم السيرفر</label><input id="serverNameInput" placeholder="Server 20" required></div><div class="form-group"><label>عدد المقاعد الافتراضي</label><input type="number" id="serverSeatsInput" min="1" max="100" value="5" required></div></div><button>إضافة السيرفر</button></form><div class="message" id="serverMessage"></div></div>
 <div class="box"><h3>السيرفرات الحالية</h3><div id="serversList"><div class="empty">جاري التحميل...</div></div></div></section>
-<section class="section" id="playersSection"><h2 class="section-title">بيانات اللاعبين</h2><p class="section-desc">رفع UID / RID / NAME لكل سيرفر.</p><div class="box"><h3>استيراد اللاعبين</h3><div class="form-group"><label>السيرفر</label><select id="playersServer"><option value="">جاري التحميل...</option></select></div><div class="form-group"><label>الملف</label><input type="file" id="playersFile" accept=".csv,.xlsx,.xls"></div><button id="validatePlayersButton">فحص الملف</button><div class="message" id="playersMessage"></div></div></section>
+<section class="section" id="playersSection">
+<h2 class="section-title">بيانات اللاعبين</h2>
+<p class="section-desc">استبدال قائمة لاعبي السيرفر بالكامل من ملف Excel أو CSV.</p>
+
+<div class="box">
+    <h3>استيراد بيانات اللاعبين</h3>
+
+    <div class="form-group">
+        <label>السيرفر</label>
+        <select id="playersServer">
+            <option value="">جاري التحميل...</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>ملف اللاعبين</label>
+        <input
+            type="file"
+            id="playersFile"
+            accept=".csv,.xlsx,.xls"
+        >
+        <div style="font-size:10px;color:#766751;margin-top:6px;line-height:1.8">
+            الصيغة المطلوبة: UID | RID | NAME
+            <br>
+            الصف الأول يجب أن يحتوي على أسماء الأعمدة.
+        </div>
+    </div>
+
+    <div
+        id="playersCurrentInfo"
+        style="
+            display:none;
+            margin-bottom:14px;
+            padding:12px;
+            border:1px solid #3a2d1f;
+            border-radius:10px;
+            background:#0d0906;
+            color:#c8b898;
+            font-size:11px;
+            line-height:1.9;
+        "
+    ></div>
+
+    <button id="validatePlayersButton">
+        فحص الملف
+    </button>
+
+    <div class="message" id="playersMessage"></div>
+
+    <div
+        class="box"
+        id="playersPreviewBox"
+        style="display:none;margin-top:15px"
+    >
+        <h3>معاينة الاستبدال</h3>
+
+        <div class="stats" style="margin-bottom:15px">
+            <div class="stat">
+                <div class="l">في الملف</div>
+                <div class="n" id="playersFileCount">0</div>
+            </div>
+
+            <div class="stat">
+                <div class="l">الحالي</div>
+                <div class="n" id="playersCurrentCount">0</div>
+            </div>
+
+            <div class="stat">
+                <div class="l">بعد الاستبدال</div>
+                <div class="n" id="playersAfterCount">0</div>
+            </div>
+
+            <div class="stat">
+                <div class="l">سيتم استبدال</div>
+                <div class="n" id="playersReplaceCount">0</div>
+            </div>
+        </div>
+
+        <div
+            style="
+                padding:12px;
+                border:1px solid rgba(239,143,135,.25);
+                background:rgba(168,51,46,.08);
+                border-radius:10px;
+                color:#eeb0aa;
+                font-size:11px;
+                line-height:1.9;
+                margin-bottom:14px;
+            "
+        >
+            <strong>تنبيه:</strong>
+            عند التأكيد سيتم حذف قائمة اللاعبين الحالية لهذا السيرفر
+            واستبدالها بالكامل بالبيانات الموجودة في الملف.
+            لن يتم تعديل السيرفرات الأخرى.
+        </div>
+
+        <button
+            id="replacePlayersButton"
+            class="red"
+            style="width:100%"
+        >
+            تأكيد واستبدال بيانات السيرفر
+        </button>
+
+        <div
+            id="playersPreviewTable"
+            style="margin-top:15px"
+        ></div>
+    </div>
+</div>
+</section>
 </section></div>
 <div class="modal" id="electionModal"><div class="modal-card"><div class="modal-head"><div><div class="e-title" id="modalTitle">-</div><div class="e-id" id="modalElectionId">-</div></div><button class="close" id="closeModal">إغلاق</button></div><div id="modalBody"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>
