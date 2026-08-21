@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>بيانات اللاعبين</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg: #0a0705;
+            --panel: #17110c;
+            --panel-2: #1d150e;
+            --gold: #d9aa52;
+            --gold-light: #ebcc8a;
+            --border: #59442b;
+            --text: #f4ead8;
+            --muted: #9f9078;
+            --blue: #5a82ba;
+            --red: #aa4038;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+
+            font-family:
+                "Cairo",
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #3c2a18 0%,
+                    #1b130c 35%,
+                    #0d0906 75%,
+                    #070504 100%
+                );
+
+            color: var(--text);
+
+            padding: 20px;
+        }
+
+        .container {
+            width: min(1250px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(28,20,13,.98),
+                    rgba(18,13,9,.98)
+                );
+
+            border:
+                1px solid rgba(202,157,77,.38);
+
+            border-radius: 18px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.5);
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 15px;
+
+            padding-bottom: 18px;
+            margin-bottom: 20px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.06);
+        }
+
+        h1 {
+            color: var(--gold);
+
+            font-size: 27px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: var(--muted);
+
+            font-size: 12px;
+
+            margin-top: 4px;
+        }
+
+        .back {
+            background:
+                linear-gradient(
+                    180deg,
+                    #292015,
+                    #21180f
+                );
+
+            border:
+                1px solid var(--border);
+
+            color: #ddc9a8;
+
+            padding: 9px 15px;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr auto;
+
+            gap: 10px;
+
+            margin-bottom: 18px;
+        }
+
+        select,
+        input {
+            width: 100%;
+
+            background:
+                #100c08;
+
+            color: var(--text);
+
+            border:
+                1px solid #58432a;
+
+            border-radius: 10px;
+
+            padding: 12px;
+
+            font-family: inherit;
+
+            outline: none;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: #c99843;
+
+            box-shadow:
+                0 0 0 3px rgba(201,152,67,.1);
+        }
+
+        .refresh {
+            background:
+                linear-gradient(
+                    135deg,
+                    #e0b45d,
+                    #9c6c26
+                );
+
+            color: #171008;
+
+            border: 0;
+
+            border-radius: 10px;
+
+            padding: 10px 18px;
+
+            font-family: inherit;
+
+            font-weight: 800;
+
+            cursor: pointer;
+        }
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 10px;
+
+            margin-bottom: 18px;
+        }
+
+        .stat {
+            background:
+                #0e0a07;
+
+            border:
+                1px solid #3a2d1f;
+
+            border-radius: 12px;
+
+            padding: 14px;
+
+            text-align: center;
+        }
+
+        .stat-title {
+            color: #81735f;
+
+            font-size: 10px;
+        }
+
+        .stat-value {
+            color: var(--gold-light);
+
+            font-size: 24px;
+
+            font-weight: 800;
+
+            margin-top: 3px;
+        }
+
+        .message {
+            display: none;
+
+            margin-bottom: 15px;
+
+            padding: 11px;
+
+            border-radius: 10px;
+
+            font-size: 11px;
+
+            line-height: 1.8;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+
+            border:
+                1px solid #3a2d1f;
+
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 650px;
+        }
+
+        th,
+        td {
+            padding: 11px;
+
+            border-bottom:
+                1px solid #30261b;
+
+            text-align: right;
+
+            font-size: 11px;
+        }
+
+        th {
+            background:
+                #120d09;
+
+            color: var(--gold);
+
+            font-weight: 800;
+        }
+
+        td {
+            color: #c7b99f;
+        }
+
+        tr:hover td {
+            background:
+                rgba(216,170,79,.03);
+        }
+
+        .pagination {
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 6px;
+
+            flex-wrap: wrap;
+
+            margin-top: 18px;
+        }
+
+        .pagination button {
+            min-width: 42px;
+
+            min-height: 38px;
+
+            padding: 7px 12px;
+
+            border-radius: 9px;
+
+            border:
+                1px solid var(--border);
+
+            background:
+                #21180f;
+
+            color: #d9c6a5;
+
+            font-family: inherit;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background:
+                linear-gradient(
+                    135deg,
+                    #d7a94e,
+                    #a67229
+                );
+
+            color: #171008;
+        }
+
+        .pagination button:disabled {
+            opacity: .4;
+
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            text-align: center;
+
+            margin-top: 10px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+        }
+
+        .empty {
+            padding: 45px 20px;
+
+            text-align: center;
+
+            color: #766852;
+
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .back {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="top">
+
+            <div>
+
+                <h1>
+                    بيانات اللاعبين
+                </h1>
+
+                <div class="subtitle">
+                    عرض وإدارة قائمة لاعبي السيرفر
+                </div>
+
+            </div>
+
+            <button
+                class="back"
+                onclick="location.href='admin.html'"
+            >
+                العودة إلى لوحة الإدارة
+            </button>
+
+        </div>
+
+
+        <div class="controls">
+
+            <select id="serverSelect">
+                <option value="">
+                    اختر السيرفر
+                </option>
+            </select>
+
+            <input
+                id="searchInput"
+                type="text"
+                placeholder="بحث بالـ UID أو RID أو الاسم"
+            >
+
+            <button
+                class="refresh"
+                id="refreshButton"
+            >
+                تحديث
+            </button>
+
+        </div>
+
+
+        <div
+            class="message"
+            id="message"
+        ></div>
+
+
+        <div class="stats">
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    السيرفر
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="serverName"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    إجمالي اللاعبين
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="totalPlayers"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div class="stat-title">
+                    الصفحة الحالية
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="pageNumber"
+                >
+                    1
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="table-wrap"
+            id="tableContainer"
+        >
+
+            <div class="empty">
+                اختر السيرفر لعرض اللاعبين.
+            </div>
+
+        </div>
+
+
+        <div
+            class="pagination"
+            id="pagination"
+        ></div>
+
+
+        <div
+            class="page-info"
+            id="pageInfo"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<script src="players.js"></script>
+
+</body>
+</html>
