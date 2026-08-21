@@ -1,6 +1,7 @@
 const API_URL =
     "https://parliament-api.sog-parliament.workers.dev";
 
+
 /* =========================================================
    STATE
 ========================================================= */
@@ -23,7 +24,9 @@ function el(id) {
     return document.getElementById(id);
 }
 
+
 function escapeHtml(value) {
+
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -32,36 +35,75 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-function showMessage(element, text, type = "error") {
+
+function showMessage(
+    element,
+    text,
+    type = "error"
+) {
+
     if (!element) return;
 
-    element.style.display = "block";
-    element.textContent = text;
+    element.style.display =
+        "block";
 
-    if (type === "success") {
-        element.style.background = "rgba(46,125,50,.15)";
-        element.style.border = "1px solid rgba(76,175,80,.4)";
-        element.style.color = "#9be7a0";
+    element.textContent =
+        text;
+
+
+    if (
+        type === "success"
+    ) {
+
+        element.style.background =
+            "rgba(46,125,50,.15)";
+
+        element.style.border =
+            "1px solid rgba(76,175,80,.4)";
+
+        element.style.color =
+            "#9be7a0";
+
     } else {
-        element.style.background = "rgba(198,40,40,.15)";
-        element.style.border = "1px solid rgba(239,83,80,.4)";
-        element.style.color = "#ff9d9d";
+
+        element.style.background =
+            "rgba(198,40,40,.15)";
+
+        element.style.border =
+            "1px solid rgba(239,83,80,.4)";
+
+        element.style.color =
+            "#ff9d9d";
     }
 }
 
+
 function hideMessage(element) {
+
     if (!element) return;
 
-    element.style.display = "none";
-    element.textContent = "";
+    element.style.display =
+        "none";
+
+    element.textContent =
+        "";
 }
 
+
 function formatDate(value) {
-    if (!value) return "-";
 
-    const date = new Date(value);
+    if (!value) {
+        return "-";
+    }
 
-    if (Number.isNaN(date.getTime())) {
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
         return String(value);
     }
 
@@ -71,45 +113,82 @@ function formatDate(value) {
         .replace(".000Z", " UTC");
 }
 
+
 function statusText(status) {
+
     const names = {
-        draft: "Draft",
-        scheduled: "مجدولة",
-        open: "جارية",
-        closed: "منتهية",
-        cancelled: "ملغاة"
+
+        draft:
+            "Draft",
+
+        scheduled:
+            "مجدولة",
+
+        open:
+            "جارية",
+
+        closed:
+            "منتهية",
+
+        cancelled:
+            "ملغاة"
     };
 
-    return names[status] || status;
+
+    return (
+        names[status] ||
+        status
+    );
 }
 
+
 function statusBadge(status) {
+
     return `
         <span class="badge ${escapeHtml(status)}">
-            ${escapeHtml(statusText(status))}
+            ${escapeHtml(
+                statusText(status)
+            )}
         </span>
     `;
 }
 
+
 function parseUtcDateTime(value) {
-    if (!value) return null;
 
-    const iso = `${value}:00Z`;
-    const timestamp = Date.parse(iso);
+    if (!value) {
+        return null;
+    }
 
-    if (Number.isNaN(timestamp)) {
+    const iso =
+        `${value}:00Z`;
+
+    const timestamp =
+        Date.parse(iso);
+
+    if (
+        Number.isNaN(timestamp)
+    ) {
         return null;
     }
 
     return iso;
 }
 
-function normalizeCandidateNames(text) {
+
+function normalizeCandidateNames(
+    text
+) {
+
     return [
         ...new Set(
+
             String(text || "")
                 .split(/\r?\n/)
-                .map(name => name.trim())
+                .map(
+                    name =>
+                        name.trim()
+                )
                 .filter(Boolean)
         )
     ];
@@ -120,31 +199,49 @@ function normalizeCandidateNames(text) {
    API
 ========================================================= */
 
-async function apiFetch(path, options = {}) {
+async function apiFetch(
+    path,
+    options = {}
+) {
 
     options.headers = {
+
         ...(options.headers || {}),
-        "Content-Type": "application/json"
+
+        "Content-Type":
+            "application/json"
     };
 
-    if (adminSessionToken) {
+
+    if (
+        adminSessionToken
+    ) {
+
         options.headers.Authorization =
             `Bearer ${adminSessionToken}`;
     }
 
-    const response = await fetch(
-        `${API_URL}${path}`,
-        options
-    );
 
-    if (response.status === 401) {
+    const response =
+        await fetch(
+            `${API_URL}${path}`,
+            options
+        );
+
+
+    if (
+        response.status === 401
+    ) {
 
         forceLogout(
             "انتهت جلسة الإدارة. يرجى تسجيل الدخول مرة أخرى."
         );
 
-        throw new Error("UNAUTHORIZED");
+        throw new Error(
+            "UNAUTHORIZED"
+        );
     }
+
 
     return response;
 }
@@ -154,10 +251,16 @@ async function apiFetch(path, options = {}) {
    AUTH
 ========================================================= */
 
-function forceLogout(message = "") {
+function forceLogout(
+    logoutMessage = ""
+) {
 
-    adminSessionToken = null;
-    adminEmail = "";
+    adminSessionToken =
+        null;
+
+    adminEmail =
+        "";
+
 
     localStorage.removeItem(
         "admin_session_token"
@@ -167,24 +270,39 @@ function forceLogout(message = "") {
         "admin_email"
     );
 
+
     const dashboardCard =
         el("dashboardCard");
 
     const loginCard =
         el("loginCard");
 
-    if (dashboardCard) {
-        dashboardCard.style.display = "none";
+
+    if (
+        dashboardCard
+    ) {
+
+        dashboardCard.style.display =
+            "none";
     }
 
-    if (loginCard) {
-        loginCard.style.display = "block";
+
+    if (
+        loginCard
+    ) {
+
+        loginCard.style.display =
+            "block";
     }
 
-    if (message) {
+
+    if (
+        logoutMessage
+    ) {
+
         showMessage(
             el("loginMessage"),
-            message
+            logoutMessage
         );
     }
 }
@@ -194,173 +312,232 @@ function forceLogout(message = "") {
    LOGIN
 ========================================================= */
 
-el("loginForm")?.addEventListener(
-    "submit",
-    async event => {
+el("loginForm")
+    ?.addEventListener(
+        "submit",
+        async event => {
 
-        event.preventDefault();
+            event.preventDefault();
 
-        hideMessage(
-            el("loginMessage")
-        );
 
-        const email =
-            el("adminEmail")?.value.trim();
-
-        const password =
-            el("adminPassword")?.value;
-
-        if (!email || !password) {
-
-            showMessage(
-                el("loginMessage"),
-                "البريد الإلكتروني وكلمة المرور مطلوبان."
+            hideMessage(
+                el("loginMessage")
             );
 
-            return;
-        }
 
-        const button =
-            el("loginButton");
+            const email =
+                el("adminEmail")
+                    ?.value
+                    .trim();
 
-        button.disabled = true;
-        button.textContent =
-            "جاري تسجيل الدخول...";
 
-        try {
+            const password =
+                el("adminPassword")
+                    ?.value;
 
-            const response =
-                await fetch(
-                    `${API_URL}/admin/login`,
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-                                email,
-                                password
-                            })
-                    }
-                );
-
-            let data;
-
-            try {
-
-                data =
-                    await response.json();
-
-            } catch {
-
-                throw new Error(
-                    "الخادم أعاد استجابة غير صالحة."
-                );
-            }
 
             if (
-                !response.ok ||
-                !data.success
+                !email ||
+                !password
             ) {
 
                 showMessage(
                     el("loginMessage"),
-                    data.message ||
-                    "بيانات الدخول غير صحيحة."
+                    "البريد الإلكتروني وكلمة المرور مطلوبان."
                 );
 
                 return;
             }
 
-            adminSessionToken =
-                data.token;
 
-            adminEmail =
-                email;
+            const button =
+                el("loginButton");
 
-            localStorage.setItem(
-                "admin_session_token",
-                adminSessionToken
-            );
 
-            localStorage.setItem(
-                "admin_email",
-                adminEmail
-            );
+            button.disabled =
+                true;
 
-            el("adminEmailDisplay")
-                .textContent =
-                adminEmail;
-
-            el("adminPassword")
-                .value = "";
-
-            el("loginCard").style.display =
-                "none";
-
-            el("dashboardCard").style.display =
-                "block";
-
-            await refreshAll();
-
-        } catch (error) {
-
-            console.error(error);
-
-            showMessage(
-                el("loginMessage"),
-                error.message ||
-                "حدث خطأ أثناء الاتصال بالخادم."
-            );
-
-        } finally {
-
-            button.disabled = false;
 
             button.textContent =
-                "تسجيل الدخول";
+                "جاري تسجيل الدخول...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/admin/login`,
+                        {
+                            method:
+                                "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    email,
+                                    password
+                                })
+                        }
+                    );
+
+
+                let data;
+
+
+                try {
+
+                    data =
+                        await response.json();
+
+                } catch {
+
+                    throw new Error(
+                        "الخادم أعاد استجابة غير صالحة."
+                    );
+                }
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    showMessage(
+                        el("loginMessage"),
+                        data.message ||
+                        "بيانات الدخول غير صحيحة."
+                    );
+
+                    return;
+                }
+
+
+                adminSessionToken =
+                    data.token;
+
+
+                adminEmail =
+                    email;
+
+
+                localStorage.setItem(
+                    "admin_session_token",
+                    adminSessionToken
+                );
+
+
+                localStorage.setItem(
+                    "admin_email",
+                    adminEmail
+                );
+
+
+                if (
+                    el("adminEmailDisplay")
+                ) {
+
+                    el(
+                        "adminEmailDisplay"
+                    ).textContent =
+                        adminEmail;
+                }
+
+
+                if (
+                    el("adminPassword")
+                ) {
+
+                    el(
+                        "adminPassword"
+                    ).value =
+                        "";
+                }
+
+
+                el("loginCard")
+                    .style.display =
+                    "none";
+
+
+                el("dashboardCard")
+                    .style.display =
+                    "block";
+
+
+                await refreshAll();
+
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                showMessage(
+                    el("loginMessage"),
+                    error.message ||
+                    "حدث خطأ أثناء الاتصال بالخادم."
+                );
+
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+
+                button.textContent =
+                    "تسجيل الدخول";
+            }
         }
-    }
-);
+    );
 
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
-el("logoutButton")?.addEventListener(
-    "click",
-    async () => {
+el("logoutButton")
+    ?.addEventListener(
+        "click",
+        async () => {
 
-        try {
+            try {
 
-            if (adminSessionToken) {
+                if (
+                    adminSessionToken
+                ) {
 
-                await fetch(
-                    `${API_URL}/admin/logout`,
-                    {
-                        method: "POST",
+                    await fetch(
+                        `${API_URL}/admin/logout`,
+                        {
+                            method:
+                                "POST",
 
-                        headers: {
-                            Authorization:
-                                `Bearer ${adminSessionToken}`
+                            headers: {
+                                Authorization:
+                                    `Bearer ${adminSessionToken}`
+                            }
                         }
-                    }
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(
+                    error
                 );
             }
 
-        } catch (error) {
 
-            console.error(error);
+            forceLogout();
         }
-
-        forceLogout();
-    }
-);
+    );
 
 
 /* =========================================================
@@ -374,20 +551,25 @@ async function restoreAdminSession() {
             "admin_session_token"
         );
 
+
     const savedEmail =
         localStorage.getItem(
             "admin_email"
         ) || "";
 
+
     if (!token) {
         return;
     }
 
+
     adminSessionToken =
         token;
 
+
     adminEmail =
         savedEmail;
+
 
     try {
 
@@ -395,7 +577,8 @@ async function restoreAdminSession() {
             await fetch(
                 `${API_URL}/admin/test`,
                 {
-                    method: "GET",
+                    method:
+                        "GET",
 
                     headers: {
                         Authorization:
@@ -404,7 +587,10 @@ async function restoreAdminSession() {
                 }
             );
 
-        let data = null;
+
+        let data =
+            null;
+
 
         try {
 
@@ -413,8 +599,10 @@ async function restoreAdminSession() {
 
         } catch {
 
-            data = null;
+            data =
+                null;
         }
+
 
         if (
             !response.ok ||
@@ -422,26 +610,43 @@ async function restoreAdminSession() {
         ) {
 
             forceLogout();
+
             return;
         }
 
-        if (el("loginCard")) {
-            el("loginCard").style.display =
+
+        if (
+            el("loginCard")
+        ) {
+
+            el("loginCard")
+                .style.display =
                 "none";
         }
 
-        if (el("dashboardCard")) {
-            el("dashboardCard").style.display =
+
+        if (
+            el("dashboardCard")
+        ) {
+
+            el("dashboardCard")
+                .style.display =
                 "block";
         }
 
-        if (el("adminEmailDisplay")) {
+
+        if (
+            el("adminEmailDisplay")
+        ) {
+
             el("adminEmailDisplay")
                 .textContent =
                 adminEmail;
         }
 
+
         await refreshAll();
+
 
     } catch (error) {
 
@@ -451,7 +656,8 @@ async function restoreAdminSession() {
         );
 
         /*
-         * لا نمسح الجلسة عند خطأ شبكة مؤقت.
+         * لا نمسح الجلسة عند حدوث
+         * خطأ شبكة مؤقت.
          */
     }
 }
@@ -463,70 +669,103 @@ async function restoreAdminSession() {
 
 document
     .querySelectorAll(".nav button")
-    .forEach(button => {
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            async () => {
+            button.addEventListener(
+                "click",
+                async () => {
 
-                document
-                    .querySelectorAll(".nav button")
-                    .forEach(btn => {
-                        btn.classList.remove(
-                            "active"
+                    document
+                        .querySelectorAll(
+                            ".nav button"
+                        )
+                        .forEach(
+                            btn => {
+
+                                btn.classList.remove(
+                                    "active"
+                                );
+                            }
                         );
-                    });
 
-                document
-                    .querySelectorAll(".section")
-                    .forEach(section => {
-                        section.classList.remove(
-                            "active"
+
+                    document
+                        .querySelectorAll(
+                            ".section"
+                        )
+                        .forEach(
+                            section => {
+
+                                section.classList.remove(
+                                    "active"
+                                );
+                            }
                         );
-                    });
 
-                button.classList.add(
-                    "active"
-                );
 
-                const section =
-                    el(
-                        button.dataset.section
-                    );
-
-                if (section) {
-                    section.classList.add(
+                    button.classList.add(
                         "active"
                     );
-                }
 
-                switch (
-                    button.dataset.section
-                ) {
 
-                    case "homeSection":
-                        await refreshDashboard();
-                        break;
-
-                    case "electionsSection":
-                        await loadElections(
-                            currentFilter
+                    const section =
+                        el(
+                            button.dataset.section
                         );
-                        await loadServers();
-                        break;
 
-                    case "serversSection":
-                        await loadServers();
-                        break;
 
-                    case "playersSection":
-                        await loadServers();
-                        await loadPlayerStats();
-                        break;
+                    if (
+                        section
+                    ) {
+
+                        section.classList.add(
+                            "active"
+                        );
+                    }
+
+
+                    switch (
+                        button.dataset.section
+                    ) {
+
+                        case "homeSection":
+
+                            await refreshDashboard();
+
+                            break;
+
+
+                        case "electionsSection":
+
+                            await loadElections(
+                                currentFilter
+                            );
+
+                            await loadServers();
+
+                            break;
+
+
+                        case "serversSection":
+
+                            await loadServers();
+
+                            break;
+
+
+                        case "playersSection":
+
+                            await loadServers();
+
+                            await loadPlayerStats();
+
+                            break;
+                    }
                 }
-            }
-        );
-    });
+            );
+        }
+    );
 
 
 /* =========================================================
@@ -560,49 +799,77 @@ async function refreshDashboard() {
                 "/admin/stats"
             );
 
+
         const stats =
             await statsResponse.json();
+
 
         if (
             statsResponse.ok &&
             stats.success
         ) {
 
-            if (el("statTotal")) {
-                el("statTotal").textContent =
+            if (
+                el("statTotal")
+            ) {
+
+                el(
+                    "statTotal"
+                ).textContent =
                     stats.elections
                         ?.total_elections ??
                     0;
             }
 
-            if (el("statActive")) {
-                el("statActive").textContent =
+
+            if (
+                el("statActive")
+            ) {
+
+                el(
+                    "statActive"
+                ).textContent =
                     stats.elections
                         ?.active_count ??
                     0;
             }
 
-            if (el("statClosed")) {
-                el("statClosed").textContent =
+
+            if (
+                el("statClosed")
+            ) {
+
+                el(
+                    "statClosed"
+                ).textContent =
                     stats.elections
                         ?.closed_count ??
                     0;
             }
 
-            if (el("statVotes")) {
-                el("statVotes").textContent =
+
+            if (
+                el("statVotes")
+            ) {
+
+                el(
+                    "statVotes"
+                ).textContent =
                     stats.total_votes ??
                     0;
             }
         }
+
 
         const openResponse =
             await apiFetch(
                 "/admin/elections?status=open"
             );
 
+
         const openData =
             await openResponse.json();
+
 
         if (
             !openResponse.ok ||
@@ -612,37 +879,50 @@ async function refreshDashboard() {
             return;
         }
 
+
         const elections =
             openData.elections ||
             [];
 
-        if (!elections.length) {
 
-            if (el("homeOpenList")) {
+        if (
+            !elections.length
+        ) {
 
+            if (
                 el("homeOpenList")
-                    .innerHTML = `
-                        <div class="empty">
-                            لا توجد عمليات تصويت جارية حاليًا.
-                        </div>
-                    `;
+            ) {
+
+                el(
+                    "homeOpenList"
+                ).innerHTML = `
+                    <div class="empty">
+                        لا توجد عمليات تصويت جارية حاليًا.
+                    </div>
+                `;
             }
 
             return;
         }
 
-        if (el("homeOpenList")) {
 
+        if (
             el("homeOpenList")
-                .innerHTML =
+        ) {
+
+            el(
+                "homeOpenList"
+            ).innerHTML =
                 elections
-                    .map(election =>
-                        electionCard(
-                            election
-                        )
+                    .map(
+                        election =>
+                            electionCard(
+                                election
+                            )
                     )
                     .join("");
         }
+
 
     } catch (error) {
 
@@ -660,34 +940,44 @@ async function refreshDashboard() {
 
 document
     .querySelectorAll(".filter")
-    .forEach(button => {
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            async () => {
+            button.addEventListener(
+                "click",
+                async () => {
 
-                document
-                    .querySelectorAll(".filter")
-                    .forEach(btn => {
-                        btn.classList.remove(
-                            "active"
+                    document
+                        .querySelectorAll(
+                            ".filter"
+                        )
+                        .forEach(
+                            btn => {
+
+                                btn.classList.remove(
+                                    "active"
+                                );
+                            }
                         );
-                    });
 
-                button.classList.add(
-                    "active"
-                );
 
-                currentFilter =
-                    button.dataset.status ||
-                    "";
+                    button.classList.add(
+                        "active"
+                    );
 
-                await loadElections(
-                    currentFilter
-                );
-            }
-        );
-    });
+
+                    currentFilter =
+                        button.dataset.status ||
+                        "";
+
+
+                    await loadElections(
+                        currentFilter
+                    );
+                }
+            );
+        }
+    );
 
 
 /* =========================================================
@@ -701,9 +991,11 @@ async function loadElections(
     const container =
         el("electionsList");
 
+
     if (!container) {
         return;
     }
+
 
     container.innerHTML = `
         <div class="empty">
@@ -711,20 +1003,26 @@ async function loadElections(
         </div>
     `;
 
+
     try {
 
         const query =
             status
-                ? `?status=${encodeURIComponent(status)}`
+                ? `?status=${encodeURIComponent(
+                    status
+                )}`
                 : "";
+
 
         const response =
             await apiFetch(
                 `/admin/elections${query}`
             );
 
+
         const data =
             await response.json();
+
 
         if (
             !response.ok ||
@@ -740,11 +1038,15 @@ async function loadElections(
             return;
         }
 
+
         const elections =
             data.elections ||
             [];
 
-        if (!elections.length) {
+
+        if (
+            !elections.length
+        ) {
 
             container.innerHTML = `
                 <div class="empty">
@@ -755,18 +1057,24 @@ async function loadElections(
             return;
         }
 
+
         container.innerHTML =
             elections
-                .map(election =>
-                    electionCard(
-                        election
-                    )
+                .map(
+                    election =>
+                        electionCard(
+                            election
+                        )
                 )
                 .join("");
 
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         container.innerHTML = `
             <div class="empty">
@@ -775,8 +1083,6 @@ async function loadElections(
         `;
     }
 }
-
-
 /* =========================================================
    ELECTION CARD
 ========================================================= */
@@ -786,6 +1092,7 @@ function electionCard(election) {
     const status =
         election.effective_status ||
         election.status;
+
 
     return `
         <div class="election">
@@ -812,79 +1119,104 @@ function electionCard(election) {
 
             </div>
 
+
             <div class="meta">
 
                 <div class="meta-box">
+
                     <div class="ml">
                         السيرفر
                     </div>
+
                     <div class="mv">
                         ${escapeHtml(
                             election.server_id
                         )}
                     </div>
+
                 </div>
 
+
                 <div class="meta-box">
+
                     <div class="ml">
                         المقاعد
                     </div>
+
                     <div class="mv">
                         ${escapeHtml(
                             election.seats
                         )}
                     </div>
+
                 </div>
 
+
                 <div class="meta-box">
+
                     <div class="ml">
                         المرشحون
                     </div>
+
                     <div class="mv">
                         ${
                             election.candidate_count ??
                             0
                         }
                     </div>
+
                 </div>
 
+
                 <div class="meta-box">
+
                     <div class="ml">
                         المصوتون
                     </div>
+
                     <div class="mv">
                         ${
                             election.voter_count ??
                             0
                         }
                     </div>
+
                 </div>
 
+
                 <div class="meta-box">
+
                     <div class="ml">
                         المؤهلون
                     </div>
+
                     <div class="mv">
                         ${
                             election.eligible_count ??
                             0
                         }
                     </div>
+
                 </div>
 
+
                 <div class="meta-box">
+
                     <div class="ml">
                         المشاركة
                     </div>
+
                     <div class="mv">
                         ${
                             election.participation_rate ??
                             0
                         }%
                     </div>
+
                 </div>
 
             </div>
+
 
             <div
                 style="
@@ -909,6 +1241,65 @@ function electionCard(election) {
 
             </div>
 
+
+            <!-- RESULT SETTINGS -->
+
+            <div
+                style="
+                    margin:12px 0;
+                    padding:12px;
+                    border:1px solid #33281c;
+                    border-radius:10px;
+                    background:#0e0a07;
+                    color:#b9a98e;
+                    font-size:10px;
+                    line-height:1.9;
+                "
+            >
+
+                <div
+                    style="
+                        color:#d9ad59;
+                        font-weight:700;
+                        margin-bottom:6px;
+                    "
+                >
+                    إعدادات النتائج
+                </div>
+
+
+                <div>
+                    أثناء التصويت:
+                    ${
+                        election.show_results_during_voting
+                            ? "مُفعّلة"
+                            : "مخفية"
+                    }
+                </div>
+
+
+                <div>
+                    بعد انتهاء التصويت:
+                    ${
+                        election.show_results_after_voting
+                            ? "مُفعّلة"
+                            : "مخفية"
+                    }
+                </div>
+
+
+                <div>
+                    بدون تسجيل دخول:
+                    ${
+                        election.public_results_enabled
+                            ? "مسموح"
+                            : "غير مسموح"
+                    }
+                </div>
+
+            </div>
+
+
             <div class="actions">
 
                 <button
@@ -919,6 +1310,7 @@ function electionCard(election) {
                 >
                     التفاصيل
                 </button>
+
 
                 ${
                     status === "draft" ||
@@ -945,6 +1337,7 @@ function electionCard(election) {
                         : ""
                 }
 
+
                 ${
                     status === "open"
                         ? `
@@ -959,6 +1352,7 @@ function electionCard(election) {
                         `
                         : ""
                 }
+
 
                 ${
                     status !== "closed" &&
@@ -975,6 +1369,7 @@ function electionCard(election) {
                         `
                         : ""
                 }
+
 
                 <button
                     class="red"
@@ -1002,11 +1397,13 @@ el("createSeats")
         updateChoiceLimits
     );
 
+
 el("createMinChoices")
     ?.addEventListener(
         "input",
         updateChoiceLimits
     );
+
 
 el("createMaxChoices")
     ?.addEventListener(
@@ -1014,18 +1411,23 @@ el("createMaxChoices")
         updateChoiceLimits
     );
 
+
 function updateChoiceLimits() {
 
     const seats =
         Number(
-            el("createSeats")?.value
+            el("createSeats")
+                ?.value
         ) || 1;
+
 
     const minInput =
         el("createMinChoices");
 
+
     const maxInput =
         el("createMaxChoices");
+
 
     if (
         !minInput ||
@@ -1034,23 +1436,30 @@ function updateChoiceLimits() {
         return;
     }
 
+
     minInput.max =
         String(seats);
 
+
     maxInput.max =
         String(seats);
+
 
     let minValue =
         Number(
             minInput.value
         ) || 1;
 
+
     let maxValue =
         Number(
             maxInput.value
         ) || seats;
 
-    if (minValue > seats) {
+
+    if (
+        minValue > seats
+    ) {
 
         minValue =
             seats;
@@ -1059,7 +1468,10 @@ function updateChoiceLimits() {
             seats;
     }
 
-    if (maxValue > seats) {
+
+    if (
+        maxValue > seats
+    ) {
 
         maxValue =
             seats;
@@ -1068,13 +1480,20 @@ function updateChoiceLimits() {
             seats;
     }
 
-    if (maxValue < minValue) {
+
+    if (
+        maxValue < minValue
+    ) {
 
         maxInput.value =
             String(minValue);
     }
 }
 
+
+/* =========================================================
+   CREATE ELECTION SUBMIT
+========================================================= */
 
 el("createElectionForm")
     ?.addEventListener(
@@ -1083,19 +1502,23 @@ el("createElectionForm")
 
             event.preventDefault();
 
+
             hideMessage(
                 el("createMessage")
             );
+
 
             const title =
                 el("createTitle")
                     ?.value
                     .trim();
 
+
             const description =
                 el("createDescription")
                     ?.value
                     .trim();
+
 
             const serverId =
                 Number(
@@ -1103,11 +1526,13 @@ el("createElectionForm")
                         ?.value
                 );
 
+
             const seats =
                 Number(
                     el("createSeats")
                         ?.value
                 );
+
 
             const minChoices =
                 Number(
@@ -1115,11 +1540,13 @@ el("createElectionForm")
                         ?.value
                 );
 
+
             const maxChoices =
                 Number(
                     el("createMaxChoices")
                         ?.value
                 );
+
 
             const candidateNames =
                 normalizeCandidateNames(
@@ -1127,11 +1554,13 @@ el("createElectionForm")
                         ?.value
                 );
 
+
             const startAt =
                 parseUtcDateTime(
                     el("createStart")
                         ?.value
                 );
+
 
             const endAt =
                 parseUtcDateTime(
@@ -1139,11 +1568,36 @@ el("createElectionForm")
                         ?.value
                 );
 
-            const showResults =
+
+            /*
+             * =====================================================
+             * RESULT SETTINGS
+             * =====================================================
+             */
+
+            const showResultsDuring =
                 Boolean(
-                    el("createShowResults")
-                        ?.checked
+                    el(
+                        "createShowResultsDuring"
+                    )?.checked
                 );
+
+
+            const showResultsAfter =
+                Boolean(
+                    el(
+                        "createShowResultsAfter"
+                    )?.checked
+                );
+
+
+            const publicResultsEnabled =
+                Boolean(
+                    el(
+                        "createShowResultsPublic"
+                    )?.checked
+                );
+
 
             if (!title) {
 
@@ -1154,6 +1608,7 @@ el("createElectionForm")
 
                 return;
             }
+
 
             if (
                 !Number.isInteger(
@@ -1169,6 +1624,7 @@ el("createElectionForm")
 
                 return;
             }
+
 
             if (
                 !Number.isInteger(
@@ -1186,6 +1642,7 @@ el("createElectionForm")
                 return;
             }
 
+
             if (
                 minChoices < 1 ||
                 maxChoices < minChoices ||
@@ -1200,6 +1657,7 @@ el("createElectionForm")
                 return;
             }
 
+
             if (
                 candidateNames.length === 0
             ) {
@@ -1211,6 +1669,7 @@ el("createElectionForm")
 
                 return;
             }
+
 
             if (
                 candidateNames.length <
@@ -1225,6 +1684,7 @@ el("createElectionForm")
                 return;
             }
 
+
             if (
                 !startAt ||
                 !endAt
@@ -1237,6 +1697,7 @@ el("createElectionForm")
 
                 return;
             }
+
 
             if (
                 Date.parse(startAt) >=
@@ -1251,15 +1712,20 @@ el("createElectionForm")
                 return;
             }
 
+
             const button =
                 el(
                     "createElectionButton"
                 );
 
-            button.disabled = true;
+
+            button.disabled =
+                true;
+
 
             button.textContent =
                 "جاري إنشاء التصويت...";
+
 
             try {
 
@@ -1267,33 +1733,56 @@ el("createElectionForm")
                     await apiFetch(
                         "/admin/election/create",
                         {
-                            method: "POST",
+                            method:
+                                "POST",
 
                             body:
                                 JSON.stringify({
+
                                     title,
+
                                     description,
+
                                     server_id:
                                         serverId,
+
                                     seats,
+
                                     min_choices:
                                         minChoices,
+
                                     max_choices:
                                         maxChoices,
+
                                     start_at:
                                         startAt,
+
                                     end_at:
                                         endAt,
+
+                                    /*
+                                     * التوافق مع الـBackend
+                                     * الحالي والجديد.
+                                     */
                                     show_results_during_voting:
-                                        showResults,
+                                        showResultsDuring,
+
+                                    show_results_after_voting:
+                                        showResultsAfter,
+
+                                    public_results_enabled:
+                                        publicResultsEnabled,
+
                                     candidate_names:
                                         candidateNames
                                 })
                         }
                     );
 
+
                 const data =
                     await response.json();
+
 
                 if (
                     !response.ok ||
@@ -1309,6 +1798,7 @@ el("createElectionForm")
                     return;
                 }
 
+
                 showMessage(
                     el("createMessage"),
                     `تم إنشاء التصويت بنجاح.
@@ -1317,57 +1807,96 @@ el("createElectionForm")
                     "success"
                 );
 
+
                 const serverValue =
                     el("createServer")
                         ?.value;
 
+
                 el("createElectionForm")
                     ?.reset();
 
-                if (el("createServer")) {
+
+                if (
                     el("createServer")
-                        .value =
+                ) {
+
+                    el(
+                        "createServer"
+                    ).value =
                         serverValue;
                 }
 
-                if (el("createSeats")) {
+
+                if (
                     el("createSeats")
-                        .value =
+                ) {
+
+                    el(
+                        "createSeats"
+                    ).value =
                         "5";
                 }
 
-                if (el("createMinChoices")) {
+
+                if (
                     el("createMinChoices")
-                        .value =
+                ) {
+
+                    el(
+                        "createMinChoices"
+                    ).value =
                         "1";
                 }
 
-                if (el("createMaxChoices")) {
+
+                if (
                     el("createMaxChoices")
-                        .value =
+                ) {
+
+                    el(
+                        "createMaxChoices"
+                    ).value =
                         "5";
                 }
 
+
+                /*
+                 * بعد reset، checkbox settings
+                 * ترجع unchecked تلقائيًا.
+                 */
+
                 updateChoiceLimits();
+
 
                 await loadElections(
                     currentFilter
                 );
 
+
                 await refreshDashboard();
 
-            } catch (error) {
 
-                console.error(error);
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    error
+                );
+
 
                 showMessage(
                     el("createMessage"),
                     "حدث خطأ أثناء الاتصال بالخادم."
                 );
 
+
             } finally {
 
-                button.disabled = false;
+                button.disabled =
+                    false;
+
 
                 button.textContent =
                     "إنشاء عملية التصويت";
@@ -1389,8 +1918,10 @@ async function loadServers() {
                 "/admin/servers"
             );
 
+
         const data =
             await response.json();
+
 
         if (
             !response.ok ||
@@ -1399,14 +1930,19 @@ async function loadServers() {
             return;
         }
 
+
         const servers =
-            data.servers || [];
+            data.servers ||
+            [];
+
 
         const createSelect =
             el("createServer");
 
+
         const playersSelect =
             el("playersServer");
+
 
         const activeOptions =
             servers
@@ -1434,17 +1970,24 @@ async function loadServers() {
                 )
                 .join("");
 
-        if (createSelect) {
+
+        if (
+            createSelect
+        ) {
 
             createSelect.innerHTML = `
                 <option value="">
                     اختر السيرفر
                 </option>
+
                 ${activeOptions}
             `;
         }
 
-        if (playersSelect) {
+
+        if (
+            playersSelect
+        ) {
 
             playersSelect.innerHTML =
                 activeOptions ||
@@ -1455,11 +1998,15 @@ async function loadServers() {
                 `;
         }
 
+
         renderServers(
             servers
         );
 
-    } catch (error) {
+
+    } catch (
+        error
+    ) {
 
         console.error(
             "loadServers:",
@@ -1482,14 +2029,17 @@ el("createServer")
                 el("createServer")
                     ?.selectedOptions?.[0];
 
+
             if (!option) {
                 return;
             }
+
 
             const defaultSeats =
                 Number(
                     option.dataset.seats
                 );
+
 
             if (
                 Number.isInteger(
@@ -1504,19 +2054,32 @@ el("createServer")
                         100
                     );
 
-                if (el("createSeats")) {
+
+                if (
                     el("createSeats")
-                        .value =
-                        String(seats);
+                ) {
+
+                    el(
+                        "createSeats"
+                    ).value =
+                        String(
+                            seats
+                        );
                 }
+
 
                 if (
                     el("createMaxChoices")
                 ) {
-                    el("createMaxChoices")
-                        .value =
-                        String(seats);
+
+                    el(
+                        "createMaxChoices"
+                    ).value =
+                        String(
+                            seats
+                        );
                 }
+
 
                 updateChoiceLimits();
             }
@@ -1528,16 +2091,22 @@ el("createServer")
    RENDER SERVERS
 ========================================================= */
 
-function renderServers(servers) {
+function renderServers(
+    servers
+) {
 
     const container =
         el("serversList");
+
 
     if (!container) {
         return;
     }
 
-    if (!servers.length) {
+
+    if (
+        !servers.length
+    ) {
 
         container.innerHTML = `
             <div class="empty">
@@ -1547,6 +2116,7 @@ function renderServers(servers) {
 
         return;
     }
+
 
     container.innerHTML =
         servers
@@ -1558,10 +2128,12 @@ function renderServers(servers) {
                             server.active
                         ) === 1;
 
+
                     const seats =
                         Number(
                             server.seats
                         ) || 0;
+
 
                     return `
                         <div class="server-row">
@@ -1588,6 +2160,7 @@ function renderServers(servers) {
 
                             </div>
 
+
                             <div class="server-actions">
 
                                 <button
@@ -1602,6 +2175,7 @@ function renderServers(servers) {
                                 >
                                     تعديل
                                 </button>
+
 
                                 <button
                                     class="${
@@ -1642,9 +2216,11 @@ el("serverForm")
 
             event.preventDefault();
 
+
             hideMessage(
                 el("serverMessage")
             );
+
 
             const serverId =
                 Number(
@@ -1652,16 +2228,19 @@ el("serverForm")
                         ?.value
                 );
 
+
             const name =
                 el("serverNameInput")
                     ?.value
                     .trim();
+
 
             const seats =
                 Number(
                     el("serverSeatsInput")
                         ?.value
                 );
+
 
             if (
                 !Number.isInteger(
@@ -1678,6 +2257,7 @@ el("serverForm")
                 return;
             }
 
+
             if (!name) {
 
                 showMessage(
@@ -1687,6 +2267,7 @@ el("serverForm")
 
                 return;
             }
+
 
             if (
                 !Number.isInteger(
@@ -1704,26 +2285,32 @@ el("serverForm")
                 return;
             }
 
+
             try {
 
                 const response =
                     await apiFetch(
                         "/admin/servers",
                         {
-                            method: "POST",
+                            method:
+                                "POST",
 
                             body:
                                 JSON.stringify({
                                     server_id:
                                         serverId,
+
                                     name,
+
                                     seats
                                 })
                         }
                     );
 
+
                 const data =
                     await response.json();
+
 
                 if (
                     !response.ok ||
@@ -1739,26 +2326,40 @@ el("serverForm")
                     return;
                 }
 
+
                 showMessage(
                     el("serverMessage"),
                     "تمت إضافة السيرفر بنجاح.",
                     "success"
                 );
 
+
                 el("serverForm")
                     ?.reset();
 
-                if (el("serverSeatsInput")) {
+
+                if (
                     el("serverSeatsInput")
-                        .value =
+                ) {
+
+                    el(
+                        "serverSeatsInput"
+                    ).value =
                         "5";
                 }
 
+
                 await loadServers();
 
-            } catch (error) {
 
-                console.error(error);
+            } catch (
+                error
+            ) {
+
+                console.error(
+                    error
+                );
+
 
                 showMessage(
                     el("serverMessage"),
@@ -1786,24 +2387,35 @@ window.editServer =
                 oldName
             );
 
-        if (name === null) {
+
+        if (
+            name === null
+        ) {
             return;
         }
+
 
         const seatsInput =
             prompt(
                 "عدد المقاعد الافتراضي:",
-                String(oldSeats)
+                String(
+                    oldSeats
+                )
             );
 
-        if (seatsInput === null) {
+
+        if (
+            seatsInput === null
+        ) {
             return;
         }
+
 
         const seats =
             Number(
                 seatsInput
             );
+
 
         if (
             !Number.isInteger(
@@ -1820,25 +2432,30 @@ window.editServer =
             return;
         }
 
+
         try {
 
             const response =
                 await apiFetch(
                     `/admin/servers/${serverId}`,
                     {
-                        method: "PATCH",
+                        method:
+                            "PATCH",
 
                         body:
                             JSON.stringify({
                                 name:
                                     name.trim(),
+
                                 seats
                             })
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1853,7 +2470,9 @@ window.editServer =
                 return;
             }
 
+
             await loadServers();
+
 
         } catch {
 
@@ -1862,8 +2481,6 @@ window.editServer =
             );
         }
     };
-
-
 /* =========================================================
    TOGGLE SERVER
 ========================================================= */
@@ -1877,6 +2494,7 @@ window.toggleServer =
         const nextState =
             !currentlyActive;
 
+
         if (
             !confirm(
                 nextState
@@ -1888,13 +2506,15 @@ window.toggleServer =
             return;
         }
 
+
         try {
 
             const response =
                 await apiFetch(
                     `/admin/servers/${serverId}`,
                     {
-                        method: "PATCH",
+                        method:
+                            "PATCH",
 
                         body:
                             JSON.stringify({
@@ -1904,8 +2524,10 @@ window.toggleServer =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1920,7 +2542,9 @@ window.toggleServer =
                 return;
             }
 
+
             await loadServers();
+
 
         } catch {
 
@@ -1949,6 +2573,7 @@ window.openElection =
             return;
         }
 
+
         try {
 
             const response =
@@ -1957,13 +2582,18 @@ window.openElection =
                         electionId
                     )}/open`,
                     {
-                        method: "POST",
-                        body: "{}"
+                        method:
+                            "POST",
+
+                        body:
+                            "{}"
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -1978,11 +2608,14 @@ window.openElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
+
             await refreshDashboard();
+
 
         } catch {
 
@@ -2011,6 +2644,7 @@ window.closeElection =
             return;
         }
 
+
         try {
 
             const response =
@@ -2019,13 +2653,18 @@ window.closeElection =
                         electionId
                     )}/close`,
                     {
-                        method: "POST",
-                        body: "{}"
+                        method:
+                            "POST",
+
+                        body:
+                            "{}"
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2040,11 +2679,14 @@ window.closeElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
+
             await refreshDashboard();
+
 
         } catch {
 
@@ -2073,6 +2715,7 @@ window.cancelElection =
             return;
         }
 
+
         try {
 
             const response =
@@ -2081,13 +2724,18 @@ window.cancelElection =
                         electionId
                     )}/cancel`,
                     {
-                        method: "POST",
-                        body: "{}"
+                        method:
+                            "POST",
+
+                        body:
+                            "{}"
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2102,11 +2750,14 @@ window.cancelElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
+
             await refreshDashboard();
+
 
         } catch {
 
@@ -2135,6 +2786,7 @@ window.deleteElection =
             return;
         }
 
+
         try {
 
             const response =
@@ -2143,12 +2795,15 @@ window.deleteElection =
                         electionId
                     )}`,
                     {
-                        method: "DELETE"
+                        method:
+                            "DELETE"
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2163,11 +2818,14 @@ window.deleteElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
+
             await refreshDashboard();
+
 
         } catch {
 
@@ -2196,8 +2854,10 @@ window.editElection =
                     )}`
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2212,8 +2872,10 @@ window.editElection =
                 return;
             }
 
+
             const election =
                 data.election;
+
 
             const title =
                 prompt(
@@ -2221,9 +2883,13 @@ window.editElection =
                     election.title
                 );
 
-            if (title === null) {
+
+            if (
+                title === null
+            ) {
                 return;
             }
+
 
             const description =
                 prompt(
@@ -2232,9 +2898,13 @@ window.editElection =
                     ""
                 );
 
-            if (description === null) {
+
+            if (
+                description === null
+            ) {
                 return;
             }
+
 
             const newEnd =
                 prompt(
@@ -2242,11 +2912,91 @@ window.editElection =
                     election.end_at
                 );
 
-            if (newEnd === null) {
+
+            if (
+                newEnd === null
+            ) {
                 return;
             }
 
+
+            /*
+             * =====================================================
+             * RESULT SETTINGS
+             * =====================================================
+             *
+             * نحاول قراءة القيم الحالية من الـBackend.
+             * لو لم تكن موجودة نعتبرها false.
+             */
+
+            const currentShowDuring =
+                Boolean(
+                    election.show_results_during_voting
+                );
+
+
+            const currentShowAfter =
+                Boolean(
+                    election.show_results_after_voting
+                );
+
+
+            const currentPublicResults =
+                Boolean(
+                    election.public_results_enabled
+                );
+
+
+            const showDuringAnswer =
+                confirm(
+                    `إظهار النتائج أثناء التصويت؟
+
+الحالي:
+${
+    currentShowDuring
+        ? "مفعّل"
+        : "مغلق"
+}
+
+اضغط موافق للتفعيل،
+أو إلغاء لإغلاقه.`
+                );
+
+
+            const showAfterAnswer =
+                confirm(
+                    `إظهار النتائج بعد انتهاء التصويت؟
+
+الحالي:
+${
+    currentShowAfter
+        ? "مفعّل"
+        : "مغلق"
+}
+
+اضغط موافق للتفعيل،
+أو إلغاء لإغلاقه.`
+                );
+
+
+            const publicResultsAnswer =
+                confirm(
+                    `السماح بعرض النتائج بدون تسجيل دخول؟
+
+الحالي:
+${
+    currentPublicResults
+        ? "مسموح"
+        : "غير مسموح"
+}
+
+اضغط موافق للسماح،
+أو إلغاء لمنع العرض العام.`
+                );
+
+
             const body = {
+
                 title:
                     title.trim(),
 
@@ -2254,8 +3004,18 @@ window.editElection =
                     description.trim(),
 
                 end_at:
-                    newEnd.trim()
+                    newEnd.trim(),
+
+                show_results_during_voting:
+                    showDuringAnswer,
+
+                show_results_after_voting:
+                    showAfterAnswer,
+
+                public_results_enabled:
+                    publicResultsAnswer
             };
+
 
             if (
                 election.effective_status ===
@@ -2272,6 +3032,7 @@ window.editElection =
                         )
                     );
 
+
                 const minChoices =
                     Number(
                         prompt(
@@ -2280,6 +3041,7 @@ window.editElection =
                         )
                     );
 
+
                 const maxChoices =
                     Number(
                         prompt(
@@ -2287,6 +3049,7 @@ window.editElection =
                             election.max_choices
                         )
                     );
+
 
                 if (
                     !Number.isInteger(
@@ -2307,15 +3070,19 @@ window.editElection =
                     return;
                 }
 
+
                 body.seats =
                     seats;
+
 
                 body.min_choices =
                     minChoices;
 
+
                 body.max_choices =
                     maxChoices;
             }
+
 
             const updateResponse =
                 await apiFetch(
@@ -2323,7 +3090,8 @@ window.editElection =
                         electionId
                     )}`,
                     {
-                        method: "PATCH",
+                        method:
+                            "PATCH",
 
                         body:
                             JSON.stringify(
@@ -2332,8 +3100,10 @@ window.editElection =
                     }
                 );
 
+
             const updateData =
                 await updateResponse.json();
+
 
             if (
                 !updateResponse.ok ||
@@ -2348,15 +3118,21 @@ window.editElection =
                 return;
             }
 
+
             await loadElections(
                 currentFilter
             );
 
+
             await refreshDashboard();
+
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             alert(
                 "حدث خطأ أثناء تعديل التصويت."
@@ -2377,26 +3153,34 @@ window.openDetails =
         currentElectionId =
             electionId;
 
+
         const modal =
             el("electionModal");
+
 
         if (!modal) {
             return;
         }
 
+
         modal.classList.add(
             "show"
         );
 
-        if (el("modalBody")) {
 
+        if (
             el("modalBody")
-                .innerHTML = `
-                    <div class="empty">
-                        جاري تحميل التفاصيل...
-                    </div>
-                `;
+        ) {
+
+            el(
+                "modalBody"
+            ).innerHTML = `
+                <div class="empty">
+                    جاري تحميل التفاصيل...
+                </div>
+            `;
         }
+
 
         try {
 
@@ -2407,23 +3191,27 @@ window.openDetails =
                     )}`
                 );
 
+
             const details =
                 await detailsResponse.json();
+
 
             if (
                 !detailsResponse.ok ||
                 !details.success
             ) {
 
-                el("modalBody")
-                    .innerHTML = `
-                        <div class="empty">
-                            تعذر تحميل التفاصيل.
-                        </div>
-                    `;
+                el(
+                    "modalBody"
+                ).innerHTML = `
+                    <div class="empty">
+                        تعذر تحميل التفاصيل.
+                    </div>
+                `;
 
                 return;
             }
+
 
             const votersResponse =
                 await apiFetch(
@@ -2432,8 +3220,10 @@ window.openDetails =
                     )}/voters?limit=5000`
                 );
 
+
             const votersData =
                 await votersResponse.json();
+
 
             const resultsResponse =
                 await apiFetch(
@@ -2442,35 +3232,51 @@ window.openDetails =
                     )}/results`
                 );
 
+
             const resultsData =
                 await resultsResponse.json();
 
+
             const election =
                 details.election;
+
 
             const candidates =
                 details.candidates ||
                 [];
 
+
             const voters =
                 votersData.voters ||
                 [];
+
 
             const results =
                 resultsData.results ||
                 [];
 
-            if (el("modalTitle")) {
+
+            if (
                 el("modalTitle")
-                    .textContent =
+            ) {
+
+                el(
+                    "modalTitle"
+                ).textContent =
                     election.title;
             }
 
-            if (el("modalElectionId")) {
+
+            if (
                 el("modalElectionId")
-                    .textContent =
+            ) {
+
+                el(
+                    "modalElectionId"
+                ).textContent =
                     election.election_id;
             }
+
 
             let html = `
 
@@ -2488,6 +3294,7 @@ window.openDetails =
                         </div>
                     </div>
 
+
                     <div class="meta-box">
                         <div class="ml">
                             السيرفر
@@ -2500,6 +3307,7 @@ window.openDetails =
                         </div>
                     </div>
 
+
                     <div class="meta-box">
                         <div class="ml">
                             المقاعد
@@ -2511,6 +3319,7 @@ window.openDetails =
                             )}
                         </div>
                     </div>
+
 
                     <div class="meta-box">
                         <div class="ml">
@@ -2525,6 +3334,7 @@ window.openDetails =
                         </div>
                     </div>
 
+
                     <div class="meta-box">
                         <div class="ml">
                             المصوتون
@@ -2537,6 +3347,7 @@ window.openDetails =
                             }
                         </div>
                     </div>
+
 
                     <div class="meta-box">
                         <div class="ml">
@@ -2552,6 +3363,61 @@ window.openDetails =
                     </div>
 
                 </div>
+
+
+                <div
+                    class="box"
+                    style="
+                        margin-top:16px;
+                    "
+                >
+
+                    <h3>
+                        إعدادات ظهور النتائج
+                    </h3>
+
+
+                    <div
+                        style="
+                            line-height:2;
+                            color:#b9a98e;
+                            font-size:11px;
+                        "
+                    >
+
+                        <div>
+                            أثناء التصويت:
+                            ${
+                                election.show_results_during_voting
+                                    ? "مفعّل"
+                                    : "مخفي"
+                            }
+                        </div>
+
+
+                        <div>
+                            بعد انتهاء التصويت:
+                            ${
+                                election.show_results_after_voting
+                                    ? "مفعّل"
+                                    : "مخفي"
+                            }
+                        </div>
+
+
+                        <div>
+                            بدون تسجيل دخول:
+                            ${
+                                election.public_results_enabled
+                                    ? "مسموح"
+                                    : "غير مسموح"
+                            }
+                        </div>
+
+                    </div>
+
+                </div>
+
 
                 <div class="box">
 
@@ -2574,6 +3440,7 @@ window.openDetails =
                                                     )}
                                                 </div>
 
+
                                                 <div class="candidate-uid">
                                                     UID:
                                                     ${escapeHtml(
@@ -2582,6 +3449,7 @@ window.openDetails =
                                                 </div>
 
                                             </div>
+
 
                                             ${
                                                 election.effective_status ===
@@ -2614,6 +3482,7 @@ window.openDetails =
                             `
                     }
 
+
                     ${
                         election.effective_status ===
                             "draft" ||
@@ -2638,6 +3507,7 @@ window.openDetails =
 
                                     </div>
 
+
                                     <button
                                         class="green"
                                         onclick="addCandidate(
@@ -2648,6 +3518,7 @@ window.openDetails =
                                     >
                                         إضافة المرشح
                                     </button>
+
 
                                     <div
                                         class="message"
@@ -2661,15 +3532,18 @@ window.openDetails =
 
                 </div>
 
+
                 <div class="box">
 
                     <h3>
                         النتائج
                     </h3>
 
+
                     <div class="stats">
 
                         <div class="stat">
+
                             <div class="l">
                                 المصوتون
                             </div>
@@ -2681,37 +3555,12 @@ window.openDetails =
                                     0
                                 }
                             </div>
+
                         </div>
 
-                        <div class="stat">
-                            <div class="l">
-                                المؤهلون
-                            </div>
-
-                            <div class="n">
-                                ${
-                                    resultsData.stats
-                                        ?.eligible ??
-                                    0
-                                }
-                            </div>
-                        </div>
 
                         <div class="stat">
-                            <div class="l">
-                                المشاركة
-                            </div>
 
-                            <div class="n">
-                                ${
-                                    resultsData.stats
-                                        ?.participation_rate ??
-                                    0
-                                }%
-                            </div>
-                        </div>
-
-                        <div class="stat">
                             <div class="l">
                                 المقاعد
                             </div>
@@ -2719,9 +3568,11 @@ window.openDetails =
                             <div class="n">
                                 ${election.seats}
                             </div>
+
                         </div>
 
                     </div>
+
 
                     ${
                         results.length
@@ -2738,6 +3589,7 @@ window.openDetails =
                                                     )}
                                                 </span>
 
+
                                                 <span>
                                                     ${row.votes}
                                                     صوت —
@@ -2745,6 +3597,7 @@ window.openDetails =
                                                 </span>
 
                                             </div>
+
 
                                             <div class="bar">
 
@@ -2775,11 +3628,13 @@ window.openDetails =
 
                 </div>
 
+
                 <div class="box">
 
                     <h3>
                         المصوتون
                     </h3>
+
 
                     <div
                         style="
@@ -2793,6 +3648,7 @@ window.openDetails =
                         لا يتم عرض اختيار الناخب.
                     </div>
 
+
                     ${
                         voters.length
                             ? `
@@ -2801,6 +3657,7 @@ window.openDetails =
                                     <table>
 
                                         <thead>
+
                                             <tr>
 
                                                 <th>
@@ -2816,7 +3673,9 @@ window.openDetails =
                                                 </th>
 
                                             </tr>
+
                                         </thead>
+
 
                                         <tbody>
 
@@ -2832,12 +3691,14 @@ window.openDetails =
                                                                     )}
                                                                 </td>
 
+
                                                                 <td>
                                                                     ${escapeHtml(
                                                                         voter.nickname ||
                                                                         "-"
                                                                     )}
                                                                 </td>
+
 
                                                                 <td dir="ltr">
                                                                     ${formatDate(
@@ -2867,20 +3728,27 @@ window.openDetails =
                 </div>
             `;
 
-            el("modalBody")
-                .innerHTML =
+
+            el(
+                "modalBody"
+            ).innerHTML =
                 html;
+
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
 
-            el("modalBody")
-                .innerHTML = `
-                    <div class="empty">
-                        حدث خطأ أثناء تحميل التفاصيل.
-                    </div>
-                `;
+
+            el(
+                "modalBody"
+            ).innerHTML = `
+                <div class="empty">
+                    حدث خطأ أثناء تحميل التفاصيل.
+                </div>
+            `;
         }
     };
 
@@ -2900,6 +3768,7 @@ el("closeModal")
                 );
         }
     );
+
 
 el("electionModal")
     ?.addEventListener(
@@ -2934,6 +3803,7 @@ window.addCandidate =
                 ?.value
                 .trim();
 
+
         if (!uid) {
 
             showMessage(
@@ -2944,6 +3814,7 @@ window.addCandidate =
             return;
         }
 
+
         try {
 
             const response =
@@ -2952,7 +3823,8 @@ window.addCandidate =
                         electionId
                     )}/candidates`,
                     {
-                        method: "POST",
+                        method:
+                            "POST",
 
                         body:
                             JSON.stringify({
@@ -2961,8 +3833,10 @@ window.addCandidate =
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -2978,19 +3852,25 @@ window.addCandidate =
                 return;
             }
 
+
             showMessage(
                 el("candidateMessage"),
                 "تمت إضافة المرشح.",
                 "success"
             );
 
+
             await openDetails(
                 electionId
             );
 
+
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             showMessage(
                 el("candidateMessage"),
@@ -3011,8 +3891,10 @@ window.deleteCandidate =
                 "حذف هذا المرشح؟"
             )
         ) {
+
             return;
         }
+
 
         try {
 
@@ -3022,12 +3904,15 @@ window.deleteCandidate =
                         electionId
                     )}/candidates/${candidateId}`,
                     {
-                        method: "DELETE"
+                        method:
+                            "DELETE"
                     }
                 );
 
+
             const data =
                 await response.json();
+
 
             if (
                 !response.ok ||
@@ -3042,9 +3927,11 @@ window.deleteCandidate =
                 return;
             }
 
+
             await openDetails(
                 electionId
             );
+
 
         } catch {
 
@@ -3053,21 +3940,26 @@ window.deleteCandidate =
             );
         }
     };
-
-
 /* =========================================================
    PLAYER STATS / IMPORT
 ========================================================= */
 
 let currentPlayersPreview = null;
 
+
+/* =========================================================
+   PLAYER HELPERS
+========================================================= */
+
 function normalizeHeader(value) {
+
     return String(value ?? "")
         .trim()
         .toLowerCase()
         .replace(/\s+/g, "")
         .replace(/[_-]/g, "");
 }
+
 
 function detectPlayerColumns(row) {
 
@@ -3076,6 +3968,7 @@ function detectPlayerColumns(row) {
         rid: null,
         name: null
     };
+
 
     for (
         const key of Object.keys(
@@ -3086,19 +3979,22 @@ function detectPlayerColumns(row) {
         const normalized =
             normalizeHeader(key);
 
+
         if (
             normalized === "uid" ||
             normalized === "playeruid"
         ) {
 
-            mapping.uid = key;
+            mapping.uid =
+                key;
 
         } else if (
             normalized === "rid" ||
             normalized === "playerrid"
         ) {
 
-            mapping.rid = key;
+            mapping.rid =
+                key;
 
         } else if (
             normalized === "name" ||
@@ -3106,22 +4002,32 @@ function detectPlayerColumns(row) {
             normalized === "playername"
         ) {
 
-            mapping.name = key;
+            mapping.name =
+                key;
         }
     }
 
+
     return mapping;
 }
+
+
+/* =========================================================
+   LOAD PLAYER STATS
+========================================================= */
 
 async function loadPlayerStats() {
 
     const serverId =
         Number(
-            el("playersServer")?.value
+            el("playersServer")
+                ?.value
         );
+
 
     const statsEl =
         el("playersCurrentStats");
+
 
     if (
         !Number.isInteger(
@@ -3139,6 +4045,7 @@ async function loadPlayerStats() {
         return 0;
     }
 
+
     try {
 
         const response =
@@ -3148,8 +4055,10 @@ async function loadPlayerStats() {
                 )}&limit=1`
             );
 
+
         const data =
             await response.json();
+
 
         if (
             !response.ok ||
@@ -3165,10 +4074,12 @@ async function loadPlayerStats() {
             return 0;
         }
 
+
         const count =
             Number(
                 data.total
             ) || 0;
+
 
         if (statsEl) {
 
@@ -3176,7 +4087,9 @@ async function loadPlayerStats() {
                 `عدد اللاعبين الحالي: ${count}`;
         }
 
+
         return count;
+
 
     } catch (error) {
 
@@ -3185,15 +4098,22 @@ async function loadPlayerStats() {
             error
         );
 
+
         if (statsEl) {
 
             statsEl.textContent =
                 "تعذر الاتصال بالخادم.";
         }
 
+
         return 0;
     }
 }
+
+
+/* =========================================================
+   PLAYER SERVER CHANGE
+========================================================= */
 
 el("playersServer")
     ?.addEventListener(
@@ -3203,20 +4123,41 @@ el("playersServer")
             currentPlayersPreview =
                 null;
 
+
+            if (
+                el("playersPreview")
+            ) {
+
+                el(
+                    "playersPreview"
+                ).style.display =
+                    "none";
+            }
+
+
+            if (
+                el("replacePlayersButton")
+            ) {
+
+                el(
+                    "replacePlayersButton"
+                ).disabled =
+                    true;
+            }
+
+
+            hideMessage(
+                el("playersMessage")
+            );
+
+
             await loadPlayerStats();
         }
     );
 
 
 /* =========================================================
-   INITIALIZE
-========================================================= */
-
-updateChoiceLimits();
-
-restoreAdminSession();
-/* =========================================================
-   PLAYER IMPORT HELPERS
+   PARSE CSV
 ========================================================= */
 
 function parseCSV(text) {
@@ -3226,6 +4167,7 @@ function parseCSV(text) {
     let row = [];
     let value = "";
     let quoted = false;
+
 
     for (
         let i = 0;
@@ -3239,6 +4181,7 @@ function parseCSV(text) {
         const next =
             text[i + 1];
 
+
         if (
             char === '"' &&
             quoted &&
@@ -3246,18 +4189,23 @@ function parseCSV(text) {
         ) {
 
             value += '"';
+
             i++;
 
             continue;
         }
 
-        if (char === '"') {
+
+        if (
+            char === '"'
+        ) {
 
             quoted =
                 !quoted;
 
             continue;
         }
+
 
         if (
             char === "," &&
@@ -3272,6 +4220,7 @@ function parseCSV(text) {
 
             continue;
         }
+
 
         if (
             (
@@ -3289,9 +4238,11 @@ function parseCSV(text) {
                 i++;
             }
 
+
             row.push(
                 value
             );
+
 
             if (
                 row.some(
@@ -3307,18 +4258,23 @@ function parseCSV(text) {
                 );
             }
 
+
             row = [];
+
             value = "";
 
             continue;
         }
 
+
         value += char;
     }
+
 
     row.push(
         value
     );
+
 
     if (
         row.some(
@@ -3334,12 +4290,14 @@ function parseCSV(text) {
         );
     }
 
+
     if (
         !rows.length
     ) {
 
         return [];
     }
+
 
     const headers =
         rows[0].map(
@@ -3349,12 +4307,14 @@ function parseCSV(text) {
                 ).trim()
         );
 
+
     return rows
         .slice(1)
         .map(
             cells => {
 
                 const object = {};
+
 
                 headers.forEach(
                     (
@@ -3368,11 +4328,16 @@ function parseCSV(text) {
                     }
                 );
 
+
                 return object;
             }
         );
 }
 
+
+/* =========================================================
+   READ PLAYERS FILE
+========================================================= */
 
 async function readPlayersFile(
     file
@@ -3385,9 +4350,11 @@ async function readPlayersFile(
         );
     }
 
+
     const fileName =
         file.name
             .toLowerCase();
+
 
     if (
         fileName.endsWith(
@@ -3399,6 +4366,7 @@ async function readPlayersFile(
             await file.text()
         );
     }
+
 
     if (
         fileName.endsWith(
@@ -3419,16 +4387,20 @@ async function readPlayersFile(
             );
         }
 
+
         const buffer =
             await file.arrayBuffer();
+
 
         const workbook =
             XLSX.read(
                 buffer,
                 {
-                    type: "array"
+                    type:
+                        "array"
                 }
             );
+
 
         if (
             !workbook.SheetNames.length
@@ -3439,10 +4411,12 @@ async function readPlayersFile(
             );
         }
 
+
         const sheet =
             workbook.Sheets[
                 workbook.SheetNames[0]
             ];
+
 
         return XLSX.utils.sheet_to_json(
             sheet,
@@ -3452,11 +4426,16 @@ async function readPlayersFile(
         );
     }
 
+
     throw new Error(
         "نوع الملف غير مدعوم. استخدم CSV أو XLS أو XLSX."
     );
 }
 
+
+/* =========================================================
+   PREPARE PLAYER ROWS
+========================================================= */
 
 function preparePlayerRows(
     rawRows
@@ -3470,19 +4449,24 @@ function preparePlayerRows(
     ) {
 
         return {
+
             rows: [],
+
             errors: [
                 "الملف فارغ."
             ]
         };
     }
 
+
     const mapping =
         detectPlayerColumns(
             rawRows[0]
         );
 
+
     const errors = [];
+
 
     if (
         !mapping.uid
@@ -3493,6 +4477,7 @@ function preparePlayerRows(
         );
     }
 
+
     if (
         !mapping.rid
     ) {
@@ -3502,6 +4487,7 @@ function preparePlayerRows(
         );
     }
 
+
     if (
         !mapping.name
     ) {
@@ -3510,6 +4496,7 @@ function preparePlayerRows(
             "عمود NAME أو NICKNAME غير موجود."
         );
     }
+
 
     if (
         errors.length
@@ -3521,6 +4508,7 @@ function preparePlayerRows(
         };
     }
 
+
     const rows = [];
 
     const uids =
@@ -3528,6 +4516,7 @@ function preparePlayerRows(
 
     const rids =
         new Set();
+
 
     rawRows.forEach(
         (
@@ -3538,12 +4527,14 @@ function preparePlayerRows(
             const line =
                 index + 2;
 
+
             const uid =
                 String(
                     raw[
                         mapping.uid
                     ] ?? ""
                 ).trim();
+
 
             const rid =
                 String(
@@ -3552,12 +4543,14 @@ function preparePlayerRows(
                     ] ?? ""
                 ).trim();
 
+
             const name =
                 String(
                     raw[
                         mapping.name
                     ] ?? ""
                 ).trim();
+
 
             if (!uid) {
 
@@ -3568,6 +4561,7 @@ function preparePlayerRows(
                 return;
             }
 
+
             if (!rid) {
 
                 errors.push(
@@ -3577,6 +4571,7 @@ function preparePlayerRows(
                 return;
             }
 
+
             if (!name) {
 
                 errors.push(
@@ -3585,6 +4580,7 @@ function preparePlayerRows(
 
                 return;
             }
+
 
             if (
                 uids.has(
@@ -3599,6 +4595,7 @@ function preparePlayerRows(
                 return;
             }
 
+
             if (
                 rids.has(
                     rid
@@ -3612,31 +4609,40 @@ function preparePlayerRows(
                 return;
             }
 
+
             uids.add(
                 uid
             );
+
 
             rids.add(
                 rid
             );
 
+
             rows.push({
+
                 uid,
+
                 rid,
+
                 name
             });
         }
     );
 
+
     return {
+
         rows,
+
         errors
     };
 }
 
 
 /* =========================================================
-   PLAYER PREVIEW
+   RENDER PLAYERS PREVIEW
 ========================================================= */
 
 function renderPlayersPreview(
@@ -3648,53 +4654,63 @@ function renderPlayersPreview(
     const preview =
         el("playersPreview");
 
+
     if (!preview) {
         return;
     }
 
+
     preview.style.display =
         "block";
+
 
     if (
         el("playersFileCount")
     ) {
 
-        el("playersFileCount")
-            .textContent =
+        el(
+            "playersFileCount"
+        ).textContent =
             String(
                 rows.length +
                 errors.length
             );
     }
 
+
     if (
         el("playersCurrentCount")
     ) {
 
-        el("playersCurrentCount")
-            .textContent =
+        el(
+            "playersCurrentCount"
+        ).textContent =
             String(
                 currentCount
             );
     }
 
+
     if (
         el("playersAfterCount")
     ) {
 
-        el("playersAfterCount")
-            .textContent =
+        el(
+            "playersAfterCount"
+        ).textContent =
             String(
                 rows.length
             );
     }
 
+
     if (
         el("playersReplaceCount")
     ) {
 
-        el("playersReplaceCount")
-            .textContent =
+        el(
+            "playersReplaceCount"
+        ).textContent =
             String(
                 Math.abs(
                     currentCount -
@@ -3703,16 +4719,20 @@ function renderPlayersPreview(
             );
     }
 
+
     const table =
         el(
             "playersPreviewTable"
         );
 
+
     if (!table) {
         return;
     }
 
+
     let html = "";
+
 
     if (
         rows.length
@@ -3726,13 +4746,19 @@ function renderPlayersPreview(
                     <thead>
 
                         <tr>
+
                             <th>#</th>
+
                             <th>UID</th>
+
                             <th>RID</th>
+
                             <th>NAME</th>
+
                         </tr>
 
                     </thead>
+
 
                     <tbody>
 
@@ -3787,6 +4813,7 @@ function renderPlayersPreview(
             </div>
         `;
 
+
         if (
             rows.length >
             20
@@ -3805,6 +4832,7 @@ function renderPlayersPreview(
             `;
         }
     }
+
 
     if (
         errors.length
@@ -3846,13 +4874,16 @@ function renderPlayersPreview(
         `;
     }
 
+
     table.innerHTML =
         html;
+
 
     const replaceButton =
         el(
             "replacePlayersButton"
         );
+
 
     if (
         replaceButton
@@ -3878,15 +4909,18 @@ el("validatePlayersButton")
                 el("playersMessage")
             );
 
+
             const serverId =
                 Number(
                     el("playersServer")
                         ?.value
                 );
 
+
             const file =
                 el("playersFile")
                     ?.files?.[0];
+
 
             if (
                 !Number.isInteger(
@@ -3903,6 +4937,7 @@ el("validatePlayersButton")
                 return;
             }
 
+
             if (!file) {
 
                 showMessage(
@@ -3913,16 +4948,20 @@ el("validatePlayersButton")
                 return;
             }
 
+
             const button =
                 el(
                     "validatePlayersButton"
                 );
 
+
             button.disabled =
                 true;
 
+
             button.textContent =
                 "جاري فحص الملف...";
+
 
             try {
 
@@ -3931,13 +4970,16 @@ el("validatePlayersButton")
                         file
                     );
 
+
                 const prepared =
                     preparePlayerRows(
                         rawRows
                     );
 
+
                 const currentCount =
                     await loadPlayerStats();
+
 
                 currentPlayersPreview = {
 
@@ -3950,11 +4992,13 @@ el("validatePlayersButton")
                     currentCount
                 };
 
+
                 renderPlayersPreview(
                     prepared.rows,
                     prepared.errors,
                     currentCount
                 );
+
 
                 if (
                     prepared.errors.length
@@ -3975,6 +5019,7 @@ el("validatePlayersButton")
                     );
                 }
 
+
             } catch (
                 error
             ) {
@@ -3983,16 +5028,19 @@ el("validatePlayersButton")
                     error
                 );
 
+
                 showMessage(
                     el("playersMessage"),
                     error.message ||
                     "تعذر قراءة الملف."
                 );
 
+
             } finally {
 
                 button.disabled =
                     false;
+
 
                 button.textContent =
                     "فحص الملف";
@@ -4014,11 +5062,13 @@ el("replacePlayersButton")
                 el("playersMessage")
             );
 
+
             const serverId =
                 Number(
                     el("playersServer")
                         ?.value
                 );
+
 
             if (
                 !Number.isInteger(
@@ -4035,6 +5085,7 @@ el("replacePlayersButton")
                 return;
             }
 
+
             if (
                 !currentPlayersPreview ||
                 !currentPlayersPreview.rows.length ||
@@ -4049,39 +5100,46 @@ el("replacePlayersButton")
                 return;
             }
 
+
             const total =
                 currentPlayersPreview
                     .rows
                     .length;
 
+
             const currentCount =
                 currentPlayersPreview
                     .currentCount;
 
-            const confirmed =
-                confirm(
-                    "تحذير مهم:\n\n" +
+
+            if (
+                !confirm(
+                    `تحذير مهم:\n\n` +
                     `سيتم استبدال جميع لاعبي السيرفر ${serverId}.\n\n` +
                     `الحالي: ${currentCount} لاعب\n` +
                     `الجديد: ${total} لاعب\n\n` +
-                    "أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n" +
-                    "هل تريد المتابعة؟"
-                );
+                    `أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n` +
+                    `هل تريد المتابعة؟`
+                )
+            ) {
 
-            if (!confirmed) {
                 return;
             }
+
 
             const button =
                 el(
                     "replacePlayersButton"
                 );
 
+
             button.disabled =
                 true;
 
+
             button.textContent =
                 "جاري الاستبدال...";
+
 
             try {
 
@@ -4089,7 +5147,8 @@ el("replacePlayersButton")
                     await apiFetch(
                         "/admin/players/replace",
                         {
-                            method: "POST",
+                            method:
+                                "POST",
 
                             body:
                                 JSON.stringify({
@@ -4103,13 +5162,14 @@ el("replacePlayersButton")
 
                                     confirm:
                                         true
-
                                 })
                         }
                     );
 
+
                 const data =
                     await response.json();
+
 
                 if (
                     !response.ok ||
@@ -4125,6 +5185,7 @@ el("replacePlayersButton")
                     return;
                 }
 
+
                 const finalCount =
                     Number(
                         data.final_count ??
@@ -4133,43 +5194,53 @@ el("replacePlayersButton")
                         total
                     );
 
+
                 showMessage(
                     el("playersMessage"),
                     `تم استبدال بيانات اللاعبين بنجاح.\nالعدد الحالي: ${finalCount}`,
                     "success"
                 );
 
+
                 currentPlayersPreview =
                     null;
 
+
                 if (
                     el("playersFile")
                 ) {
 
-                    el("playersFile")
-                        .value =
+                    el(
+                        "playersFile"
+                    ).value =
                         "";
                 }
 
+
                 if (
                     el("playersPreview")
                 ) {
 
-                    el("playersPreview")
-                        .style.display =
+                    el(
+                        "playersPreview"
+                    ).style.display =
                         "none";
                 }
 
+
                 if (
                     el("replacePlayersButton")
                 ) {
 
-                    el("replacePlayersButton")
-                        .disabled =
+                    el(
+                        "replacePlayersButton"
+                    ).disabled =
                         true;
                 }
 
+
                 await loadPlayerStats();
+
 
             } catch (
                 error
@@ -4179,15 +5250,18 @@ el("replacePlayersButton")
                     error
                 );
 
+
                 showMessage(
                     el("playersMessage"),
                     "حدث خطأ أثناء استبدال بيانات اللاعبين."
                 );
 
+
             } finally {
 
                 button.disabled =
                     false;
+
 
                 button.textContent =
                     "تأكيد واستبدال بيانات السيرفر";
@@ -4211,6 +5285,7 @@ el("loadPlayersButton")
                         ?.value
                 );
 
+
             if (
                 !Number.isInteger(
                     serverId
@@ -4225,6 +5300,7 @@ el("loadPlayersButton")
 
                 return;
             }
+
 
             location.href =
                 `players.html?server_id=${encodeURIComponent(
@@ -4238,654 +5314,6 @@ el("loadPlayersButton")
    INITIAL PAGE DATA
 ========================================================= */
 
-if (
-    el("playersServer")
-) {
-
-    el("playersServer")
-        .addEventListener(
-            "change",
-            async () => {
-
-                currentPlayersPreview =
-                    null;
-
-                if (
-                    el("playersPreview")
-                ) {
-
-                    el("playersPreview")
-                        .style.display =
-                        "none";
-                }
-
-                if (
-                    el("replacePlayersButton")
-                ) {
-
-                    el("replacePlayersButton")
-                        .disabled =
-                        true;
-                }
-
-                hideMessage(
-                    el("playersMessage")
-                );
-
-                await loadPlayerStats();
-            }
-        );
-}
-
-
-/* =========================================================
-   EXTRA REFRESH
-========================================================= */
-
-async function refreshPlayersSection() {
-
-    try {
-
-        await loadServers();
-
-        await loadPlayerStats();
-
-    } catch (
-        error
-    ) {
-
-        console.error(
-            "refreshPlayersSection:",
-            error
-        );
-    }
-}
-
-
-/* =========================================================
-   FINAL BOOTSTRAP
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        updateChoiceLimits();
-
-        await refreshPlayersSection();
-    }
-);
-/* =========================================================
-   SHOW PLAYERS PAGE
-========================================================= */
-
-el("loadPlayersButton")
-    ?.addEventListener(
-        "click",
-        async () => {
-
-            const serverId =
-                Number(
-                    el("playersServer")
-                        ?.value
-                );
-
-            if (
-                !Number.isInteger(
-                    serverId
-                ) ||
-                serverId <= 0
-            ) {
-
-                showMessage(
-                    el("playersMessage"),
-                    "اختر السيرفر أولًا."
-                );
-
-                return;
-            }
-
-            openPlayersPage(
-                serverId
-            );
-        }
-    );
-
-
-/* =========================================================
-   PREVIEW IMPORT
-========================================================= */
-
-function renderPlayersPreview(
-    rows,
-    errors,
-    currentCount
-) {
-
-    const preview =
-        el("playersPreview");
-
-    if (!preview) {
-        return;
-    }
-
-    preview.style.display =
-        "block";
-
-    if (
-        el("playersFileCount")
-    ) {
-
-        el("playersFileCount")
-            .textContent =
-            rows.length +
-            errors.length;
-    }
-
-    if (
-        el("playersCurrentCount")
-    ) {
-
-        el("playersCurrentCount")
-            .textContent =
-            currentCount;
-    }
-
-    if (
-        el("playersAfterCount")
-    ) {
-
-        el("playersAfterCount")
-            .textContent =
-            rows.length;
-    }
-
-    if (
-        el("playersReplaceCount")
-    ) {
-
-        el("playersReplaceCount")
-            .textContent =
-            Math.abs(
-                currentCount -
-                rows.length
-            );
-    }
-
-    const table =
-        el("playersPreviewTable");
-
-    if (!table) {
-        return;
-    }
-
-    let html = "";
-
-    if (rows.length) {
-
-        html += `
-            <div class="table">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-                            <th>#</th>
-                            <th>UID</th>
-                            <th>RID</th>
-                            <th>NAME</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        ${
-                            rows
-                                .slice(
-                                    0,
-                                    20
-                                )
-                                .map(
-                                    (
-                                        player,
-                                        index
-                                    ) => `
-                                        <tr>
-
-                                            <td>
-                                                ${index + 1}
-                                            </td>
-
-                                            <td dir="ltr">
-                                                ${escapeHtml(
-                                                    player.uid
-                                                )}
-                                            </td>
-
-                                            <td dir="ltr">
-                                                ${escapeHtml(
-                                                    player.rid
-                                                )}
-                                            </td>
-
-                                            <td>
-                                                ${escapeHtml(
-                                                    player.name
-                                                )}
-                                            </td>
-
-                                        </tr>
-                                    `
-                                )
-                                .join("")
-                        }
-
-                    </tbody>
-
-                </table>
-
-            </div>
-        `;
-
-        if (
-            rows.length >
-            20
-        ) {
-
-            html += `
-                <div
-                    style="
-                        margin-top:8px;
-                        color:#766751;
-                        font-size:10px;
-                    "
-                >
-                    يتم عرض أول 20 لاعبًا فقط في المعاينة.
-                </div>
-            `;
-        }
-    }
-
-    if (errors.length) {
-
-        html += `
-            <div
-                class="players-warning"
-            >
-
-                <strong>
-                    يوجد ${errors.length} خطأ:
-                </strong>
-
-                <div
-                    style="
-                        margin-top:6px;
-                    "
-                >
-
-                    ${
-                        errors
-                            .slice(
-                                0,
-                                30
-                            )
-                            .map(
-                                error =>
-                                    `<div>${escapeHtml(
-                                        error
-                                    )}</div>`
-                            )
-                            .join("")
-                    }
-
-                </div>
-
-            </div>
-        `;
-    }
-
-    table.innerHTML =
-        html;
-
-    const replaceButton =
-        el(
-            "replacePlayersButton"
-        );
-
-    if (replaceButton) {
-
-        replaceButton.disabled =
-            !rows.length ||
-            errors.length > 0;
-    }
-}
-
-
-/* =========================================================
-   VALIDATE FILE
-========================================================= */
-
-el("validatePlayersButton")
-    ?.addEventListener(
-        "click",
-        async () => {
-
-            hideMessage(
-                el("playersMessage")
-            );
-
-            const serverId =
-                Number(
-                    el("playersServer")
-                        ?.value
-                );
-
-            const file =
-                el("playersFile")
-                    ?.files?.[0];
-
-            if (
-                !Number.isInteger(
-                    serverId
-                ) ||
-                serverId <= 0
-            ) {
-
-                showMessage(
-                    el("playersMessage"),
-                    "اختر السيرفر أولًا."
-                );
-
-                return;
-            }
-
-            if (!file) {
-
-                showMessage(
-                    el("playersMessage"),
-                    "اختر ملف اللاعبين أولًا."
-                );
-
-                return;
-            }
-
-            const button =
-                el(
-                    "validatePlayersButton"
-                );
-
-            button.disabled =
-                true;
-
-            button.textContent =
-                "جاري فحص الملف...";
-
-            try {
-
-                const rawRows =
-                    await readPlayersFile(
-                        file
-                    );
-
-                const prepared =
-                    preparePlayerRows(
-                        rawRows
-                    );
-
-                const currentCount =
-                    await loadPlayerStats();
-
-                currentPlayersPreview = {
-                    rows:
-                        prepared.rows,
-
-                    errors:
-                        prepared.errors,
-
-                    currentCount
-                };
-
-                renderPlayersPreview(
-                    prepared.rows,
-                    prepared.errors,
-                    currentCount
-                );
-
-                if (
-                    prepared.errors.length
-                ) {
-
-                    showMessage(
-                        el("playersMessage"),
-                        `تم الفحص، لكن يوجد ${prepared.errors.length} خطأ. لن يتم تعديل قاعدة البيانات.`,
-                        "error"
-                    );
-
-                } else {
-
-                    showMessage(
-                        el("playersMessage"),
-                        `الملف صالح ويحتوي على ${prepared.rows.length} لاعب. يمكنك الآن تنفيذ الاستبدال.`,
-                        "success"
-                    );
-                }
-
-            } catch (error) {
-
-                console.error(
-                    error
-                );
-
-                showMessage(
-                    el("playersMessage"),
-                    error.message ||
-                    "تعذر قراءة الملف."
-                );
-
-            } finally {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    "فحص الملف";
-            }
-        }
-    );
-
-
-/* =========================================================
-   REPLACE PLAYERS
-========================================================= */
-
-el("replacePlayersButton")
-    ?.addEventListener(
-        "click",
-        async () => {
-
-            hideMessage(
-                el("playersMessage")
-            );
-
-            const serverId =
-                Number(
-                    el("playersServer")
-                        ?.value
-                );
-
-            if (
-                !Number.isInteger(
-                    serverId
-                ) ||
-                serverId <= 0
-            ) {
-
-                showMessage(
-                    el("playersMessage"),
-                    "اختر السيرفر."
-                );
-
-                return;
-            }
-
-            if (
-                !currentPlayersPreview ||
-                !currentPlayersPreview.rows.length ||
-                currentPlayersPreview.errors.length
-            ) {
-
-                showMessage(
-                    el("playersMessage"),
-                    "افحص ملفًا صالحًا أولًا."
-                );
-
-                return;
-            }
-
-            const total =
-                currentPlayersPreview
-                    .rows
-                    .length;
-
-            const currentCount =
-                currentPlayersPreview
-                    .currentCount;
-
-            if (
-                !confirm(
-                    `تحذير مهم!\n\n` +
-                    `سيتم استبدال جميع لاعبي السيرفر ${serverId}.\n\n` +
-                    `الحالي: ${currentCount} لاعب\n` +
-                    `الجديد: ${total} لاعب\n\n` +
-                    `أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n` +
-                    `هل تريد المتابعة؟`
-                )
-            ) {
-
-                return;
-            }
-
-            const button =
-                el(
-                    "replacePlayersButton"
-                );
-
-            button.disabled =
-                true;
-
-            button.textContent =
-                "جاري الاستبدال...";
-
-            try {
-
-                const response =
-                    await apiFetch(
-                        "/admin/players/replace",
-                        {
-                            method: "POST",
-
-                            body:
-                                JSON.stringify({
-                                    server_id:
-                                        serverId,
-
-                                    players:
-                                        currentPlayersPreview
-                                            .rows,
-
-                                    confirm:
-                                        true
-                                })
-                        }
-                    );
-
-                const data =
-                    await response.json();
-
-                if (
-                    !response.ok ||
-                    !data.success
-                ) {
-
-                    showMessage(
-                        el("playersMessage"),
-                        data.message ||
-                        "تعذر استبدال بيانات اللاعبين."
-                    );
-
-                    return;
-                }
-
-                showMessage(
-                    el("playersMessage"),
-                    `تم استبدال بيانات السيرفر بنجاح.
-عدد اللاعبين الآن: ${
-                        data.final_count ??
-                        data.result?.current_players ??
-                        total
-                    }`,
-                    "success"
-                );
-
-                currentPlayersPreview =
-                    null;
-
-                if (
-                    el("playersFile")
-                ) {
-
-                    el("playersFile")
-                        .value =
-                        "";
-                }
-
-                if (
-                    el("playersPreview")
-                ) {
-
-                    el("playersPreview")
-                        .style.display =
-                        "none";
-                }
-
-                if (
-                    el("replacePlayersButton")
-                ) {
-
-                    el("replacePlayersButton")
-                        .disabled =
-                        true;
-                }
-
-                await loadPlayerStats();
-
-            } catch (error) {
-
-                console.error(
-                    error
-                );
-
-                showMessage(
-                    el("playersMessage"),
-                    "حدث خطأ أثناء استبدال اللاعبين."
-                );
-
-            } finally {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    "تأكيد واستبدال بيانات السيرفر";
-            }
-        }
-    );
-
-
-/* =========================================================
-   INITIAL
-========================================================= */
-
 updateChoiceLimits();
+
+restoreAdminSession();
