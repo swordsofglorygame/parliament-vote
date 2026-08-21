@@ -3064,15 +3064,28 @@ function normalizeHeader(value) {
 }
 
 function detectPlayerColumns(row) {
-    const mapping = { uid: null, rid: null, name: null };
+    const mapping = {
+        uid: null,
+        rid: null,
+        name: null
+    };
 
     for (const key of Object.keys(row || {})) {
-        const normalized = normalizeHeader(key);
+        const normalized =
+            normalizeHeader(key);
 
-        if (normalized === "uid" || normalized === "playeruid") {
+        if (
+            normalized === "uid" ||
+            normalized === "playeruid"
+        ) {
             mapping.uid = key;
-        } else if (normalized === "rid" || normalized === "playerrid") {
+
+        } else if (
+            normalized === "rid" ||
+            normalized === "playerrid"
+        ) {
             mapping.rid = key;
+
         } else if (
             normalized === "name" ||
             normalized === "nickname" ||
@@ -3085,17 +3098,33 @@ function detectPlayerColumns(row) {
     return mapping;
 }
 
+
+/* =========================================================
+   CSV READER
+========================================================= */
+
 function parseCSV(text) {
+
     const rows = [];
+
     let row = [];
     let value = "";
     let quoted = false;
 
-    for (let i = 0; i < text.length; i++) {
+    for (
+        let i = 0;
+        i < text.length;
+        i++
+    ) {
+
         const char = text[i];
         const next = text[i + 1];
 
-        if (char === '"' && quoted && next === '"') {
+        if (
+            char === '"' &&
+            quoted &&
+            next === '"'
+        ) {
             value += '"';
             i++;
             continue;
@@ -3106,20 +3135,42 @@ function parseCSV(text) {
             continue;
         }
 
-        if (char === "," && !quoted) {
+        if (
+            char === "," &&
+            !quoted
+        ) {
             row.push(value);
             value = "";
             continue;
         }
 
-        if ((char === "\n" || char === "\r") && !quoted) {
-            if (char === "\r" && next === "\n") i++;
+        if (
+            (char === "\n" ||
+                char === "\r") &&
+            !quoted
+        ) {
+
+            if (
+                char === "\r" &&
+                next === "\n"
+            ) {
+                i++;
+            }
 
             row.push(value);
-            if (row.some(v => String(v).trim() !== "")) rows.push(row);
+
+            if (
+                row.some(
+                    v =>
+                        String(v).trim() !== ""
+                )
+            ) {
+                rows.push(row);
+            }
 
             row = [];
             value = "";
+
             continue;
         }
 
@@ -3127,273 +3178,653 @@ function parseCSV(text) {
     }
 
     row.push(value);
-    if (row.some(v => String(v).trim() !== "")) rows.push(row);
 
-    if (!rows.length) return [];
+    if (
+        row.some(
+            v =>
+                String(v).trim() !== ""
+        )
+    ) {
+        rows.push(row);
+    }
 
-    const headers = rows[0].map(v => String(v).trim());
+    if (!rows.length) {
+        return [];
+    }
 
-    return rows.slice(1).map(cells => {
-        const result = {};
-        headers.forEach((header, index) => {
-            result[header] = cells[index] ?? "";
+    const headers =
+        rows[0].map(
+            v =>
+                String(v).trim()
+        );
+
+    return rows
+        .slice(1)
+        .map(cells => {
+
+            const result = {};
+
+            headers.forEach(
+                (
+                    header,
+                    index
+                ) => {
+
+                    result[header] =
+                        cells[index] ?? "";
+                }
+            );
+
+            return result;
         });
-        return result;
-    });
 }
+
+
+/* =========================================================
+   READ PLAYER FILE
+========================================================= */
 
 async function readPlayersFile(file) {
+
     if (!file) {
-        throw new Error("اختر ملفًا أولًا.");
+        throw new Error(
+            "اختر ملفًا أولًا."
+        );
     }
 
-    const name = file.name.toLowerCase();
+    const name =
+        file.name.toLowerCase();
 
-    if (name.endsWith(".csv")) {
-        return parseCSV(await file.text());
+    if (
+        name.endsWith(".csv")
+    ) {
+        return parseCSV(
+            await file.text()
+        );
     }
 
-    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
-        if (typeof XLSX === "undefined") {
-            throw new Error("مكتبة Excel غير محملة.");
+    if (
+        name.endsWith(".xlsx") ||
+        name.endsWith(".xls")
+    ) {
+
+        if (
+            typeof XLSX ===
+            "undefined"
+        ) {
+            throw new Error(
+                "مكتبة Excel غير محملة."
+            );
         }
 
-        const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: "array" });
+        const buffer =
+            await file.arrayBuffer();
 
-        if (!workbook.SheetNames.length) {
-            throw new Error("ملف Excel فارغ.");
+        const workbook =
+            XLSX.read(
+                buffer,
+                {
+                    type: "array"
+                }
+            );
+
+        if (
+            !workbook.SheetNames.length
+        ) {
+            throw new Error(
+                "ملف Excel فارغ."
+            );
         }
 
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        return XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
+
+        return XLSX.utils.sheet_to_json(
+            sheet,
+            {
+                defval: ""
+            }
+        );
     }
 
-    throw new Error("الملف يجب أن يكون CSV أو XLS أو XLSX.");
+    throw new Error(
+        "الملف يجب أن يكون CSV أو XLS أو XLSX."
+    );
 }
+
+
+/* =========================================================
+   PREPARE PLAYERS
+========================================================= */
 
 function preparePlayerRows(rawRows) {
-    if (!Array.isArray(rawRows) || !rawRows.length) {
-        return { rows: [], errors: ["الملف فارغ."] };
+
+    if (
+        !Array.isArray(rawRows) ||
+        !rawRows.length
+    ) {
+        return {
+            rows: [],
+            errors: [
+                "الملف فارغ."
+            ]
+        };
     }
 
-    const mapping = detectPlayerColumns(rawRows[0]);
+    const mapping =
+        detectPlayerColumns(
+            rawRows[0]
+        );
+
     const errors = [];
 
-    if (!mapping.uid) errors.push("عمود UID غير موجود.");
-    if (!mapping.rid) errors.push("عمود RID غير موجود.");
-    if (!mapping.name) errors.push("عمود NAME غير موجود.");
+    if (!mapping.uid) {
+        errors.push(
+            "عمود UID غير موجود."
+        );
+    }
 
-    if (errors.length) return { rows: [], errors };
+    if (!mapping.rid) {
+        errors.push(
+            "عمود RID غير موجود."
+        );
+    }
+
+    if (!mapping.name) {
+        errors.push(
+            "عمود NAME غير موجود."
+        );
+    }
+
+    if (errors.length) {
+        return {
+            rows: [],
+            errors
+        };
+    }
 
     const rows = [];
-    const uids = new Set();
-    const rids = new Set();
 
-    rawRows.forEach((raw, index) => {
-        const line = index + 2;
-        const uid = String(raw[mapping.uid] ?? "").trim();
-        const rid = String(raw[mapping.rid] ?? "").trim();
-        const name = String(raw[mapping.name] ?? "").trim();
+    const uids =
+        new Set();
 
-        if (!uid) {
-            errors.push(`السطر ${line}: UID فارغ.`);
-            return;
-        }
-        if (!rid) {
-            errors.push(`السطر ${line}: RID فارغ.`);
-            return;
-        }
-        if (!name) {
-            errors.push(`السطر ${line}: NAME فارغ.`);
-            return;
-        }
-        if (uids.has(uid)) {
-            errors.push(`السطر ${line}: UID مكرر (${uid}).`);
-            return;
-        }
-        if (rids.has(rid)) {
-            errors.push(`السطر ${line}: RID مكرر (${rid}).`);
-            return;
-        }
+    const rids =
+        new Set();
 
-        uids.add(uid);
-        rids.add(rid);
-        rows.push({ uid, rid, name });
-    });
+    rawRows.forEach(
+        (
+            raw,
+            index
+        ) => {
 
-    return { rows, errors };
+            const line =
+                index + 2;
+
+            const uid =
+                String(
+                    raw[
+                        mapping.uid
+                    ] ?? ""
+                ).trim();
+
+            const rid =
+                String(
+                    raw[
+                        mapping.rid
+                    ] ?? ""
+                ).trim();
+
+            const name =
+                String(
+                    raw[
+                        mapping.name
+                    ] ?? ""
+                ).trim();
+
+            if (!uid) {
+
+                errors.push(
+                    `السطر ${line}: UID فارغ.`
+                );
+
+                return;
+            }
+
+            if (!rid) {
+
+                errors.push(
+                    `السطر ${line}: RID فارغ.`
+                );
+
+                return;
+            }
+
+            if (!name) {
+
+                errors.push(
+                    `السطر ${line}: NAME فارغ.`
+                );
+
+                return;
+            }
+
+            if (uids.has(uid)) {
+
+                errors.push(
+                    `السطر ${line}: UID مكرر (${uid}).`
+                );
+
+                return;
+            }
+
+            if (rids.has(rid)) {
+
+                errors.push(
+                    `السطر ${line}: RID مكرر (${rid}).`
+                );
+
+                return;
+            }
+
+            uids.add(uid);
+            rids.add(rid);
+
+            rows.push({
+                uid,
+                rid,
+                name
+            });
+        }
+    );
+
+    return {
+        rows,
+        errors
+    };
 }
 
-async function loadPlayerStats() {
-    const serverId = Number(el("playersServer")?.value);
-    const statsEl = el("playersCurrentStats");
 
-    if (!Number.isInteger(serverId) || serverId <= 0) {
-        if (statsEl) statsEl.textContent = "اختر سيرفرًا لعرض عدد اللاعبين.";
+/* =========================================================
+   PLAYER STATS
+========================================================= */
+
+async function loadPlayerStats() {
+
+    const serverId =
+        Number(
+            el("playersServer")?.value
+        );
+
+    const statsEl =
+        el("playersCurrentStats");
+
+    if (
+        !Number.isInteger(
+            serverId
+        ) ||
+        serverId <= 0
+    ) {
+
+        if (statsEl) {
+            statsEl.textContent =
+                "اختر سيرفرًا لعرض عدد اللاعبين.";
+        }
+
         return 0;
     }
 
     try {
-        const response = await apiFetch(
-            `/admin/players?server_id=${encodeURIComponent(serverId)}&limit=1`
-        );
-        const data = await response.json();
 
-        if (!response.ok || !data.success) {
-            if (statsEl) statsEl.textContent = "تعذر قراءة بيانات اللاعبين.";
+        const response =
+            await apiFetch(
+                `/admin/players?server_id=${encodeURIComponent(
+                    serverId
+                )}&limit=1`
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            if (statsEl) {
+                statsEl.textContent =
+                    "تعذر قراءة بيانات اللاعبين.";
+            }
+
             return 0;
         }
 
-        const count = Number(data.total) || 0;
+        const count =
+            Number(
+                data.total
+            ) || 0;
+
         if (statsEl) {
+
             statsEl.textContent =
-                `السيرفر: ${data.server?.name || serverId} — عدد اللاعبين الحالي: ${count}`;
+                `السيرفر: ${
+                    data.server?.name ||
+                    serverId
+                } — عدد اللاعبين الحالي: ${count}`;
         }
 
         return count;
+
     } catch (error) {
-        console.error("Player stats error:", error);
-        if (statsEl) statsEl.textContent = "تعذر الاتصال بالخادم.";
+
+        console.error(
+            "Player stats error:",
+            error
+        );
+
+        if (statsEl) {
+            statsEl.textContent =
+                "تعذر الاتصال بالخادم.";
+        }
+
         return 0;
     }
 }
 
-async function loadCurrentPlayers(serverId) {
-    const container = el("currentPlayersList");
-    if (!container) return;
 
-    container.style.display = "block";
-    container.innerHTML = `
-        <div class="empty">جاري تحميل اللاعبين...</div>
-    `;
+/* =========================================================
+   OPEN PLAYERS PAGE
+========================================================= */
 
-    try {
-        const response = await apiFetch(
-            `/admin/players?server_id=${encodeURIComponent(serverId)}&limit=1000`
+function openPlayersPage(serverId) {
+
+    if (
+        !Number.isInteger(
+            serverId
+        ) ||
+        serverId <= 0
+    ) {
+
+        showMessage(
+            el("playersMessage"),
+            "اختر السيرفر أولًا."
         );
-        const data = await response.json();
 
-        if (!response.ok || !data.success) {
-            container.innerHTML = `
-                <div class="empty">
-                    ${escapeHtml(data.message || "تعذر تحميل اللاعبين.")}
-                </div>
-            `;
-            return;
-        }
-
-        const players = data.players || [];
-        const total = Number(data.total) || 0;
-
-        if (el("playersCurrentStats")) {
-            el("playersCurrentStats").textContent =
-                `السيرفر: ${data.server?.name || serverId} — عدد اللاعبين الحالي: ${total}`;
-        }
-
-        if (!players.length) {
-            container.innerHTML = `
-                <div class="empty">لا يوجد لاعبين مسجلين لهذا السيرفر.</div>
-            `;
-            return;
-        }
-
-        container.innerHTML = `
-            <div class="players-current-header">
-                <strong>اللاعبون الحاليون</strong>
-                <span>${total} لاعب</span>
-            </div>
-
-            <div class="table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>UID</th>
-                            <th>RID</th>
-                            <th>NAME</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${players.map((player, index) => `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td dir="ltr">${escapeHtml(player.uid)}</td>
-                                <td dir="ltr">${escapeHtml(player.rid)}</td>
-                                <td>${escapeHtml(player.nickname)}</td>
-                            </tr>
-                        `).join("")}
-                    </tbody>
-                </table>
-            </div>
-
-            ${total > players.length ? `
-                <div style="margin-top:8px;color:#766751;font-size:10px">
-                    المعروض أول ${players.length} لاعب فقط.
-                </div>
-            ` : ""}
-        `;
-    } catch (error) {
-        console.error("loadCurrentPlayers:", error);
-        container.innerHTML = `
-            <div class="empty">تعذر الاتصال بالخادم.</div>
-        `;
+        return;
     }
+
+    location.href =
+        `players.html?server_id=${encodeURIComponent(
+            serverId
+        )}`;
 }
 
-function renderPlayersPreview(rows, errors, currentCount) {
-    const preview = el("playersPreview");
-    if (!preview) return;
 
-    preview.style.display = "block";
+/* =========================================================
+   SERVER CHANGE
+========================================================= */
 
-    if (el("playersFileCount")) {
-        el("playersFileCount").textContent = rows.length + errors.length;
-    }
-    if (el("playersCurrentCount")) {
-        el("playersCurrentCount").textContent = currentCount;
-    }
-    if (el("playersAfterCount")) {
-        el("playersAfterCount").textContent = rows.length;
-    }
-    if (el("playersReplaceCount")) {
-        el("playersReplaceCount").textContent = Math.abs(currentCount - rows.length);
+el("playersServer")
+    ?.addEventListener(
+        "change",
+        async () => {
+
+            currentPlayersPreview =
+                null;
+
+            if (
+                el("playersPreview")
+            ) {
+
+                el("playersPreview")
+                    .style.display =
+                    "none";
+            }
+
+            if (
+                el("playersPreviewTable")
+            ) {
+
+                el("playersPreviewTable")
+                    .innerHTML =
+                    "";
+            }
+
+            if (
+                el("replacePlayersButton")
+            ) {
+
+                el("replacePlayersButton")
+                    .disabled =
+                    true;
+            }
+
+            hideMessage(
+                el("playersMessage")
+            );
+
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
+
+            if (
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
+            ) {
+
+                if (
+                    el("playersCurrentStats")
+                ) {
+
+                    el("playersCurrentStats")
+                        .textContent =
+                        "اختر سيرفرًا لعرض عدد اللاعبين.";
+                }
+
+                return;
+            }
+
+            /*
+             * هنا نعرض العدد فقط.
+             * قائمة اللاعبين أصبحت في players.html.
+             */
+            await loadPlayerStats();
+        }
+    );
+
+
+/* =========================================================
+   SHOW PLAYERS PAGE
+========================================================= */
+
+el("loadPlayersButton")
+    ?.addEventListener(
+        "click",
+        async () => {
+
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
+
+            if (
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
+            ) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر أولًا."
+                );
+
+                return;
+            }
+
+            openPlayersPage(
+                serverId
+            );
+        }
+    );
+
+
+/* =========================================================
+   PREVIEW IMPORT
+========================================================= */
+
+function renderPlayersPreview(
+    rows,
+    errors,
+    currentCount
+) {
+
+    const preview =
+        el("playersPreview");
+
+    if (!preview) {
+        return;
     }
 
-    const table = el("playersPreviewTable");
-    if (!table) return;
+    preview.style.display =
+        "block";
+
+    if (
+        el("playersFileCount")
+    ) {
+
+        el("playersFileCount")
+            .textContent =
+            rows.length +
+            errors.length;
+    }
+
+    if (
+        el("playersCurrentCount")
+    ) {
+
+        el("playersCurrentCount")
+            .textContent =
+            currentCount;
+    }
+
+    if (
+        el("playersAfterCount")
+    ) {
+
+        el("playersAfterCount")
+            .textContent =
+            rows.length;
+    }
+
+    if (
+        el("playersReplaceCount")
+    ) {
+
+        el("playersReplaceCount")
+            .textContent =
+            Math.abs(
+                currentCount -
+                rows.length
+            );
+    }
+
+    const table =
+        el("playersPreviewTable");
+
+    if (!table) {
+        return;
+    }
 
     let html = "";
 
     if (rows.length) {
+
         html += `
             <div class="table">
+
                 <table>
+
                     <thead>
+
                         <tr>
                             <th>#</th>
                             <th>UID</th>
                             <th>RID</th>
                             <th>NAME</th>
                         </tr>
+
                     </thead>
+
                     <tbody>
-                        ${rows.slice(0, 20).map((player, index) => `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td dir="ltr">${escapeHtml(player.uid)}</td>
-                                <td dir="ltr">${escapeHtml(player.rid)}</td>
-                                <td>${escapeHtml(player.name)}</td>
-                            </tr>
-                        `).join("")}
+
+                        ${
+                            rows
+                                .slice(
+                                    0,
+                                    20
+                                )
+                                .map(
+                                    (
+                                        player,
+                                        index
+                                    ) => `
+                                        <tr>
+
+                                            <td>
+                                                ${index + 1}
+                                            </td>
+
+                                            <td dir="ltr">
+                                                ${escapeHtml(
+                                                    player.uid
+                                                )}
+                                            </td>
+
+                                            <td dir="ltr">
+                                                ${escapeHtml(
+                                                    player.rid
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                ${escapeHtml(
+                                                    player.name
+                                                )}
+                                            </td>
+
+                                        </tr>
+                                    `
+                                )
+                                .join("")
+                        }
+
                     </tbody>
+
                 </table>
+
             </div>
         `;
 
-        if (rows.length > 20) {
+        if (
+            rows.length >
+            20
+        ) {
+
             html += `
-                <div style="margin-top:8px;color:#766751;font-size:10px">
+                <div
+                    style="
+                        margin-top:8px;
+                        color:#766751;
+                        font-size:10px;
+                    "
+                >
                     يتم عرض أول 20 لاعبًا فقط في المعاينة.
                 </div>
             `;
@@ -3401,223 +3832,378 @@ function renderPlayersPreview(rows, errors, currentCount) {
     }
 
     if (errors.length) {
+
         html += `
-            <div class="players-warning">
-                <strong>يوجد ${errors.length} خطأ:</strong>
-                <div style="margin-top:6px">
-                    ${errors.slice(0, 30).map(error =>
-                        `<div>${escapeHtml(error)}</div>`
-                    ).join("")}
+            <div
+                class="players-warning"
+            >
+
+                <strong>
+                    يوجد ${errors.length} خطأ:
+                </strong>
+
+                <div
+                    style="
+                        margin-top:6px;
+                    "
+                >
+
+                    ${
+                        errors
+                            .slice(
+                                0,
+                                30
+                            )
+                            .map(
+                                error =>
+                                    `<div>${escapeHtml(
+                                        error
+                                    )}</div>`
+                            )
+                            .join("")
+                    }
+
                 </div>
+
             </div>
         `;
     }
 
-    table.innerHTML = html;
+    table.innerHTML =
+        html;
 
-    const replaceButton = el("replacePlayersButton");
+    const replaceButton =
+        el(
+            "replacePlayersButton"
+        );
+
     if (replaceButton) {
-        replaceButton.disabled = !rows.length || errors.length > 0;
+
+        replaceButton.disabled =
+            !rows.length ||
+            errors.length > 0;
     }
 }
 
-el("playersServer")?.addEventListener("change", async () => {
-    currentPlayersPreview = null;
 
-    if (el("playersPreview")) {
-        el("playersPreview").style.display = "none";
-        el("playersPreviewTable").innerHTML = "";
-    }
+/* =========================================================
+   VALIDATE FILE
+========================================================= */
 
-    if (el("replacePlayersButton")) {
-        el("replacePlayersButton").disabled = true;
-    }
+el("validatePlayersButton")
+    ?.addEventListener(
+        "click",
+        async () => {
 
-    if (el("currentPlayersList")) {
-        el("currentPlayersList").style.display = "none";
-        el("currentPlayersList").innerHTML = "";
-    }
-
-    hideMessage(el("playersMessage"));
-
-    const serverId = Number(el("playersServer")?.value);
-    if (!Number.isInteger(serverId) || serverId <= 0) {
-        if (el("playersCurrentStats")) {
-            el("playersCurrentStats").textContent =
-                "اختر سيرفرًا لعرض اللاعبين.";
-        }
-        return;
-    }
-
-    await loadCurrentPlayers(serverId);
-});
-
-el("loadPlayersButton")?.addEventListener("click", async () => {
-    const serverId = Number(el("playersServer")?.value);
-
-    if (!Number.isInteger(serverId) || serverId <= 0) {
-        showMessage(el("playersMessage"), "اختر السيرفر أولًا.");
-        return;
-    }
-
-    await loadCurrentPlayers(serverId);
-});
-
-el("validatePlayersButton")?.addEventListener("click", async () => {
-    hideMessage(el("playersMessage"));
-
-    const serverId = Number(el("playersServer")?.value);
-    const file = el("playersFile")?.files?.[0];
-
-    if (!Number.isInteger(serverId) || serverId <= 0) {
-        showMessage(el("playersMessage"), "اختر السيرفر أولًا.");
-        return;
-    }
-
-    if (!file) {
-        showMessage(el("playersMessage"), "اختر ملف اللاعبين أولًا.");
-        return;
-    }
-
-    const button = el("validatePlayersButton");
-    button.disabled = true;
-    button.textContent = "جاري فحص الملف...";
-
-    try {
-        const rawRows = await readPlayersFile(file);
-        const prepared = preparePlayerRows(rawRows);
-        const currentCount = await loadPlayerStats();
-
-        currentPlayersPreview = {
-            rows: prepared.rows,
-            errors: prepared.errors,
-            currentCount
-        };
-
-        renderPlayersPreview(
-            prepared.rows,
-            prepared.errors,
-            currentCount
-        );
-
-        if (prepared.errors.length) {
-            showMessage(
-                el("playersMessage"),
-                `تم الفحص، لكن يوجد ${prepared.errors.length} خطأ. لن يتم تعديل قاعدة البيانات.`,
-                "error"
+            hideMessage(
+                el("playersMessage")
             );
-        } else {
-            showMessage(
-                el("playersMessage"),
-                `الملف صالح ويحتوي على ${prepared.rows.length} لاعب. يمكنك الآن تنفيذ الاستبدال.`,
-                "success"
-            );
-        }
-    } catch (error) {
-        console.error(error);
-        showMessage(
-            el("playersMessage"),
-            error.message || "تعذر قراءة الملف."
-        );
-    } finally {
-        button.disabled = false;
-        button.textContent = "فحص الملف";
-    }
-});
 
-el("replacePlayersButton")?.addEventListener("click", async () => {
-    hideMessage(el("playersMessage"));
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
 
-    const serverId = Number(el("playersServer")?.value);
+            const file =
+                el("playersFile")
+                    ?.files?.[0];
 
-    if (!Number.isInteger(serverId) || serverId <= 0) {
-        showMessage(el("playersMessage"), "اختر السيرفر.");
-        return;
-    }
+            if (
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
+            ) {
 
-    if (
-        !currentPlayersPreview ||
-        !currentPlayersPreview.rows.length ||
-        currentPlayersPreview.errors.length
-    ) {
-        showMessage(el("playersMessage"), "افحص ملفًا صالحًا أولًا.");
-        return;
-    }
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر أولًا."
+                );
 
-    const total = currentPlayersPreview.rows.length;
-    const currentCount = currentPlayersPreview.currentCount;
-
-    if (!confirm(
-        `تحذير مهم!\n\n` +
-        `سيتم استبدال جميع لاعبي السيرفر ${serverId}.\n\n` +
-        `الحالي: ${currentCount} لاعب\n` +
-        `الجديد: ${total} لاعب\n\n` +
-        `أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n` +
-        `هل تريد المتابعة؟`
-    )) {
-        return;
-    }
-
-    const button = el("replacePlayersButton");
-    button.disabled = true;
-    button.textContent = "جاري الاستبدال...";
-
-    try {
-        const response = await apiFetch(
-            "/admin/players/replace",
-            {
-                method: "POST",
-body: JSON.stringify({
-    server_id: serverId,
-    players: currentPlayersPreview.rows,
-    confirm: true
-})
+                return;
             }
-        );
 
-        const data = await response.json();
+            if (!file) {
 
-        if (!response.ok || !data.success) {
-            showMessage(
-                el("playersMessage"),
-                data.message || "تعذر استبدال بيانات اللاعبين."
+                showMessage(
+                    el("playersMessage"),
+                    "اختر ملف اللاعبين أولًا."
+                );
+
+                return;
+            }
+
+            const button =
+                el(
+                    "validatePlayersButton"
+                );
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "جاري فحص الملف...";
+
+            try {
+
+                const rawRows =
+                    await readPlayersFile(
+                        file
+                    );
+
+                const prepared =
+                    preparePlayerRows(
+                        rawRows
+                    );
+
+                const currentCount =
+                    await loadPlayerStats();
+
+                currentPlayersPreview = {
+                    rows:
+                        prepared.rows,
+
+                    errors:
+                        prepared.errors,
+
+                    currentCount
+                };
+
+                renderPlayersPreview(
+                    prepared.rows,
+                    prepared.errors,
+                    currentCount
+                );
+
+                if (
+                    prepared.errors.length
+                ) {
+
+                    showMessage(
+                        el("playersMessage"),
+                        `تم الفحص، لكن يوجد ${prepared.errors.length} خطأ. لن يتم تعديل قاعدة البيانات.`,
+                        "error"
+                    );
+
+                } else {
+
+                    showMessage(
+                        el("playersMessage"),
+                        `الملف صالح ويحتوي على ${prepared.rows.length} لاعب. يمكنك الآن تنفيذ الاستبدال.`,
+                        "success"
+                    );
+                }
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                showMessage(
+                    el("playersMessage"),
+                    error.message ||
+                    "تعذر قراءة الملف."
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "فحص الملف";
+            }
+        }
+    );
+
+
+/* =========================================================
+   REPLACE PLAYERS
+========================================================= */
+
+el("replacePlayersButton")
+    ?.addEventListener(
+        "click",
+        async () => {
+
+            hideMessage(
+                el("playersMessage")
             );
-            return;
+
+            const serverId =
+                Number(
+                    el("playersServer")
+                        ?.value
+                );
+
+            if (
+                !Number.isInteger(
+                    serverId
+                ) ||
+                serverId <= 0
+            ) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "اختر السيرفر."
+                );
+
+                return;
+            }
+
+            if (
+                !currentPlayersPreview ||
+                !currentPlayersPreview.rows.length ||
+                currentPlayersPreview.errors.length
+            ) {
+
+                showMessage(
+                    el("playersMessage"),
+                    "افحص ملفًا صالحًا أولًا."
+                );
+
+                return;
+            }
+
+            const total =
+                currentPlayersPreview
+                    .rows
+                    .length;
+
+            const currentCount =
+                currentPlayersPreview
+                    .currentCount;
+
+            if (
+                !confirm(
+                    `تحذير مهم!\n\n` +
+                    `سيتم استبدال جميع لاعبي السيرفر ${serverId}.\n\n` +
+                    `الحالي: ${currentCount} لاعب\n` +
+                    `الجديد: ${total} لاعب\n\n` +
+                    `أي لاعب غير موجود في الملف الجديد سيتم حذفه من قاعدة بيانات هذا السيرفر.\n\n` +
+                    `هل تريد المتابعة؟`
+                )
+            ) {
+
+                return;
+            }
+
+            const button =
+                el(
+                    "replacePlayersButton"
+                );
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "جاري الاستبدال...";
+
+            try {
+
+                const response =
+                    await apiFetch(
+                        "/admin/players/replace",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify({
+                                    server_id:
+                                        serverId,
+
+                                    players:
+                                        currentPlayersPreview
+                                            .rows,
+
+                                    confirm:
+                                        true
+                                })
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    showMessage(
+                        el("playersMessage"),
+                        data.message ||
+                        "تعذر استبدال بيانات اللاعبين."
+                    );
+
+                    return;
+                }
+
+                showMessage(
+                    el("playersMessage"),
+                    `تم استبدال بيانات السيرفر بنجاح.\nعدد اللاعبين الآن: ${
+                        data.final_count ??
+                        data.result?.current_players ??
+                        total
+                    }`,
+                    "success"
+                );
+
+                currentPlayersPreview =
+                    null;
+
+                if (
+                    el("playersFile")
+                ) {
+
+                    el("playersFile")
+                        .value =
+                        "";
+                }
+
+                if (
+                    el("playersPreview")
+                ) {
+
+                    el("playersPreview")
+                        .style.display =
+                        "none";
+                }
+
+                if (
+                    el("replacePlayersButton")
+                ) {
+
+                    el("replacePlayersButton")
+                        .disabled =
+                        true;
+                }
+
+                await loadPlayerStats();
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                showMessage(
+                    el("playersMessage"),
+                    "حدث خطأ أثناء استبدال اللاعبين."
+                );
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "تأكيد واستبدال بيانات السيرفر";
+            }
         }
-
-        showMessage(
-            el("playersMessage"),
-            `تم استبدال بيانات السيرفر بنجاح.\nعدد اللاعبين الآن: ${data.final_count ?? total}`,
-            "success"
-        );
-
-        currentPlayersPreview = null;
-
-        if (el("playersFile")) {
-            el("playersFile").value = "";
-        }
-
-        if (el("playersPreview")) {
-            el("playersPreview").style.display = "none";
-        }
-
-        if (el("replacePlayersButton")) {
-            el("replacePlayersButton").disabled = true;
-        }
-
-        await loadPlayerStats();
-        await loadCurrentPlayers(serverId);
-    } catch (error) {
-        console.error(error);
-        showMessage(
-            el("playersMessage"),
-            "حدث خطأ أثناء استبدال اللاعبين."
-        );
-    } finally {
-        button.disabled = false;
-        button.textContent = "تأكيد واستبدال بيانات السيرفر";
-    }
-});
+    );
 
 
 /* =========================================================
