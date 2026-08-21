@@ -1,175 +1,2417 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة إدارة نظام التصويت</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap'); :root { --bg: #0a0705; --panel: #17110c; --panel-2: #1d150e; --panel-3: #100c08; --gold: #d9aa52; --gold-light: #ebcc8a; --gold-dark: #9b6b27; --border: #59442b; --border-soft: rgba(200, 154, 72, .25); --text: #f4ead8; --text-soft: #d8c6a7; --text-muted: #9f9078; --text-dark: #71634f; --green: #77c97e; --blue: #7fa9df; --red: #ef8f87; --radius: 12px; --radius-lg: 18px; } * { box-sizing: border-box; margin: 0; padding: 0; } html { scroll-behavior: smooth; } body { min-height: 100vh; font-family: "Cairo", Tahoma, Arial, sans-serif; color: var(--text); background: radial-gradient( circle at top, #3c2a18 0%, #1b130c 34%, #0d0906 72%, #070504 100% ); padding: 22px; } body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient( circle at 50% 0%, rgba(220, 175, 85, .08), transparent 38% ); z-index: -1; } button, input, select, textarea { font-family: "Cairo", Tahoma, Arial, sans-serif; } button { cursor: pointer; } button, input, select, textarea { outline: none; } ::selection { background: rgba(217, 170, 82, .25); color: #fff; } /* ========================================================= CONTAINER / CARD ========================================================= */ .container { width: min(1080px, 100%); margin: 0 auto; } .card { background: linear-gradient( 180deg, rgba(28, 20, 13, .98), rgba(18, 13, 9, .98) ); border: 1px solid rgba(202, 157, 77, .38); border-radius: var(--radius-lg); padding: 28px; box-shadow: 0 25px 80px rgba(0, 0, 0, .52), inset 0 1px 0 rgba(255,255,255,.02); } .login { width: min(500px, 100%); margin: 80px auto; } .logo { font-size: 46px; line-height: 1; text-align: center; margin-bottom: 16px; } .title { text-align: center; color: var(--gold); font-size: 30px; font-weight: 800; margin-bottom: 8px; } .subtitle { text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.9; margin-bottom: 26px; } /* ========================================================= TOP BAR ========================================================= */ .top { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,.06); } .email { color: var(--text-soft); font-size: 12px; word-break: break-all; } /* ========================================================= NAV ========================================================= */ .nav { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 26px; } .nav button { width: auto !important; min-width: 112px; min-height: 43px; padding: 9px 17px; border: 1px solid var(--border); border-radius: 11px; background: linear-gradient( 180deg, #251b11, #1c140d ); color: #d5c09c; font-size: 12px; font-weight: 700; transition: transform .15s ease, background .15s ease, border-color .15s ease, color .15s ease; } .nav button:hover { transform: translateY(-1px); border-color: rgba(217,170,82,.55); color: #f1dfbc; } .nav button.active { background: linear-gradient( 135deg, #e0b55d, #a97429 ); border-color: #d0a04c; color: #171008; box-shadow: 0 5px 18px rgba(0,0,0,.24); } /* ========================================================= SECTIONS ========================================================= */ .section { display: none; } .section.active { display: block; } .section-title { color: var(--gold); font-size: 23px; font-weight: 800; margin-bottom: 5px; } .section-desc { color: var(--text-muted); font-size: 12px; line-height: 1.9; margin-bottom: 20px; } /* ========================================================= BOX ========================================================= */ .box { background: linear-gradient( 180deg, rgba(29,21,14,.96), rgba(22,16,10,.96) ); border: 1px solid #473620; border-radius: 15px; padding: 20px; margin-bottom: 16px; box-shadow: 0 8px 28px rgba(0,0,0,.15); } .box h3 { color: #e4c287; font-size: 16px; font-weight: 800; margin-bottom: 17px; } /* ========================================================= FORM ========================================================= */ .form-group { margin-bottom: 17px; } label { display: block; color: #ddcbb0; font-size: 12px; font-weight: 600; margin-bottom: 7px; } input, select, textarea { width: 100%; color: var(--text); background: linear-gradient( 180deg, #130e0a, #0e0a07 ); border: 1px solid #58432a; border-radius: 10px; padding: 12px 13px; font-size: 13px; transition: border-color .16s ease, box-shadow .16s ease, background .16s ease; } input::placeholder, textarea::placeholder { color: #6e624f; } input:hover, select:hover, textarea:hover { border-color: #695135; } input:focus, select:focus, textarea:focus { border-color: #c99843; background: #140f0a; box-shadow: 0 0 0 3px rgba(201,152,67,.09); } textarea { resize: vertical; min-height: 100px; line-height: 1.8; } select { cursor: pointer; color-scheme: dark; } option { background: #100c08; color: #f4ead8; } input[type="number"] { direction: ltr; text-align: right; } input[type="datetime-local"] { direction: ltr; text-align: center; color-scheme: dark; } input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer; } /* ========================================================= BUTTON BASE ========================================================= */ button { border: 0; min-height: 44px; border-radius: 10px; padding: 10px 16px; font-size: 12px; font-weight: 700; transition: transform .15s ease, filter .15s ease, box-shadow .15s ease; } button:hover { transform: translateY(-1px); filter: brightness(1.06); } button:active { transform: translateY(0); } button:disabled { opacity: .5; cursor: not-allowed; transform: none; } /* ========================================================= MAIN GOLD BUTTON ========================================================= */ #createElectionButton, #loginButton, #serverForm button, #validatePlayersButton { width: 100%; background: linear-gradient( 135deg, #e0b45d 0%, #c38e37 50%, #9c6c26 100% ); color: #1a1108; box-shadow: 0 7px 20px rgba(0,0,0,.25); } #createElectionButton:hover, #loginButton:hover, #serverForm button:hover, #validatePlayersButton:hover { box-shadow: 0 10px 25px rgba(0,0,0,.32); } /* ========================================================= MESSAGE ========================================================= */ .message { display: none; padding: 11px 13px; margin-top: 13px; border-radius: 10px; font-size: 11px; line-height: 1.8; white-space: pre-line; } /* ========================================================= DASHBOARD STATS ========================================================= */ .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; } .stat { background: linear-gradient( 180deg, #120d09, #0d0906 ); border: 1px solid #3a2d1f; border-radius: 12px; padding: 15px 10px; text-align: center; transition: border-color .15s ease, transform .15s ease; } .stat:hover { transform: translateY(-1px); border-color: rgba(216,170,79,.35); } .stat .n { color: var(--gold-light); font-size: 24px; font-weight: 800; } .stat .l { color: #81735f; font-size: 10px; margin-bottom: 4px; } /* ========================================================= FILTERS ========================================================= */ .filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 15px; } .filters button { width: auto; min-height: 37px; padding: 7px 12px; background: #21180f; border: 1px solid #4f3c26; color: #cdbb9b; font-size: 10px; box-shadow: none; } .filters button:hover { border-color: #735632; } .filters button.active { background: linear-gradient( 135deg, #d7a94e, #a67229 ); border-color: #c5923e; color: #171008; } /* ========================================================= ELECTION CARD ========================================================= */ .election { background: linear-gradient( 180deg, #120d09, #0d0906 ); border: 1px solid #453522; border-radius: 14px; padding: 17px; margin-bottom: 13px; transition: border-color .16s ease, transform .16s ease; } .election:hover { border-color: rgba(216,170,79,.34); transform: translateY(-1px); } .e-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; } .e-title { color: #e2bb6e; font-size: 17px; font-weight: 800; } .e-id { color: #6d604e; font-size: 9px; margin-top: 3px; direction: ltr; } /* ========================================================= STATUS BADGES ========================================================= */ .badge { display: inline-flex; align-items: center; justify-content: center; min-height: 27px; padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: 700; white-space: nowrap; } .badge.draft { background: rgba(184,135,37,.16); color: #e8c66d; border: 1px solid rgba(184,135,37,.22); } .badge.scheduled { background: rgba(74,111,164,.18); color: #a9c5ef; border: 1px solid rgba(74,111,164,.25); } .badge.open { background: rgba(57,130,64,.16); color: #9bdfa2; border: 1px solid rgba(57,130,64,.24); } .badge.closed { background: rgba(140,140,140,.11); color: #d2d2d2; border: 1px solid rgba(140,140,140,.16); } .badge.cancelled { background: rgba(168,51,46,.16); color: #ffaaa5; border: 1px solid rgba(168,51,46,.24); } /* ========================================================= META ========================================================= */ .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0; } .meta-box { background: #0c0906; border: 1px solid #32271b; border-radius: 10px; padding: 10px; } .ml { color: #70624f; font-size: 9px; } .mv { color: #ddccb0; font-size: 12px; font-weight: 600; margin-top: 3px; } /* ========================================================= ACTION BUTTONS ========================================================= */ .actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; } .actions button { flex: 1 1 120px; min-height: 39px; padding: 8px 11px; font-size: 10px; box-shadow: none; } .dark { background: linear-gradient( 180deg, #292015, #21180f ); border: 1px solid #5b462c; color: #ddc9a8; } .blue { background: linear-gradient( 135deg, #5a82ba, #3b618c ); color: white; } .green { background: linear-gradient( 135deg, #519558, #316c38 ); color: white; } .red { background: linear-gradient( 135deg, #aa4038, #752a23 ); color: white; } /* ========================================================= SERVERS ========================================================= */ .server-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 13px 0; border-bottom: 1px solid #34291d; } .server-row:last-child { border-bottom: 0; } .server-name { color: #e2caa4; font-size: 13px; font-weight: 800; } .server-sub { color: #756650; font-size: 9px; margin-top: 2px; } .server-actions { display: flex; gap: 6px; flex-shrink: 0; } .server-actions button { width: auto; min-height: 35px; padding: 6px 10px; font-size: 10px; box-shadow: none; } /* ========================================================= CANDIDATES ========================================================= */ .candidate { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #33281c; } .candidate:last-child { border-bottom: 0; } .candidate-name { color: #dfc8a2; font-size: 12px; font-weight: 600; } .candidate-uid { color: #746650; font-size: 9px; margin-top: 3px; } .candidate button { width: auto; min-height: 33px; padding: 6px 10px; background: linear-gradient( 135deg, #8e342e, #6d251f ); color: white; font-size: 9px; box-shadow: none; } /* ========================================================= RESULTS ========================================================= */ .result { margin-bottom: 15px; } .r-top { display: flex; justify-content: space-between; gap: 10px; color: #d9c6a5; font-size: 10px; margin-bottom: 6px; } .bar { height: 8px; background: #2a2117; border-radius: 20px; overflow: hidden; } .fill { height: 100%; background: linear-gradient( 90deg, #dfb35b, #8f631f ); border-radius: inherit; } /* ========================================================= TABLE ========================================================= */ .table { overflow-x: auto; border-radius: 10px; } table { width: 100%; min-width: 560px; border-collapse: collapse; background: #0e0a07; } th, td { padding: 10px; border-bottom: 1px solid #30261b; text-align: right; font-size: 10px; } th { color: #d9ad59; background: #130e0a; font-weight: 700; } td { color: #c7b99f; } /* ========================================================= EMPTY ========================================================= */ .empty { padding: 38px 15px; text-align: center; color: #766852; font-size: 11px; border: 1px dashed #473623; border-radius: 12px; background: rgba(0,0,0,.08); } /* ========================================================= MODAL ========================================================= */ .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 15px; background: rgba(0,0,0,.78); backdrop-filter: blur(5px); z-index: 9999; } .modal.show { display: flex; } .modal-card { width: min(920px, 100%); max-height: 92vh; overflow-y: auto; padding: 20px; border: 1px solid #644a28; border-radius: 17px; background: linear-gradient( 180deg, #1c140d, #130e09 ); box-shadow: 0 30px 100px rgba(0,0,0,.6); } .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.05); } .close { width: auto; min-height: 38px; padding: 7px 13px; background: #22180f; border: 1px solid #5a452b; color: #ddc8a6; box-shadow: none; } /* ========================================================= LOGIN BUTTON ========================================================= */ #loginForm button { margin-top: 5px; } /* ========================================================= RESPONSIVE ========================================================= */ @media (max-width: 800px) { body { padding: 12px; } .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2, .grid3 { grid-template-columns: 1fr; } .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } .top { flex-direction: column; align-items: stretch; } .nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } .nav button { width: 100% !important; min-width: 0; } } @media (max-width: 560px) { .card { padding: 18px 14px; } .login { margin: 30px auto; } .logo { font-size: 38px; } .title { font-size: 25px; } .stats, .meta { grid-template-columns: 1fr; } .e-head { flex-direction: column; } .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } .actions button { width: 100%; } .server-row { flex-direction: column; align-items: stretch; } .server-actions { width: 100%; } .server-actions button { flex: 1; } }
-</style>
-</head>
-<body>
-<div class="container">
-<section class="card login" id="loginCard">
-<div class="logo">🔐</div><h1 class="title">لوحة إدارة نظام التصويت</h1><p class="subtitle">إدارة كاملة للانتخابات وعمليات التصويت.</p>
-<form id="loginForm">
-<div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="adminEmail" required autocomplete="username"></div>
-<div class="form-group"><label>كلمة المرور</label><input type="password" id="adminPassword" required autocomplete="current-password"></div>
-<button id="loginButton">تسجيل الدخول</button></form>
-<div class="message" id="loginMessage"></div>
-</section>
-<section class="card" id="dashboardCard" style="display:none">
-<div class="logo">🗳️</div><h1 class="title">لوحة إدارة التصويت</h1><p class="subtitle">مركز التحكم في جميع عمليات التصويت.</p>
-<div class="top"><span class="email" id="adminEmailDisplay"></span><button class="dark" id="logoutButton" style="width:auto">تسجيل الخروج</button></div>
-<div class="nav"><button class="active" data-section="homeSection">الرئيسية</button><button data-section="electionsSection">التصويتات</button><button data-section="serversSection">السيرفرات</button><button data-section="playersSection">اللاعبين</button></div>
-<section class="section active" id="homeSection"><h2 class="section-title">الرئيسية</h2><p class="section-desc">إحصائيات عامة.</p><div class="stats"><div class="stat"><div class="l">إجمالي التصويتات</div><div class="n" id="statTotal">-</div></div><div class="stat"><div class="l">جارية / مجدولة</div><div class="n" id="statActive">-</div></div><div class="stat"><div class="l">منتهية</div><div class="n" id="statClosed">-</div></div><div class="stat"><div class="l">إجمالي الأصوات</div><div class="n" id="statVotes">-</div></div></div><div class="box" style="margin-top:15px"><h3>التصويتات الجارية</h3><div id="homeOpenList"><div class="empty">جاري التحميل...</div></div></div></section>
-<section class="section" id="electionsSection"><h2 class="section-title">إدارة عمليات التصويت</h2><p class="section-desc">إنشاء وتعديل ومتابعة الانتخابات والمرشحين والنتائج.</p>
-<div class="box"><h3>إنشاء عملية تصويت جديدة</h3>
-<form id="createElectionForm">
-<div class="form-group"><label>عنوان التصويت</label><input id="createTitle" placeholder="تصويت" required></div>
-<div class="form-group"><label>الوصف</label><textarea id="createDescription" rows="3" placeholder="وصف اختياري"></textarea></div>
-<div class="grid2"><div class="form-group"><label>السيرفر</label><select id="createServer" required><option value="">جاري التحميل...</option></select></div><div class="form-group"><label>عدد المقاعد</label><input type="number" id="createSeats" min="1" max="100" value="5" required><div style="font-size:10px;color:#766751;margin-top:5px">يمكنك تغييره لهذه العملية، أو ضبط العدد الافتراضي من قسم السيرفرات.</div></div></div>
-<div class="grid2"><div class="form-group"><label>أقل عدد اختيارات</label><input type="number" id="createMinChoices" min="1" value="1" required></div><div class="form-group"><label>أقصى عدد اختيارات</label><input type="number" id="createMaxChoices" min="1" value="5" required></div></div>
-<div class="form-group"><label>أسماء المرشحين — اسم واحد في كل سطر</label><textarea id="candidateNames" rows="7" placeholder="أحمد\nمحمد\nعلي\nسعيد"></textarea><div style="font-size:10px;color:#766751;margin-top:5px">يمكنك أيضًا إضافة مرشحين لاحقًا من صفحة التفاصيل.</div></div>
-<div class="grid2">
-    <div class="form-group">
-        <label>بداية التصويت — UTC</label>
-        <input
-            type="datetime-local"
-            id="createStart"
-            required
-        >
-    </div>
-
-    <div class="form-group">
-        <label>نهاية التصويت — UTC</label>
-        <input
-            type="datetime-local"
-            id="createEnd"
-            required
-        >
-    </div>
-</div>
-<label style="display:flex;align-items:center;gap:8px;margin-bottom:15px"><input type="checkbox" id="createShowResults" style="width:18px"> إظهار النتائج أثناء التصويت</label>
-<button id="createElectionButton">إنشاء عملية التصويت</button></form><div class="message" id="createMessage"></div></div>
-<div class="box"><h3>عمليات التصويت</h3><div class="filters"><button class="filter active" data-status="">الكل</button><button class="filter" data-status="draft">Draft</button><button class="filter" data-status="scheduled">مجدولة</button><button class="filter" data-status="open">جارية</button><button class="filter" data-status="closed">منتهية</button><button class="filter" data-status="cancelled">ملغاة</button></div><div id="electionsList"><div class="empty">جاري التحميل...</div></div></div></section>
-<section class="section" id="serversSection"><h2 class="section-title">إدارة السيرفرات</h2><p class="section-desc">هنا تحدد عدد المقاعد الافتراضي لكل سيرفر. هذا العدد يظهر تلقائيًا في إنشاء التصويت.</p>
-<div class="box"><h3>إضافة سيرفر</h3><form id="serverForm"><div class="grid3"><div class="form-group"><label>رقم السيرفر</label><input type="number" id="serverIdInput" min="1" required></div><div class="form-group"><label>اسم السيرفر</label><input id="serverNameInput" placeholder="Server 20" required></div><div class="form-group"><label>عدد المقاعد الافتراضي</label><input type="number" id="serverSeatsInput" min="1" max="100" value="5" required></div></div><button>إضافة السيرفر</button></form><div class="message" id="serverMessage"></div></div>
-<div class="box"><h3>السيرفرات الحالية</h3><div id="serversList"><div class="empty">جاري التحميل...</div></div></div></section>
-<section class="section" id="playersSection">
-<h2 class="section-title">بيانات اللاعبين</h2>
-<p class="section-desc">استبدال قائمة لاعبي السيرفر بالكامل من ملف Excel أو CSV.</p>
-
-<div class="box">
-    <h3>استيراد بيانات اللاعبين</h3>
-
-    <div class="form-group">
-        <label>السيرفر</label>
-        <select id="playersServer">
-            <option value="">جاري التحميل...</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>ملف اللاعبين</label>
-        <input
-            type="file"
-            id="playersFile"
-            accept=".csv,.xlsx,.xls"
-        >
-        <div style="font-size:10px;color:#766751;margin-top:6px;line-height:1.8">
-            الصيغة المطلوبة: UID | RID | NAME
-            <br>
-            الصف الأول يجب أن يحتوي على أسماء الأعمدة.
-        </div>
-    </div>
-
-    <div
-        id="playersCurrentInfo"
-        style="
-            display:none;
-            margin-bottom:14px;
-            padding:12px;
-            border:1px solid #3a2d1f;
-            border-radius:10px;
-            background:#0d0906;
-            color:#c8b898;
-            font-size:11px;
-            line-height:1.9;
-        "
-    ></div>
-
-    <button id="validatePlayersButton">
-        فحص الملف
-    </button>
-
-    <div class="message" id="playersMessage"></div>
-
-    <div
-        class="box"
-        id="playersPreviewBox"
-        style="display:none;margin-top:15px"
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
     >
-        <h3>معاينة الاستبدال</h3>
 
-        <div class="stats" style="margin-bottom:15px">
-            <div class="stat">
-                <div class="l">في الملف</div>
-                <div class="n" id="playersFileCount">0</div>
-            </div>
+    <title>لوحة إدارة نظام التصويت</title>
 
-            <div class="stat">
-                <div class="l">الحالي</div>
-                <div class="n" id="playersCurrentCount">0</div>
-            </div>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
-            <div class="stat">
-                <div class="l">بعد الاستبدال</div>
-                <div class="n" id="playersAfterCount">0</div>
-            </div>
+        :root {
+            --bg: #0a0705;
+            --panel: #17110c;
+            --panel-2: #1d150e;
+            --panel-3: #100c08;
 
-            <div class="stat">
-                <div class="l">سيتم استبدال</div>
-                <div class="n" id="playersReplaceCount">0</div>
-            </div>
+            --gold: #d9aa52;
+            --gold-light: #ebcc8a;
+            --gold-dark: #9b6b27;
+
+            --border: #59442b;
+            --border-soft: rgba(200, 154, 72, .25);
+
+            --text: #f4ead8;
+            --text-soft: #d8c6a7;
+            --text-muted: #9f9078;
+            --text-dark: #71634f;
+
+            --green: #77c97e;
+            --blue: #7fa9df;
+            --red: #ef8f87;
+
+            --radius: 12px;
+            --radius-lg: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+
+            font-family:
+                "Cairo",
+                Tahoma,
+                Arial,
+                sans-serif;
+
+            color: var(--text);
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #3c2a18 0%,
+                    #1b130c 34%,
+                    #0d0906 72%,
+                    #070504 100%
+                );
+
+            padding: 22px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+
+            background:
+                radial-gradient(
+                    circle at 50% 0%,
+                    rgba(220, 175, 85, .08),
+                    transparent 38%
+                );
+
+            z-index: -1;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family:
+                "Cairo",
+                Tahoma,
+                Arial,
+                sans-serif;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            outline: none;
+        }
+
+        ::selection {
+            background: rgba(217, 170, 82, .25);
+            color: #fff;
+        }
+
+        /* =====================================================
+           CONTAINER
+        ===================================================== */
+
+        .container {
+            width: min(1080px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(28, 20, 13, .98),
+                    rgba(18, 13, 9, .98)
+                );
+
+            border:
+                1px solid rgba(202, 157, 77, .38);
+
+            border-radius:
+                var(--radius-lg);
+
+            padding: 28px;
+
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, .52),
+                inset 0 1px 0 rgba(255,255,255,.02);
+        }
+
+        /* =====================================================
+           LOGIN
+        ===================================================== */
+
+        .login {
+            width: min(500px, 100%);
+            margin: 80px auto;
+        }
+
+        .logo {
+            font-size: 46px;
+            line-height: 1;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            text-align: center;
+
+            color: var(--gold);
+
+            font-size: 30px;
+            font-weight: 800;
+
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+
+            color: var(--text-muted);
+
+            font-size: 13px;
+
+            line-height: 1.9;
+
+            margin-bottom: 26px;
+        }
+
+        /* =====================================================
+           TOP BAR
+        ===================================================== */
+
+        .top {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding-bottom: 18px;
+            margin-bottom: 20px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.06);
+        }
+
+        .email {
+            color: var(--text-soft);
+
+            font-size: 12px;
+
+            word-break: break-all;
+        }
+
+        /* =====================================================
+           NAV
+        ===================================================== */
+
+        .nav {
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            gap: 8px;
+
+            flex-wrap: wrap;
+
+            margin-bottom: 26px;
+        }
+
+        .nav button {
+            width: auto !important;
+
+            min-width: 112px;
+            min-height: 43px;
+
+            padding: 9px 17px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 11px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #251b11,
+                    #1c140d
+                );
+
+            color: #d5c09c;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition:
+                transform .15s ease,
+                background .15s ease,
+                border-color .15s ease,
+                color .15s ease;
+        }
+
+        .nav button:hover {
+            transform: translateY(-1px);
+
+            border-color:
+                rgba(217,170,82,.55);
+
+            color: #f1dfbc;
+        }
+
+        .nav button.active {
+            background:
+                linear-gradient(
+                    135deg,
+                    #e0b55d,
+                    #a97429
+                );
+
+            border-color: #d0a04c;
+
+            color: #171008;
+
+            box-shadow:
+                0 5px 18px rgba(0,0,0,.24);
+        }
+
+        /* =====================================================
+           SECTIONS
+        ===================================================== */
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            color: var(--gold);
+
+            font-size: 23px;
+            font-weight: 800;
+
+            margin-bottom: 5px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+
+            font-size: 12px;
+
+            line-height: 1.9;
+
+            margin-bottom: 20px;
+        }
+
+        /* =====================================================
+           BOX
+        ===================================================== */
+
+        .box {
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(29,21,14,.96),
+                    rgba(22,16,10,.96)
+                );
+
+            border:
+                1px solid #473620;
+
+            border-radius: 15px;
+
+            padding: 20px;
+
+            margin-bottom: 16px;
+
+            box-shadow:
+                0 8px 28px rgba(0,0,0,.15);
+        }
+
+        .box h3 {
+            color: #e4c287;
+
+            font-size: 16px;
+            font-weight: 800;
+
+            margin-bottom: 17px;
+        }
+
+        /* =====================================================
+           FORMS
+        ===================================================== */
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        label {
+            display: block;
+
+            color: #ddcbb0;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+
+            color: var(--text);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #130e0a,
+                    #0e0a07
+                );
+
+            border:
+                1px solid #58432a;
+
+            border-radius: 10px;
+
+            padding: 12px 13px;
+
+            font-size: 13px;
+
+            transition:
+                border-color .16s ease,
+                box-shadow .16s ease,
+                background .16s ease;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #6e624f;
+        }
+
+        input:hover,
+        select:hover,
+        textarea:hover {
+            border-color: #695135;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #c99843;
+
+            background: #140f0a;
+
+            box-shadow:
+                0 0 0 3px rgba(201,152,67,.09);
+        }
+
+        textarea {
+            resize: vertical;
+
+            min-height: 100px;
+
+            line-height: 1.8;
+        }
+
+        select {
+            cursor: pointer;
+            color-scheme: dark;
+        }
+
+        option {
+            background: #100c08;
+            color: #f4ead8;
+        }
+
+        input[type="number"] {
+            direction: ltr;
+            text-align: right;
+        }
+
+        input[type="datetime-local"] {
+            direction: ltr;
+            text-align: center;
+            color-scheme: dark;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+
+            accent-color: var(--gold);
+
+            cursor: pointer;
+        }
+
+        input[type="file"] {
+            cursor: pointer;
+            padding: 11px;
+        }
+
+        /* =====================================================
+           BUTTONS
+        ===================================================== */
+
+        button {
+            border: 0;
+
+            min-height: 44px;
+
+            border-radius: 10px;
+
+            padding: 10px 16px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition:
+                transform .15s ease,
+                filter .15s ease,
+                box-shadow .15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.06);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: .5;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+        #loginButton,
+        #createElectionButton,
+        #serverForm button,
+        #validatePlayersButton {
+            width: 100%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #e0b45d 0%,
+                    #c38e37 50%,
+                    #9c6c26 100%
+                );
+
+            color: #1a1108;
+
+            box-shadow:
+                0 7px 20px rgba(0,0,0,.25);
+        }
+
+        #loginButton:hover,
+        #createElectionButton:hover,
+        #serverForm button:hover,
+        #validatePlayersButton:hover {
+            box-shadow:
+                0 10px 25px rgba(0,0,0,.32);
+        }
+
+        /* =====================================================
+           MESSAGES
+        ===================================================== */
+
+        .message {
+            display: none;
+
+            padding: 11px 13px;
+
+            margin-top: 13px;
+
+            border-radius: 10px;
+
+            font-size: 11px;
+
+            line-height: 1.8;
+
+            white-space: pre-line;
+        }
+
+        /* =====================================================
+           STATS
+        ===================================================== */
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 10px;
+        }
+
+        .stat {
+            background:
+                linear-gradient(
+                    180deg,
+                    #120d09,
+                    #0d0906
+                );
+
+            border:
+                1px solid #3a2d1f;
+
+            border-radius: 12px;
+
+            padding: 15px 10px;
+
+            text-align: center;
+
+            transition:
+                border-color .15s ease,
+                transform .15s ease;
+        }
+
+        .stat:hover {
+            transform: translateY(-1px);
+
+            border-color:
+                rgba(216,170,79,.35);
+        }
+
+        .stat .n {
+            color: var(--gold-light);
+
+            font-size: 24px;
+
+            font-weight: 800;
+        }
+
+        .stat .l {
+            color: #81735f;
+
+            font-size: 10px;
+
+            margin-bottom: 4px;
+        }
+
+        /* =====================================================
+           FILTERS
+        ===================================================== */
+
+        .filters {
+            display: flex;
+
+            gap: 7px;
+
+            flex-wrap: wrap;
+
+            margin-bottom: 15px;
+        }
+
+        .filters button {
+            width: auto;
+
+            min-height: 37px;
+
+            padding: 7px 12px;
+
+            background: #21180f;
+
+            border:
+                1px solid #4f3c26;
+
+            color: #cdbb9b;
+
+            font-size: 10px;
+
+            box-shadow: none;
+        }
+
+        .filters button.active {
+            background:
+                linear-gradient(
+                    135deg,
+                    #d7a94e,
+                    #a67229
+                );
+
+            border-color: #c5923e;
+
+            color: #171008;
+        }
+
+        /* =====================================================
+           ELECTION
+        ===================================================== */
+
+        .election {
+            background:
+                linear-gradient(
+                    180deg,
+                    #120d09,
+                    #0d0906
+                );
+
+            border:
+                1px solid #453522;
+
+            border-radius: 14px;
+
+            padding: 17px;
+
+            margin-bottom: 13px;
+        }
+
+        .election:hover {
+            border-color:
+                rgba(216,170,79,.34);
+        }
+
+        .e-head {
+            display: flex;
+
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 12px;
+        }
+
+        .e-title {
+            color: #e2bb6e;
+
+            font-size: 17px;
+
+            font-weight: 800;
+        }
+
+        .e-id {
+            color: #6d604e;
+
+            font-size: 9px;
+
+            margin-top: 3px;
+
+            direction: ltr;
+        }
+
+        /* =====================================================
+           BADGES
+        ===================================================== */
+
+        .badge {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            min-height: 27px;
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+
+            font-weight: 700;
+
+            white-space: nowrap;
+        }
+
+        .badge.draft {
+            background:
+                rgba(184,135,37,.16);
+
+            color: #e8c66d;
+
+            border:
+                1px solid rgba(184,135,37,.22);
+        }
+
+        .badge.scheduled {
+            background:
+                rgba(74,111,164,.18);
+
+            color: #a9c5ef;
+
+            border:
+                1px solid rgba(74,111,164,.25);
+        }
+
+        .badge.open {
+            background:
+                rgba(57,130,64,.16);
+
+            color: #9bdfa2;
+
+            border:
+                1px solid rgba(57,130,64,.24);
+        }
+
+        .badge.closed {
+            background:
+                rgba(140,140,140,.11);
+
+            color: #d2d2d2;
+
+            border:
+                1px solid rgba(140,140,140,.16);
+        }
+
+        .badge.cancelled {
+            background:
+                rgba(168,51,46,.16);
+
+            color: #ffaaa5;
+
+            border:
+                1px solid rgba(168,51,46,.24);
+        }
+
+        /* =====================================================
+           META
+        ===================================================== */
+
+        .meta {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+
+            gap: 8px;
+
+            margin: 14px 0;
+        }
+
+        .meta-box {
+            background: #0c0906;
+
+            border:
+                1px solid #32271b;
+
+            border-radius: 10px;
+
+            padding: 10px;
+        }
+
+        .ml {
+            color: #70624f;
+
+            font-size: 9px;
+        }
+
+        .mv {
+            color: #ddccb0;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            margin-top: 3px;
+        }
+
+        /* =====================================================
+           ACTIONS
+        ===================================================== */
+
+        .actions {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 7px;
+
+            margin-top: 12px;
+        }
+
+        .actions button {
+            flex: 1 1 120px;
+
+            min-height: 39px;
+
+            padding: 8px 11px;
+
+            font-size: 10px;
+
+            box-shadow: none;
+        }
+
+        .dark {
+            background:
+                linear-gradient(
+                    180deg,
+                    #292015,
+                    #21180f
+                );
+
+            border:
+                1px solid #5b462c;
+
+            color: #ddc9a8;
+        }
+
+        .blue {
+            background:
+                linear-gradient(
+                    135deg,
+                    #5a82ba,
+                    #3b618c
+                );
+
+            color: white;
+        }
+
+        .green {
+            background:
+                linear-gradient(
+                    135deg,
+                    #519558,
+                    #316c38
+                );
+
+            color: white;
+        }
+
+        .red {
+            background:
+                linear-gradient(
+                    135deg,
+                    #aa4038,
+                    #752a23
+                );
+
+            color: white;
+        }
+
+        /* =====================================================
+           SERVERS
+        ===================================================== */
+
+        .server-row {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding: 13px 0;
+
+            border-bottom:
+                1px solid #34291d;
+        }
+
+        .server-row:last-child {
+            border-bottom: 0;
+        }
+
+        .server-name {
+            color: #e2caa4;
+
+            font-size: 13px;
+
+            font-weight: 800;
+        }
+
+        .server-sub {
+            color: #756650;
+
+            font-size: 9px;
+
+            margin-top: 2px;
+        }
+
+        .server-actions {
+            display: flex;
+
+            gap: 6px;
+
+            flex-shrink: 0;
+        }
+
+        .server-actions button {
+            width: auto;
+
+            min-height: 35px;
+
+            padding: 6px 10px;
+
+            font-size: 10px;
+
+            box-shadow: none;
+        }
+
+        /* =====================================================
+           CANDIDATES
+        ===================================================== */
+
+        .candidate {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            padding: 11px 0;
+
+            border-bottom:
+                1px solid #33281c;
+        }
+
+        .candidate:last-child {
+            border-bottom: 0;
+        }
+
+        .candidate-name {
+            color: #dfc8a2;
+
+            font-size: 12px;
+
+            font-weight: 600;
+        }
+
+        .candidate-uid {
+            color: #746650;
+
+            font-size: 9px;
+
+            margin-top: 3px;
+        }
+
+        .candidate button {
+            width: auto;
+
+            min-height: 33px;
+
+            padding: 6px 10px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8e342e,
+                    #6d251f
+                );
+
+            color: white;
+
+            font-size: 9px;
+
+            box-shadow: none;
+        }
+
+        /* =====================================================
+           RESULTS
+        ===================================================== */
+
+        .result {
+            margin-bottom: 15px;
+        }
+
+        .r-top {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            color: #d9c6a5;
+
+            font-size: 10px;
+
+            margin-bottom: 6px;
+        }
+
+        .bar {
+            height: 8px;
+
+            background: #2a2117;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #dfb35b,
+                    #8f631f
+                );
+
+            border-radius: inherit;
+        }
+
+        /* =====================================================
+           TABLE
+        ===================================================== */
+
+        .table {
+            overflow-x: auto;
+
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+
+            min-width: 560px;
+
+            border-collapse: collapse;
+
+            background: #0e0a07;
+        }
+
+        th,
+        td {
+            padding: 10px;
+
+            border-bottom:
+                1px solid #30261b;
+
+            text-align: right;
+
+            font-size: 10px;
+        }
+
+        th {
+            color: #d9ad59;
+
+            background: #130e0a;
+
+            font-weight: 700;
+        }
+
+        td {
+            color: #c7b99f;
+        }
+
+        /* =====================================================
+           EMPTY
+        ===================================================== */
+
+        .empty {
+            padding: 38px 15px;
+
+            text-align: center;
+
+            color: #766852;
+
+            font-size: 11px;
+
+            border:
+                1px dashed #473623;
+
+            border-radius: 12px;
+
+            background:
+                rgba(0,0,0,.08);
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+
+        .modal {
+            position: fixed;
+
+            inset: 0;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 15px;
+
+            background:
+                rgba(0,0,0,.78);
+
+            backdrop-filter:
+                blur(5px);
+
+            z-index: 9999;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(920px, 100%);
+
+            max-height: 92vh;
+
+            overflow-y: auto;
+
+            padding: 20px;
+
+            border:
+                1px solid #644a28;
+
+            border-radius: 17px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #1c140d,
+                    #130e09
+                );
+
+            box-shadow:
+                0 30px 100px rgba(0,0,0,.6);
+        }
+
+        .modal-head {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 16px;
+
+            padding-bottom: 14px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.05);
+        }
+
+        .close {
+            width: auto;
+
+            min-height: 38px;
+
+            padding: 7px 13px;
+
+            background: #22180f;
+
+            border:
+                1px solid #5a452b;
+
+            color: #ddc8a6;
+
+            box-shadow: none;
+        }
+
+        /* =====================================================
+           PLAYERS
+        ===================================================== */
+
+        .players-current-box {
+            background:
+                linear-gradient(
+                    180deg,
+                    #120d09,
+                    #0d0906
+                );
+
+            border:
+                1px solid #3c2d1f;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+            margin-top: 15px;
+        }
+
+        .players-current-header {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 10px;
+
+            margin-bottom: 12px;
+
+            color: #d8c6a7;
+
+            font-size: 12px;
+        }
+
+        .players-import-info {
+            color: #8d7d65;
+
+            font-size: 10px;
+
+            line-height: 1.9;
+
+            margin-top: 6px;
+        }
+
+        .players-warning {
+            margin-top: 15px;
+
+            padding: 12px;
+
+            border:
+                1px solid rgba(239,143,135,.25);
+
+            background:
+                rgba(168,51,46,.08);
+
+            border-radius: 10px;
+
+            color: #eeb0aa;
+
+            font-size: 11px;
+
+            line-height: 1.9;
+        }
+
+        .players-success {
+            margin-top: 15px;
+
+            padding: 12px;
+
+            border:
+                1px solid rgba(119,201,126,.25);
+
+            background:
+                rgba(57,130,64,.10);
+
+            border-radius: 10px;
+
+            color: #9bdfa2;
+
+            font-size: 11px;
+
+            line-height: 1.9;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 12px;
+            }
+
+            .stats {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .grid2,
+            .grid3 {
+                grid-template-columns: 1fr;
+            }
+
+            .meta {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .top {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .nav {
+                display: grid;
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .nav button {
+                width: 100% !important;
+
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 560px) {
+
+            .card {
+                padding: 18px 14px;
+            }
+
+            .login {
+                margin: 30px auto;
+            }
+
+            .logo {
+                font-size: 38px;
+            }
+
+            .title {
+                font-size: 25px;
+            }
+
+            .stats,
+            .meta {
+                grid-template-columns: 1fr;
+            }
+
+            .e-head {
+                flex-direction: column;
+            }
+
+            .actions {
+                display: grid;
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .actions button {
+                width: 100%;
+            }
+
+            .server-row {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .server-actions {
+                width: 100%;
+            }
+
+            .server-actions button {
+                flex: 1;
+            }
+
+            .players-current-header {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
+
+    <section
+        class="card login"
+        id="loginCard"
+    >
+
+        <div class="logo">
+            🔐
         </div>
 
-        <div
-            style="
-                padding:12px;
-                border:1px solid rgba(239,143,135,.25);
-                background:rgba(168,51,46,.08);
-                border-radius:10px;
-                color:#eeb0aa;
-                font-size:11px;
-                line-height:1.9;
-                margin-bottom:14px;
-            "
-        >
-            <strong>تنبيه:</strong>
-            عند التأكيد سيتم حذف قائمة اللاعبين الحالية لهذا السيرفر
-            واستبدالها بالكامل بالبيانات الموجودة في الملف.
-            لن يتم تعديل السيرفرات الأخرى.
-        </div>
+        <h1 class="title">
+            لوحة إدارة نظام التصويت
+        </h1>
 
-        <button
-            id="replacePlayersButton"
-            class="red"
-            style="width:100%"
-        >
-            تأكيد واستبدال بيانات السيرفر
-        </button>
+        <p class="subtitle">
+            إدارة كاملة للانتخابات وعمليات التصويت.
+        </p>
+
+        <form id="loginForm">
+
+            <div class="form-group">
+
+                <label>
+                    البريد الإلكتروني
+                </label>
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    required
+                    autocomplete="username"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    كلمة المرور
+                </label>
+
+                <input
+                    type="password"
+                    id="adminPassword"
+                    required
+                    autocomplete="current-password"
+                >
+
+            </div>
+
+            <button id="loginButton">
+                تسجيل الدخول
+            </button>
+
+        </form>
 
         <div
-            id="playersPreviewTable"
-            style="margin-top:15px"
+            class="message"
+            id="loginMessage"
         ></div>
-    </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
+
+    <section
+        class="card"
+        id="dashboardCard"
+        style="display:none"
+    >
+
+        <div class="logo">
+            🗳️
+        </div>
+
+        <h1 class="title">
+            لوحة إدارة التصويت
+        </h1>
+
+        <p class="subtitle">
+            مركز التحكم في جميع عمليات التصويت.
+        </p>
+
+
+        <!-- TOP -->
+
+        <div class="top">
+
+            <span
+                class="email"
+                id="adminEmailDisplay"
+            ></span>
+
+            <button
+                class="dark"
+                id="logoutButton"
+                style="width:auto"
+            >
+                تسجيل الخروج
+            </button>
+
+        </div>
+
+
+        <!-- NAV -->
+
+        <div class="nav">
+
+            <button
+                class="active"
+                data-section="homeSection"
+            >
+                الرئيسية
+            </button>
+
+            <button
+                data-section="electionsSection"
+            >
+                التصويتات
+            </button>
+
+            <button
+                data-section="serversSection"
+            >
+                السيرفرات
+            </button>
+
+            <button
+                data-section="playersSection"
+            >
+                اللاعبين
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             HOME
+        ================================================== -->
+
+        <section
+            class="section active"
+            id="homeSection"
+        >
+
+            <h2 class="section-title">
+                الرئيسية
+            </h2>
+
+            <p class="section-desc">
+                إحصائيات عامة عن نظام التصويت.
+            </p>
+
+
+            <div class="stats">
+
+                <div class="stat">
+                    <div class="l">
+                        إجمالي التصويتات
+                    </div>
+
+                    <div
+                        class="n"
+                        id="statTotal"
+                    >
+                        -
+                    </div>
+                </div>
+
+
+                <div class="stat">
+                    <div class="l">
+                        جارية / مجدولة
+                    </div>
+
+                    <div
+                        class="n"
+                        id="statActive"
+                    >
+                        -
+                    </div>
+                </div>
+
+
+                <div class="stat">
+                    <div class="l">
+                        منتهية
+                    </div>
+
+                    <div
+                        class="n"
+                        id="statClosed"
+                    >
+                        -
+                    </div>
+                </div>
+
+
+                <div class="stat">
+                    <div class="l">
+                        إجمالي الأصوات
+                    </div>
+
+                    <div
+                        class="n"
+                        id="statVotes"
+                    >
+                        -
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div
+                class="box"
+                style="margin-top:15px"
+            >
+
+                <h3>
+                    التصويتات الجارية
+                </h3>
+
+                <div id="homeOpenList">
+
+                    <div class="empty">
+                        جاري التحميل...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ELECTIONS
+        ================================================== -->
+
+        <section
+            class="section"
+            id="electionsSection"
+        >
+
+            <h2 class="section-title">
+                إدارة عمليات التصويت
+            </h2>
+
+            <p class="section-desc">
+                إنشاء وتعديل ومتابعة الانتخابات والمرشحين والنتائج.
+            </p>
+
+
+            <div class="box">
+
+                <h3>
+                    إنشاء عملية تصويت جديدة
+                </h3>
+
+
+                <form id="createElectionForm">
+
+                    <div class="form-group">
+
+                        <label>
+                            عنوان التصويت
+                        </label>
+
+                        <input
+                            id="createTitle"
+                            placeholder="انتخابات برلمان السيرفر 19"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            الوصف
+                        </label>
+
+                        <textarea
+                            id="createDescription"
+                            rows="3"
+                            placeholder="وصف اختياري للتصويت"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="grid2">
+
+                        <div class="form-group">
+
+                            <label>
+                                السيرفر
+                            </label>
+
+                            <select
+                                id="createServer"
+                                required
+                            >
+
+                                <option value="">
+                                    جاري التحميل...
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                عدد المقاعد
+                            </label>
+
+                            <input
+                                type="number"
+                                id="createSeats"
+                                min="1"
+                                max="100"
+                                value="5"
+                                required
+                            >
+
+                            <div
+                                style="
+                                    font-size:10px;
+                                    color:#766751;
+                                    margin-top:5px
+                                "
+                            >
+                                يمكنك تغييره لهذه العملية بشكل مستقل عن العدد الافتراضي للسيرفر.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid2">
+
+                        <div class="form-group">
+
+                            <label>
+                                أقل عدد اختيارات
+                            </label>
+
+                            <input
+                                type="number"
+                                id="createMinChoices"
+                                min="1"
+                                value="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                أقصى عدد اختيارات
+                            </label>
+
+                            <input
+                                type="number"
+                                id="createMaxChoices"
+                                min="1"
+                                value="5"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            أسماء المرشحين — اسم واحد في كل سطر
+                        </label>
+
+                        <textarea
+                            id="candidateNames"
+                            rows="8"
+                            placeholder="أحمد
+محمد
+علي
+سعيد"
+                        ></textarea>
+
+                        <div
+                            style="
+                                font-size:10px;
+                                color:#766751;
+                                margin-top:5px
+                            "
+                        >
+                            يمكنك أيضًا إضافة مرشحين لاحقًا من صفحة التفاصيل.
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid2">
+
+                        <div class="form-group">
+
+                            <label>
+                                بداية التصويت — UTC
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="createStart"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                نهاية التصويت — UTC
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="createEnd"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <label
+                        style="
+                            display:flex;
+                            align-items:center;
+                            gap:8px;
+                            margin-bottom:15px
+                        "
+                    >
+
+                        <input
+                            type="checkbox"
+                            id="createShowResults"
+                            style="width:18px"
+                        >
+
+                        إظهار النتائج أثناء التصويت
+
+                    </label>
+
+
+                    <button
+                        id="createElectionButton"
+                    >
+                        إنشاء عملية التصويت
+                    </button>
+
+                </form>
+
+
+                <div
+                    class="message"
+                    id="createMessage"
+                ></div>
+
+            </div>
+
+
+            <!-- ELECTION LIST -->
+
+            <div class="box">
+
+                <h3>
+                    عمليات التصويت
+                </h3>
+
+
+                <div class="filters">
+
+                    <button
+                        class="filter active"
+                        data-status=""
+                    >
+                        الكل
+                    </button>
+
+                    <button
+                        class="filter"
+                        data-status="draft"
+                    >
+                        Draft
+                    </button>
+
+                    <button
+                        class="filter"
+                        data-status="scheduled"
+                    >
+                        مجدولة
+                    </button>
+
+                    <button
+                        class="filter"
+                        data-status="open"
+                    >
+                        جارية
+                    </button>
+
+                    <button
+                        class="filter"
+                        data-status="closed"
+                    >
+                        منتهية
+                    </button>
+
+                    <button
+                        class="filter"
+                        data-status="cancelled"
+                    >
+                        ملغاة
+                    </button>
+
+                </div>
+
+
+                <div id="electionsList">
+
+                    <div class="empty">
+                        جاري التحميل...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SERVERS
+        ================================================== -->
+
+        <section
+            class="section"
+            id="serversSection"
+        >
+
+            <h2 class="section-title">
+                إدارة السيرفرات
+            </h2>
+
+            <p class="section-desc">
+                يمكنك إضافة السيرفرات وتعديل أسمائها وعدد المقاعد الافتراضي وتفعيلها أو تعطيلها.
+            </p>
+
+
+            <div class="box">
+
+                <h3>
+                    إضافة سيرفر
+                </h3>
+
+                <form id="serverForm">
+
+                    <div class="grid3">
+
+                        <div class="form-group">
+
+                            <label>
+                                رقم السيرفر
+                            </label>
+
+                            <input
+                                type="number"
+                                id="serverIdInput"
+                                min="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                اسم السيرفر
+                            </label>
+
+                            <input
+                                id="serverNameInput"
+                                placeholder="Server 20"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                عدد المقاعد الافتراضي
+                            </label>
+
+                            <input
+                                type="number"
+                                id="serverSeatsInput"
+                                min="1"
+                                max="100"
+                                value="5"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <button>
+                        إضافة السيرفر
+                    </button>
+
+                </form>
+
+
+                <div
+                    class="message"
+                    id="serverMessage"
+                ></div>
+
+            </div>
+
+
+            <div class="box">
+
+                <h3>
+                    السيرفرات الحالية
+                </h3>
+
+                <div id="serversList">
+
+                    <div class="empty">
+                        جاري التحميل...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PLAYERS
+        ================================================== -->
+
+        <section
+            class="section"
+            id="playersSection"
+        >
+
+            <h2 class="section-title">
+                بيانات اللاعبين
+            </h2>
+
+            <p class="section-desc">
+                إدارة قائمة لاعبي السيرفر بالكامل واستبدالها من ملف Excel أو CSV.
+            </p>
+
+
+            <!-- CURRENT PLAYERS -->
+
+            <div class="box">
+
+                <h3>
+                    اللاعبين الموجودون حاليًا
+                </h3>
+
+
+                <div class="form-group">
+
+                    <label>
+                        السيرفر
+                    </label>
+
+                    <select id="playersServer">
+
+                        <option value="">
+                            جاري التحميل...
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div
+                    id="playersCurrentStats"
+                    style="
+                        color:#9f9078;
+                        font-size:12px;
+                        margin-bottom:12px;
+                    "
+                >
+                    اختر السيرفر لعرض عدد اللاعبين.
+                </div>
+
+
+                <button
+                    id="loadPlayersButton"
+                    class="blue"
+                    type="button"
+                    style="width:100%"
+                >
+                    عرض اللاعبين الحاليين
+                </button>
+
+
+                <div
+                    class="players-current-box"
+                    id="currentPlayersList"
+                    style="display:none"
+                ></div>
+
+            </div>
+
+
+            <!-- IMPORT -->
+
+            <div class="box">
+
+                <h3>
+                    استيراد واستبدال اللاعبين
+                </h3>
+
+
+                <div
+                    class="players-import-info"
+                >
+                    الملف يجب أن يحتوي على الأعمدة التالية:
+                    <strong>
+                        UID | RID | NAME
+                    </strong>
+
+                    <br>
+
+                    الصف الأول في الملف يجب أن يحتوي على أسماء الأعمدة.
+
+                    <br>
+
+                    عملية الاستبدال تخص السيرفر المختار فقط ولا تؤثر على السيرفرات الأخرى.
+                </div>
+
+
+                <div
+                    class="form-group"
+                    style="margin-top:15px"
+                >
+
+                    <label>
+                        ملف اللاعبين
+                    </label>
+
+                    <input
+                        type="file"
+                        id="playersFile"
+                        accept=".csv,.xlsx,.xls"
+                    >
+
+                </div>
+
+
+                <button
+                    id="validatePlayersButton"
+                    type="button"
+                >
+                    فحص الملف
+                </button>
+
+
+                <div
+                    class="message"
+                    id="playersMessage"
+                ></div>
+
+
+                <!-- PREVIEW -->
+
+                <div
+                    class="box"
+                    id="playersPreview"
+                    style="
+                        display:none;
+                        margin-top:15px
+                    "
+                >
+
+                    <h3>
+                        معاينة الاستبدال
+                    </h3>
+
+
+                    <div class="stats">
+
+                        <div class="stat">
+
+                            <div class="l">
+                                في الملف
+                            </div>
+
+                            <div
+                                class="n"
+                                id="playersFileCount"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="l">
+                                الحالي
+                            </div>
+
+                            <div
+                                class="n"
+                                id="playersCurrentCount"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="l">
+                                بعد الاستبدال
+                            </div>
+
+                            <div
+                                class="n"
+                                id="playersAfterCount"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <div class="l">
+                                سيتم الاستبدال
+                            </div>
+
+                            <div
+                                class="n"
+                                id="playersReplaceCount"
+                            >
+                                0
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="players-warning">
+
+                        <strong>
+                            تنبيه:
+                        </strong>
+
+                        <br>
+
+                        عند التأكيد سيتم حذف قائمة اللاعبين الحالية لهذا السيرفر واستبدالها بالكامل بالبيانات الموجودة في الملف.
+
+                        <br>
+
+                        أي لاعب غير موجود في الملف الجديد سيتم حذفه من قائمة هذا السيرفر.
+
+                        <br>
+
+                        لن يتم تعديل أي سيرفر آخر.
+
+                    </div>
+
+
+                    <button
+                        id="replacePlayersButton"
+                        class="red"
+                        type="button"
+                        disabled
+                        style="
+                            width:100%;
+                            margin-top:15px
+                        "
+                    >
+                        تأكيد واستبدال بيانات السيرفر
+                    </button>
+
+
+                    <div
+                        id="playersPreviewTable"
+                        style="
+                            margin-top:15px
+                        "
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </section>
+
 </div>
-</section>
-</section></div>
-<div class="modal" id="electionModal"><div class="modal-card"><div class="modal-head"><div><div class="e-title" id="modalTitle">-</div><div class="e-id" id="modalElectionId">-</div></div><button class="close" id="closeModal">إغلاق</button></div><div id="modalBody"></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+
+<!-- =========================================================
+     ELECTION MODAL
+========================================================== -->
+
+<div
+    class="modal"
+    id="electionModal"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-head">
+
+            <div>
+
+                <div
+                    class="e-title"
+                    id="modalTitle"
+                >
+                    -
+                </div>
+
+                <div
+                    class="e-id"
+                    id="modalElectionId"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <button
+                class="close"
+                id="closeModal"
+            >
+                إغلاق
+            </button>
+
+        </div>
+
+
+        <div id="modalBody"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EXCEL LIBRARY
+========================================================== -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+></script>
+
+
+<!-- =========================================================
+     ADMIN JS
+========================================================== -->
+
 <script src="admin.js"></script>
+
 </body>
 </html>
