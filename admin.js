@@ -14,7 +14,6 @@ function el(id) {
     return document.getElementById(id);
 }
 
-
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -24,70 +23,46 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-
-function showMessage(
-    element,
-    text,
-    type = "error"
-) {
+function showMessage(element, text, type = "error") {
+    if (!element) return;
 
     element.style.display = "block";
     element.textContent = text;
 
     if (type === "success") {
-
-        element.style.background =
-            "rgba(46,125,50,.15)";
-
-        element.style.border =
-            "1px solid rgba(76,175,80,.4)";
-
-        element.style.color =
-            "#9be7a0";
-
+        element.style.background = "rgba(46,125,50,.15)";
+        element.style.border = "1px solid rgba(76,175,80,.4)";
+        element.style.color = "#9be7a0";
     } else {
-
-        element.style.background =
-            "rgba(198,40,40,.15)";
-
-        element.style.border =
-            "1px solid rgba(239,83,80,.4)";
-
-        element.style.color =
-            "#ff9d9d";
+        element.style.background = "rgba(198,40,40,.15)";
+        element.style.border = "1px solid rgba(239,83,80,.4)";
+        element.style.color = "#ff9d9d";
     }
 }
 
-
 function hideMessage(element) {
+    if (!element) return;
 
     element.style.display = "none";
     element.textContent = "";
 }
 
-
 function formatDate(value) {
+    if (!value) return "-";
 
-    if (!value) {
-        return "-";
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
     }
 
-    const d =
-        new Date(value);
-
-    if (Number.isNaN(d.getTime())) {
-        return value;
-    }
-
-    return d
+    return date
         .toISOString()
         .replace("T", " ")
         .replace(".000Z", " UTC");
 }
 
-
 function statusText(status) {
-
     const names = {
         draft: "Draft",
         scheduled: "مجدولة",
@@ -96,22 +71,46 @@ function statusText(status) {
         cancelled: "ملغاة"
     };
 
-    return (
-        names[status] ||
-        status
-    );
+    return names[status] || status;
 }
 
-
 function statusBadge(status) {
-
     return `
         <span class="badge ${escapeHtml(status)}">
-            ${escapeHtml(
-                statusText(status)
-            )}
+            ${escapeHtml(statusText(status))}
         </span>
     `;
+}
+
+function parseUtcDateTime(value) {
+    if (!value) return null;
+
+    /*
+     * datetime-local يعطينا:
+     * 2026-08-25T21:30
+     *
+     * ونحن نعاملها صراحة على أنها UTC.
+     */
+    const iso = `${value}:00Z`;
+
+    const timestamp = Date.parse(iso);
+
+    if (Number.isNaN(timestamp)) {
+        return null;
+    }
+
+    return iso;
+}
+
+function normalizeCandidateNames(text) {
+    return [
+        ...new Set(
+            String(text || "")
+                .split(/\r?\n/)
+                .map(name => name.trim())
+                .filter(Boolean)
+        )
+    ];
 }
 
 
@@ -119,68 +118,53 @@ function statusBadge(status) {
    API
 ========================================================= */
 
-async function apiFetch(
-    path,
-    options = {}
-) {
-
+async function apiFetch(path, options = {}) {
     options.headers = {
         ...(options.headers || {}),
-        "Content-Type":
-            "application/json"
+        "Content-Type": "application/json"
     };
 
-
     if (adminSessionToken) {
-
         options.headers.Authorization =
             `Bearer ${adminSessionToken}`;
     }
 
-
-    const response =
-        await fetch(
-            `${API_URL}${path}`,
-            options
-        );
-
+    const response = await fetch(
+        `${API_URL}${path}`,
+        options
+    );
 
     if (response.status === 401) {
-
         forceLogout(
             "انتهت جلسة الإدارة. يرجى تسجيل الدخول مرة أخرى."
         );
 
-        throw new Error(
-            "UNAUTHORIZED"
-        );
+        throw new Error("UNAUTHORIZED");
     }
-
 
     return response;
 }
 
 
 /* =========================================================
-   LOGOUT
+   AUTH / LOGOUT
 ========================================================= */
 
-function forceLogout(
-    message = ""
-) {
+function forceLogout(message = "") {
+    adminSessionToken = null;
 
-    adminSessionToken =
-        null;
+    const dashboardCard = el("dashboardCard");
+    const loginCard = el("loginCard");
 
-    el("dashboardCard").style.display =
-        "none";
+    if (dashboardCard) {
+        dashboardCard.style.display = "none";
+    }
 
-    el("loginCard").style.display =
-        "block";
-
+    if (loginCard) {
+        loginCard.style.display = "block";
+    }
 
     if (message) {
-
         showMessage(
             el("loginMessage"),
             message
@@ -189,175 +173,152 @@ function forceLogout(
 }
 
 
-/* =========================================================
-   LOGIN
-========================================================= */
+el("loginForm")?.addEventListener(
+    "submit",
+    async event => {
 
-el("loginForm")
-    .addEventListener(
-        "submit",
-        async event => {
+        event.preventDefault();
 
-            event.preventDefault();
+        hideMessage(
+            el("loginMessage")
+        );
 
-            hideMessage(
-                el("loginMessage")
+        const email =
+            el("adminEmail")?.value.trim();
+
+        const password =
+            el("adminPassword")?.value;
+
+        if (!email || !password) {
+            showMessage(
+                el("loginMessage"),
+                "البريد الإلكتروني وكلمة المرور مطلوبان."
             );
+            return;
+        }
 
+        const button =
+            el("loginButton");
 
-            const email =
-                el("adminEmail")
-                    .value
-                    .trim();
+        button.disabled = true;
+        button.textContent =
+            "جاري تسجيل الدخول...";
 
-            const password =
-                el("adminPassword")
-                    .value;
+        try {
 
-
-            if (!email || !password) {
-
-                showMessage(
-                    el("loginMessage"),
-                    "البريد الإلكتروني وكلمة المرور مطلوبان."
+            const response =
+                await fetch(
+                    `${API_URL}/admin/login`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body:
+                            JSON.stringify({
+                                email,
+                                password
+                            })
+                    }
                 );
 
+            let data;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                throw new Error(
+                    "الخادم أعاد استجابة غير صالحة."
+                );
+            }
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+                showMessage(
+                    el("loginMessage"),
+                    data.message ||
+                    "بيانات الدخول غير صحيحة."
+                );
                 return;
             }
 
+            adminSessionToken =
+                data.token;
 
-            el("loginButton").disabled =
-                true;
+            el("adminEmailDisplay")
+                .textContent =
+                email;
 
-            el("loginButton").textContent =
-                "جاري تسجيل الدخول...";
+            el("adminPassword")
+                .value = "";
+
+            el("loginCard").style.display =
+                "none";
+
+            el("dashboardCard").style.display =
+                "block";
+
+            await refreshAll();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                el("loginMessage"),
+                error.message ||
+                "حدث خطأ أثناء الاتصال بالخادم."
+            );
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent =
+                "تسجيل الدخول";
+        }
+    }
+);
 
 
-            try {
+el("logoutButton")?.addEventListener(
+    "click",
+    async () => {
 
-                const response =
-                    await fetch(
-                        `${API_URL}/admin/login`,
-                        {
-                            method: "POST",
+        try {
 
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
+            if (adminSessionToken) {
 
-                            body:
-                                JSON.stringify({
-                                    email,
-                                    password
-                                })
+                await fetch(
+                    `${API_URL}/admin/logout`,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization:
+                                `Bearer ${adminSessionToken}`
                         }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (
-                    !response.ok ||
-                    !data.success
-                ) {
-
-                    showMessage(
-                        el("loginMessage"),
-                        data.message ||
-                        "بيانات الدخول غير صحيحة."
-                    );
-
-                    return;
-                }
-
-
-                adminSessionToken =
-                    data.token;
-
-
-                el("adminEmailDisplay")
-                    .textContent =
-                    email;
-
-
-                el("adminPassword")
-                    .value = "";
-
-
-                el("loginCard").style.display =
-                    "none";
-
-                el("dashboardCard").style.display =
-                    "block";
-
-
-                await refreshAll();
-
-            } catch (error) {
-
-                console.error(error);
-
-                showMessage(
-                    el("loginMessage"),
-                    "حدث خطأ أثناء الاتصال بالخادم."
+                    }
                 );
-
-            } finally {
-
-                el("loginButton").disabled =
-                    false;
-
-                el("loginButton").textContent =
-                    "تسجيل الدخول";
             }
+
+        } catch (error) {
+            console.error(error);
         }
-    );
+
+        forceLogout();
+    }
+);
 
 
 /* =========================================================
-   LOGOUT BUTTON
-========================================================= */
-
-el("logoutButton")
-    .addEventListener(
-        "click",
-        async () => {
-
-            try {
-
-                if (adminSessionToken) {
-
-                    await fetch(
-                        `${API_URL}/admin/logout`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                Authorization:
-                                    `Bearer ${adminSessionToken}`
-                            }
-                        }
-                    );
-                }
-
-            } catch {}
-
-            forceLogout();
-        }
-    );
-
-
-/* =========================================================
-   NAV
+   NAVIGATION
 ========================================================= */
 
 document
-    .querySelectorAll(
-        ".nav button"
-    )
+    .querySelectorAll(".nav button")
     .forEach(button => {
 
         button.addEventListener(
@@ -365,80 +326,48 @@ document
             async () => {
 
                 document
-                    .querySelectorAll(
-                        ".nav button"
-                    )
-                    .forEach(
-                        btn =>
-                            btn.classList.remove(
-                                "active"
-                            )
-                    );
-
+                    .querySelectorAll(".nav button")
+                    .forEach(btn => {
+                        btn.classList.remove("active");
+                    });
 
                 document
-                    .querySelectorAll(
-                        ".section"
-                    )
-                    .forEach(
-                        section =>
-                            section.classList.remove(
-                                "active"
-                            )
-                    );
+                    .querySelectorAll(".section")
+                    .forEach(section => {
+                        section.classList.remove("active");
+                    });
 
-
-                button.classList.add(
-                    "active"
-                );
-
+                button.classList.add("active");
 
                 const section =
-                    el(
-                        button.dataset.section
-                    );
-
+                    el(button.dataset.section);
 
                 if (section) {
-                    section.classList.add(
-                        "active"
-                    );
+                    section.classList.add("active");
                 }
 
-
-                if (
-                    button.dataset.section ===
-                    "homeSection"
+                switch (
+                    button.dataset.section
                 ) {
-                    await refreshDashboard();
-                }
 
+                    case "homeSection":
+                        await refreshDashboard();
+                        break;
 
-                if (
-                    button.dataset.section ===
-                    "electionsSection"
-                ) {
-                    await loadElections(
-                        currentFilter
-                    );
+                    case "electionsSection":
+                        await loadServers();
+                        await loadElections(
+                            currentFilter
+                        );
+                        break;
 
-                    await loadServers();
-                }
+                    case "serversSection":
+                        await loadServers();
+                        break;
 
-
-                if (
-                    button.dataset.section ===
-                    "serversSection"
-                ) {
-                    await loadServers();
-                }
-
-
-                if (
-                    button.dataset.section ===
-                    "playersSection"
-                ) {
-                    await loadServers();
+                    case "playersSection":
+                        await loadServers();
+                        break;
                 }
             }
         );
@@ -446,18 +375,13 @@ document
 
 
 /* =========================================================
-   REFRESH ALL
+   REFRESH
 ========================================================= */
 
 async function refreshAll() {
-
     await loadServers();
-
     await refreshDashboard();
-
-    await loadElections(
-        currentFilter
-    );
+    await loadElections(currentFilter);
 }
 
 
@@ -477,82 +401,64 @@ async function refreshDashboard() {
         const stats =
             await statsResponse.json();
 
-
         if (
             statsResponse.ok &&
             stats.success
         ) {
 
-            el("statTotal")
-                .textContent =
-                stats.elections
-                    ?.total_elections ??
+            el("statTotal").textContent =
+                stats.elections?.total_elections ??
                 0;
 
-            el("statActive")
-                .textContent =
-                stats.elections
-                    ?.active_count ??
+            el("statActive").textContent =
+                stats.elections?.active_count ??
                 0;
 
-            el("statClosed")
-                .textContent =
-                stats.elections
-                    ?.closed_count ??
+            el("statClosed").textContent =
+                stats.elections?.closed_count ??
                 0;
 
-            el("statVotes")
-                .textContent =
+            el("statVotes").textContent =
                 stats.total_votes ??
                 0;
         }
 
 
-        const response =
+        const openResponse =
             await apiFetch(
                 "/admin/elections?status=open"
             );
 
-        const data =
-            await response.json();
-
+        const openData =
+            await openResponse.json();
 
         if (
-            !response.ok ||
-            !data.success
+            !openResponse.ok ||
+            !openData.success
         ) {
             return;
         }
 
+        const elections =
+            openData.elections || [];
 
-        const list =
-            data.elections || [];
+        if (!elections.length) {
 
-
-        if (!list.length) {
-
-            el("homeOpenList")
-                .innerHTML = `
-                    <div class="empty">
-                        لا توجد عمليات تصويت جارية حاليًا.
-                    </div>
-                `;
+            el("homeOpenList").innerHTML = `
+                <div class="empty">
+                    لا توجد عمليات تصويت جارية حاليًا.
+                </div>
+            `;
 
             return;
         }
 
-
-        el("homeOpenList")
-            .innerHTML =
-            list
-                .map(
-                    election =>
-                        electionCard(
-                            election
-                        )
+        el("homeOpenList").innerHTML =
+            elections
+                .map(election =>
+                    electionCard(election)
                 )
                 .join("");
-
 
     } catch (error) {
 
@@ -565,13 +471,11 @@ async function refreshDashboard() {
 
 
 /* =========================================================
-   ELECTION FILTER
+   FILTERS
 ========================================================= */
 
 document
-    .querySelectorAll(
-        ".filter"
-    )
+    .querySelectorAll(".filter")
     .forEach(button => {
 
         button.addEventListener(
@@ -579,25 +483,20 @@ document
             async () => {
 
                 document
-                    .querySelectorAll(
-                        ".filter"
-                    )
-                    .forEach(btn =>
+                    .querySelectorAll(".filter")
+                    .forEach(btn => {
                         btn.classList.remove(
                             "active"
-                        )
-                    );
-
+                        );
+                    });
 
                 button.classList.add(
                     "active"
                 );
 
-
                 currentFilter =
                     button.dataset.status ||
                     "";
-
 
                 await loadElections(
                     currentFilter
@@ -615,75 +514,64 @@ async function loadElections(
     status = ""
 ) {
 
-    el("electionsList")
-        .innerHTML = `
-            <div class="empty">
-                جاري تحميل عمليات التصويت...
-            </div>
-        `;
+    const container =
+        el("electionsList");
 
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty">
+            جاري تحميل عمليات التصويت...
+        </div>
+    `;
 
     try {
 
         const query =
             status
-                ? `?status=${encodeURIComponent(
-                    status
-                )}`
+                ? `?status=${encodeURIComponent(status)}`
                 : "";
-
 
         const response =
             await apiFetch(
                 `/admin/elections${query}`
             );
 
-
         const data =
             await response.json();
-
 
         if (
             !response.ok ||
             !data.success
         ) {
 
-            el("electionsList")
-                .innerHTML = `
-                    <div class="empty">
-                        تعذر تحميل عمليات التصويت.
-                    </div>
-                `;
+            container.innerHTML = `
+                <div class="empty">
+                    تعذر تحميل عمليات التصويت.
+                </div>
+            `;
 
             return;
         }
-
 
         const elections =
             data.elections || [];
 
-
         if (!elections.length) {
 
-            el("electionsList")
-                .innerHTML = `
-                    <div class="empty">
-                        لا توجد عمليات تصويت هنا.
-                    </div>
-                `;
+            container.innerHTML = `
+                <div class="empty">
+                    لا توجد عمليات تصويت في هذا القسم.
+                </div>
+            `;
 
             return;
         }
 
-
-        el("electionsList")
-            .innerHTML =
+        container.innerHTML =
             elections
-                .map(
-                    election =>
-                        electionCard(
-                            election
-                        )
+                .map(election =>
+                    electionCard(election)
                 )
                 .join("");
 
@@ -691,12 +579,11 @@ async function loadElections(
 
         console.error(error);
 
-        el("electionsList")
-            .innerHTML = `
-                <div class="empty">
-                    حدث خطأ أثناء تحميل البيانات.
-                </div>
-            `;
+        container.innerHTML = `
+            <div class="empty">
+                حدث خطأ أثناء تحميل البيانات.
+            </div>
+        `;
     }
 }
 
@@ -705,29 +592,26 @@ async function loadElections(
    ELECTION CARD
 ========================================================= */
 
-function electionCard(
-    election
-) {
+function electionCard(election) {
 
     const status =
         election.effective_status ||
         election.status;
 
-
     return `
         <div class="election">
 
-            <div class="election-head">
+            <div class="e-head">
 
                 <div>
 
-                    <div class="election-title">
+                    <div class="e-title">
                         ${escapeHtml(
                             election.title
                         )}
                     </div>
 
-                    <div class="election-id">
+                    <div class="e-id">
                         ${escapeHtml(
                             election.election_id
                         )}
@@ -743,92 +627,73 @@ function electionCard(
             <div class="meta">
 
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         السيرفر
                     </div>
-
-                    <div class="meta-value">
-                        ${election.server_id}
+                    <div class="mv">
+                        ${escapeHtml(
+                            election.server_id
+                        )}
                     </div>
-
                 </div>
 
-
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         المقاعد
                     </div>
-
-                    <div class="meta-value">
-                        ${election.seats}
+                    <div class="mv">
+                        ${escapeHtml(
+                            election.seats
+                        )}
                     </div>
-
                 </div>
 
-
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         المرشحون
                     </div>
-
-                    <div class="meta-value">
+                    <div class="mv">
                         ${
                             election.candidate_count ??
                             0
                         }
                     </div>
-
                 </div>
 
-
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         المصوتون
                     </div>
-
-                    <div class="meta-value">
+                    <div class="mv">
                         ${
                             election.voter_count ??
                             0
                         }
                     </div>
-
                 </div>
 
-
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         المؤهلون
                     </div>
-
-                    <div class="meta-value">
+                    <div class="mv">
                         ${
                             election.eligible_count ??
                             0
                         }
                     </div>
-
                 </div>
 
-
                 <div class="meta-box">
-
-                    <div class="meta-label">
+                    <div class="ml">
                         المشاركة
                     </div>
-
-                    <div class="meta-value">
+                    <div class="mv">
                         ${
                             election.participation_rate ??
                             0
                         }%
                     </div>
-
                 </div>
 
             </div>
@@ -859,7 +724,7 @@ function electionCard(
             <div class="actions">
 
                 <button
-                    class="btn-blue"
+                    class="blue"
                     onclick="openDetails('${escapeHtml(
                         election.election_id
                     )}')"
@@ -873,7 +738,7 @@ function electionCard(
                     status === "scheduled"
                         ? `
                             <button
-                                class="btn-dark"
+                                class="dark"
                                 onclick="editElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -882,7 +747,7 @@ function electionCard(
                             </button>
 
                             <button
-                                class="btn-green"
+                                class="green"
                                 onclick="openElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -898,7 +763,7 @@ function electionCard(
                     status === "open"
                         ? `
                             <button
-                                class="btn-red"
+                                class="red"
                                 onclick="closeElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -915,7 +780,7 @@ function electionCard(
                     status !== "cancelled"
                         ? `
                             <button
-                                class="btn-red"
+                                class="red"
                                 onclick="cancelElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -931,7 +796,7 @@ function electionCard(
                     status === "cancelled"
                         ? `
                             <button
-                                class="btn-red"
+                                class="red"
                                 onclick="deleteCancelledElection('${escapeHtml(
                                     election.election_id
                                 )}')"
@@ -953,75 +818,70 @@ function electionCard(
    CREATE ELECTION
 ========================================================= */
 
-el("createSeats")
-    .addEventListener(
-        "change",
-        updateChoiceLimits
-    );
+el("createSeats")?.addEventListener(
+    "input",
+    updateChoiceLimits
+);
+
+el("createMinChoices")?.addEventListener(
+    "input",
+    updateChoiceLimits
+);
+
+el("createMaxChoices")?.addEventListener(
+    "input",
+    updateChoiceLimits
+);
 
 
 function updateChoiceLimits() {
 
     const seats =
         Number(
-            el("createSeats").value
-        );
+            el("createSeats")?.value
+        ) || 1;
 
+    const minInput =
+        el("createMinChoices");
 
-    el("createMinChoices").max =
-        seats;
+    const maxInput =
+        el("createMaxChoices");
 
-    el("createMaxChoices").max =
-        seats;
-
-
-    if (
-        Number(
-            el("createMinChoices").value
-        ) > seats
-    ) {
-        el("createMinChoices").value =
-            seats;
+    if (!minInput || !maxInput) {
+        return;
     }
 
+    minInput.max =
+        String(seats);
 
-    if (
-        Number(
-            el("createMaxChoices").value
-        ) > seats
-    ) {
-        el("createMaxChoices").value =
-            seats;
-    }
-}
+    maxInput.max =
+        String(seats);
 
+    let minValue =
+        Number(minInput.value) || 1;
 
-function parseUtcInput(value) {
+    let maxValue =
+        Number(maxInput.value) || seats;
 
-    const text =
-        value
-            .trim()
-            .replace("T", " ");
-
-
-    if (
-        !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(
-            text
-        )
-    ) {
-        return null;
+    if (minValue > seats) {
+        minValue = seats;
+        minInput.value = seats;
     }
 
+    if (maxValue > seats) {
+        maxValue = seats;
+        maxInput.value = seats;
+    }
 
-    return text.replace(
-        " ",
-        "T"
-    ) + ":00Z";
+    if (maxValue < minValue) {
+        maxInput.value =
+            String(minValue);
+    }
 }
 
 
 el("createElectionForm")
-    .addEventListener(
+    ?.addEventListener(
         "submit",
         async event => {
 
@@ -1046,13 +906,15 @@ el("createElectionForm")
 
             const serverId =
                 Number(
-                    el("createServer").value
+                    el("createServer")
+                        .value
                 );
 
 
             const seats =
                 Number(
-                    el("createSeats").value
+                    el("createSeats")
+                        .value
                 );
 
 
@@ -1070,71 +932,107 @@ el("createElectionForm")
                 );
 
 
+            const candidateNames =
+                normalizeCandidateNames(
+                    el("candidateNames")
+                        ?.value
+                );
+
+
             const startAt =
-                parseUtcInput(
+                parseUtcDateTime(
                     el("createStart")
                         .value
                 );
 
 
             const endAt =
-                parseUtcInput(
+                parseUtcDateTime(
                     el("createEnd")
                         .value
                 );
 
 
             const showResults =
-                el("createShowResults")
-                    .checked;
+                Boolean(
+                    el("createShowResults")
+                        .checked
+                );
 
 
             if (!title) {
-
                 showMessage(
                     el("createMessage"),
                     "عنوان التصويت مطلوب."
                 );
-
                 return;
             }
 
 
-            if (!serverId) {
-
+            if (
+                !Number.isInteger(serverId) ||
+                serverId <= 0
+            ) {
                 showMessage(
                     el("createMessage"),
                     "اختر السيرفر."
                 );
+                return;
+            }
 
+
+            if (
+                !Number.isInteger(seats) ||
+                seats < 1 ||
+                seats > 100
+            ) {
+                showMessage(
+                    el("createMessage"),
+                    "عدد المقاعد يجب أن يكون من 1 إلى 100."
+                );
                 return;
             }
 
 
             if (
                 minChoices < 1 ||
-                maxChoices <
-                    minChoices ||
-                maxChoices >
-                    seats
+                maxChoices < minChoices ||
+                maxChoices > seats
             ) {
-
                 showMessage(
                     el("createMessage"),
                     `الاختيارات يجب أن تكون من 1 إلى ${seats}.`
                 );
+                return;
+            }
 
+
+            if (!candidateNames.length) {
+                showMessage(
+                    el("createMessage"),
+                    "أدخل أسماء المرشحين، اسم واحد في كل سطر."
+                );
+                return;
+            }
+
+
+            if (
+                candidateNames.length <
+                seats
+            ) {
+                showMessage(
+                    el("createMessage"),
+                    `عدد المرشحين (${candidateNames.length}) أقل من عدد المقاعد (${seats}).`
+                );
                 return;
             }
 
 
             if (!startAt || !endAt) {
-
                 showMessage(
                     el("createMessage"),
-                    "استخدم الصيغة YYYY-MM-DD HH:mm بالتوقيت UTC."
+                    "اختر تاريخ ووقت البداية والنهاية."
                 );
-
                 return;
             }
 
@@ -1143,22 +1041,20 @@ el("createElectionForm")
                 Date.parse(startAt) >=
                 Date.parse(endAt)
             ) {
-
                 showMessage(
                     el("createMessage"),
                     "وقت البداية يجب أن يكون قبل وقت النهاية."
                 );
-
                 return;
             }
 
 
-            el("createElectionButton")
-                .disabled = true;
+            const button =
+                el("createElectionButton");
 
-            el("createElectionButton")
-                .textContent =
-                "جاري الإنشاء...";
+            button.disabled = true;
+            button.textContent =
+                "جاري إنشاء التصويت...";
 
 
             try {
@@ -1171,21 +1067,33 @@ el("createElectionForm")
 
                             body:
                                 JSON.stringify({
+
                                     title,
+
                                     description,
+
                                     server_id:
                                         serverId,
+
                                     seats,
+
                                     min_choices:
                                         minChoices,
+
                                     max_choices:
                                         maxChoices,
+
                                     start_at:
                                         startAt,
+
                                     end_at:
                                         endAt,
+
                                     show_results_during_voting:
-                                        showResults
+                                        showResults,
+
+                                    candidate_names:
+                                        candidateNames
                                 })
                         }
                     );
@@ -1214,26 +1122,43 @@ el("createElectionForm")
                     el("createMessage"),
 
                     `تم إنشاء التصويت بنجاح.
-رقم العملية: ${data.election.election_id}`,
+رقم العملية: ${data.election.election_id}
+عدد المرشحين: ${candidateNames.length}`,
 
                     "success"
                 );
+
+
+                const serverValue =
+                    el("createServer")
+                        .value;
 
 
                 el("createElectionForm")
                     .reset();
 
 
+                el("createServer")
+                    .value =
+                    serverValue;
+
+
                 el("createSeats")
-                    .value = "5";
+                    .value =
+                    "5";
 
 
                 el("createMinChoices")
-                    .value = "1";
+                    .value =
+                    "1";
 
 
                 el("createMaxChoices")
-                    .value = "5";
+                    .value =
+                    "5";
+
+
+                updateChoiceLimits();
 
 
                 await loadElections(
@@ -1253,11 +1178,9 @@ el("createElectionForm")
 
             } finally {
 
-                el("createElectionButton")
-                    .disabled = false;
+                button.disabled = false;
 
-                el("createElectionButton")
-                    .textContent =
+                button.textContent =
                     "إنشاء عملية التصويت";
             }
         }
@@ -1265,7 +1188,7 @@ el("createElectionForm")
 
 
 /* =========================================================
-   LOAD SERVERS
+   SERVERS
 ========================================================= */
 
 async function loadServers() {
@@ -1276,7 +1199,6 @@ async function loadServers() {
             await apiFetch(
                 "/admin/servers"
             );
-
 
         const data =
             await response.json();
@@ -1290,20 +1212,19 @@ async function loadServers() {
         }
 
 
-        const activeServers =
+        const servers =
             data.servers || [];
 
 
-        const createServer =
+        const createSelect =
             el("createServer");
 
-
-        const playersServer =
+        const playersSelect =
             el("playersServer");
 
 
-        const options =
-            activeServers
+        const activeOptions =
+            servers
                 .filter(
                     server =>
                         Number(
@@ -1314,6 +1235,11 @@ async function loadServers() {
                     server => `
                         <option
                             value="${server.server_id}"
+                            data-seats="${
+                                Number(
+                                    server.seats
+                                ) || 5
+                            }"
                         >
                             ${escapeHtml(
                                 server.name
@@ -1324,16 +1250,17 @@ async function loadServers() {
                 .join("");
 
 
-        createServer.innerHTML = `
+        createSelect.innerHTML = `
             <option value="">
                 اختر السيرفر
             </option>
-            ${options}
+            ${activeOptions}
         `;
 
 
-        playersServer.innerHTML =
-            options || `
+        playersSelect.innerHTML =
+            activeOptions ||
+            `
                 <option value="">
                     لا توجد سيرفرات نشطة
                 </option>
@@ -1341,30 +1268,75 @@ async function loadServers() {
 
 
         renderServers(
-            data.servers || []
+            servers
         );
 
     } catch (error) {
 
         console.error(
-            "Servers error:",
+            "loadServers:",
             error
         );
     }
 }
 
 
-/* =========================================================
-   SERVERS LIST
-========================================================= */
+/*
+ * لما نغير السيرفر:
+ * نجيب عدد المقاعد الافتراضي ونضعه تلقائيًا.
+ */
 
-function renderServers(
-    servers
-) {
+el("createServer")
+    ?.addEventListener(
+        "change",
+        () => {
+
+            const option =
+                el("createServer")
+                    .selectedOptions[0];
+
+            if (!option) return;
+
+            const defaultSeats =
+                Number(
+                    option.dataset.seats
+                );
+
+            if (
+                Number.isInteger(
+                    defaultSeats
+                ) &&
+                defaultSeats >= 1
+            ) {
+
+                el("createSeats")
+                    .value =
+                    String(
+                        Math.min(
+                            defaultSeats,
+                            100
+                        )
+                    );
+
+                el("createMaxChoices")
+                    .value =
+                    String(
+                        Math.min(
+                            defaultSeats,
+                            100
+                        )
+                    );
+
+                updateChoiceLimits();
+            }
+        }
+    );
+
+
+function renderServers(servers) {
 
     const container =
         el("serversList");
-
 
     if (!servers.length) {
 
@@ -1381,67 +1353,83 @@ function renderServers(
     container.innerHTML =
         servers
             .map(
-                server =>
-                    `
-                    <div class="server-row">
+                server => {
 
-                        <div>
+                    const active =
+                        Number(
+                            server.active
+                        ) === 1;
 
-                            <div class="server-name">
-                                ${escapeHtml(
-                                    server.name
-                                )}
-                            </div>
+                    const seats =
+                        Number(
+                            server.seats
+                        ) || 0;
 
-                            <div class="server-id">
-                                Server ID:
-                                ${server.server_id}
-                            </div>
+                    return `
+                        <div class="server-row">
 
-                        </div>
+                            <div>
 
-                        <div class="server-actions">
-
-                            <button
-                                class="btn-dark"
-                                onclick="renameServer(
-                                    ${server.server_id},
-                                    '${escapeHtml(
+                                <div class="server-name">
+                                    ${escapeHtml(
                                         server.name
-                                    )}'
-                                )"
-                            >
-                                تعديل
-                            </button>
-
-                            <button
-                                class="${
-                                    Number(
-                                        server.active
-                                    ) === 1
-                                        ? "btn-red"
-                                        : "btn-green"
-                                }"
-                                onclick="toggleServer(
-                                    ${server.server_id},
-                                    ${Number(
-                                        server.active
                                     )}
-                                )"
-                            >
-                                ${
-                                    Number(
-                                        server.active
-                                    ) === 1
-                                        ? "تعطيل"
-                                        : "تفعيل"
-                                }
-                            </button>
+                                </div>
+
+                                <div class="server-sub">
+                                    Server ${server.server_id}
+                                    —
+                                    ${seats} مقاعد
+                                    —
+                                    ${
+                                        active
+                                            ? "نشط"
+                                            : "معطل"
+                                    }
+                                </div>
+
+                            </div>
+
+
+                            <div class="server-actions">
+
+                                <button
+                                    class="dark"
+                                    onclick="editServer(
+                                        ${server.server_id},
+                                        '${escapeHtml(
+                                            server.name
+                                        )}',
+                                        ${seats}
+                                    )"
+                                >
+                                    تعديل
+                                </button>
+
+
+                                <button
+                                    class="${
+                                        active
+                                            ? "red"
+                                            : "green"
+                                    }"
+                                    onclick="toggleServer(
+                                        ${server.server_id},
+                                        ${active}
+                                    )"
+                                >
+                                    ${
+                                        active
+                                            ? "تعطيل"
+                                            : "تفعيل"
+                                    }
+                                </button>
+
+                            </div>
 
                         </div>
-
-                    </div>
-                    `
+                    `;
+                }
             )
             .join("");
 }
@@ -1452,7 +1440,7 @@ function renderServers(
 ========================================================= */
 
 el("serverForm")
-    .addEventListener(
+    ?.addEventListener(
         "submit",
         async event => {
 
@@ -1474,6 +1462,13 @@ el("serverForm")
                 el("serverNameInput")
                     .value
                     .trim();
+
+
+            const seats =
+                Number(
+                    el("serverSeatsInput")
+                        .value
+                );
 
 
             if (
@@ -1503,6 +1498,23 @@ el("serverForm")
             }
 
 
+            if (
+                !Number.isInteger(
+                    seats
+                ) ||
+                seats < 1 ||
+                seats > 100
+            ) {
+
+                showMessage(
+                    el("serverMessage"),
+                    "عدد المقاعد يجب أن يكون من 1 إلى 100."
+                );
+
+                return;
+            }
+
+
             try {
 
                 const response =
@@ -1515,7 +1527,10 @@ el("serverForm")
                                 JSON.stringify({
                                     server_id:
                                         serverId,
-                                    name
+
+                                    name,
+
+                                    seats
                                 })
                         }
                     );
@@ -1551,6 +1566,11 @@ el("serverForm")
                     .reset();
 
 
+                el("serverSeatsInput")
+                    .value =
+                    "5";
+
+
                 await loadServers();
 
             } catch (error) {
@@ -1567,26 +1587,52 @@ el("serverForm")
 
 
 /* =========================================================
-   RENAME SERVER
+   EDIT SERVER
 ========================================================= */
 
-window.renameServer =
+window.editServer =
     async function(
         serverId,
-        oldName
+        oldName,
+        oldSeats
     ) {
 
         const name =
             prompt(
-                "اسم السيرفر الجديد:",
+                "اسم السيرفر:",
                 oldName
             );
 
+        if (name === null) {
+            return;
+        }
+
+
+        const seatsInput =
+            prompt(
+                "عدد المقاعد الافتراضي:",
+                String(oldSeats)
+            );
+
+        if (seatsInput === null) {
+            return;
+        }
+
+
+        const seats =
+            Number(seatsInput);
+
 
         if (
-            name === null ||
-            !name.trim()
+            !Number.isInteger(seats) ||
+            seats < 1 ||
+            seats > 100
         ) {
+
+            alert(
+                "عدد المقاعد يجب أن يكون من 1 إلى 100."
+            );
+
             return;
         }
 
@@ -1602,7 +1648,9 @@ window.renameServer =
                         body:
                             JSON.stringify({
                                 name:
-                                    name.trim()
+                                    name.trim(),
+
+                                seats
                             })
                     }
                 );
@@ -1644,20 +1692,20 @@ window.renameServer =
 window.toggleServer =
     async function(
         serverId,
-        active
+        currentlyActive
     ) {
 
-        const enable =
-            Number(active) !== 1;
+        const nextState =
+            !currentlyActive;
 
 
-        if (
-            !confirm(
-                enable
-                    ? "تفعيل هذا السيرفر؟"
-                    : "تعطيل هذا السيرفر؟"
-            )
-        ) {
+        const message =
+            nextState
+                ? "تفعيل هذا السيرفر؟"
+                : "تعطيل هذا السيرفر؟";
+
+
+        if (!confirm(message)) {
             return;
         }
 
@@ -1673,7 +1721,7 @@ window.toggleServer =
                         body:
                             JSON.stringify({
                                 active:
-                                    enable
+                                    nextState
                             })
                     }
                 );
@@ -1849,7 +1897,7 @@ window.cancelElection =
 
         if (
             !confirm(
-                "سيتم إلغاء عملية التصويت. لن يتم حذفها. هل أنت متأكد؟"
+                "سيتم إلغاء عملية التصويت ولن يتم حذفها. هل أنت متأكد؟"
             )
         ) {
             return;
@@ -1914,7 +1962,7 @@ window.deleteCancelledElection =
 
         const confirmed =
             confirm(
-                "تحذير:\n\nسيتم حذف عملية التصويت الملغاة نهائيًا.\n\nلا يمكن التراجع عن هذا الإجراء.\n\nهل تريد المتابعة؟"
+                "تحذير:\n\nسيتم حذف التصويت الملغى نهائيًا.\nلا يمكن التراجع عن هذا الإجراء.\n\nهل تريد المتابعة؟"
             );
 
 
@@ -1999,7 +2047,7 @@ window.editElection =
 
                 alert(
                     data.message ||
-                    "تعذر تحميل الانتخابات."
+                    "تعذر تحميل التصويت."
                 );
 
                 return;
@@ -2016,7 +2064,6 @@ window.editElection =
                     election.title
                 );
 
-
             if (title === null) {
                 return;
             }
@@ -2029,25 +2076,101 @@ window.editElection =
                     ""
                 );
 
-
             if (description === null) {
                 return;
             }
 
 
-            const endAt =
+            const newEnd =
                 prompt(
-                    "النهاية بصيغة UTC:\nYYYY-MM-DDTHH:mm:ssZ",
+                    "وقت النهاية UTC بصيغة:\n2026-08-25T21:00:00Z",
                     election.end_at
                 );
 
-
-            if (endAt === null) {
+            if (newEnd === null) {
                 return;
             }
 
 
-            const response2 =
+            const body = {
+                title:
+                    title.trim(),
+
+                description:
+                    description.trim(),
+
+                end_at:
+                    newEnd.trim()
+            };
+
+
+            /*
+             * لو التصويت Draft/Scheduled:
+             * نسمح أيضًا بتعديل البداية والمقاعد والاختيارات.
+             */
+
+            if (
+                election.effective_status ===
+                    "draft" ||
+                election.effective_status ===
+                    "scheduled"
+            ) {
+
+                const seats =
+                    Number(
+                        prompt(
+                            "عدد المقاعد:",
+                            election.seats
+                        )
+                    );
+
+                const minChoices =
+                    Number(
+                        prompt(
+                            "أقل عدد اختيارات:",
+                            election.min_choices
+                        )
+                    );
+
+                const maxChoices =
+                    Number(
+                        prompt(
+                            "أقصى عدد اختيارات:",
+                            election.max_choices
+                        )
+                    );
+
+                if (
+                    !Number.isInteger(
+                        seats
+                    ) ||
+                    !Number.isInteger(
+                        minChoices
+                    ) ||
+                    !Number.isInteger(
+                        maxChoices
+                    )
+                ) {
+
+                    alert(
+                        "القيم غير صحيحة."
+                    );
+
+                    return;
+                }
+
+                body.seats =
+                    seats;
+
+                body.min_choices =
+                    minChoices;
+
+                body.max_choices =
+                    maxChoices;
+            }
+
+
+            const updateResponse =
                 await apiFetch(
                     `/admin/election/${encodeURIComponent(
                         electionId
@@ -2056,29 +2179,24 @@ window.editElection =
                         method: "PATCH",
 
                         body:
-                            JSON.stringify({
-                                title:
-                                    title.trim(),
-                                description:
-                                    description.trim(),
-                                end_at:
-                                    endAt.trim()
-                            })
+                            JSON.stringify(
+                                body
+                            )
                     }
                 );
 
 
-            const data2 =
-                await response2.json();
+            const updateData =
+                await updateResponse.json();
 
 
             if (
-                !response2.ok ||
-                !data2.success
+                !updateResponse.ok ||
+                !updateData.success
             ) {
 
                 alert(
-                    data2.message ||
+                    updateData.message ||
                     "تعذر تعديل التصويت."
                 );
 
@@ -2092,7 +2210,9 @@ window.editElection =
 
             await refreshDashboard();
 
-        } catch {
+        } catch (error) {
+
+            console.error(error);
 
             alert(
                 "حدث خطأ أثناء تعديل التصويت."
@@ -2102,7 +2222,7 @@ window.editElection =
 
 
 /* =========================================================
-   DETAILS
+   DETAILS MODAL
 ========================================================= */
 
 window.openDetails =
@@ -2183,26 +2303,19 @@ window.openDetails =
             const election =
                 details.election;
 
-
             const candidates =
-                details.candidates ||
-                [];
-
+                details.candidates || [];
 
             const voters =
-                votersData.voters ||
-                [];
-
+                votersData.voters || [];
 
             const results =
-                resultsData.results ||
-                [];
+                resultsData.results || [];
 
 
             el("modalTitle")
                 .textContent =
                 election.title;
-
 
             el("modalElectionId")
                 .textContent =
@@ -2211,13 +2324,13 @@ window.openDetails =
 
             let html = `
 
-                <div class="grid-3">
+                <div class="grid3">
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             الحالة
                         </div>
-                        <div class="meta-value">
+                        <div class="mv">
                             ${statusBadge(
                                 election.effective_status
                             )}
@@ -2225,47 +2338,56 @@ window.openDetails =
                     </div>
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             السيرفر
                         </div>
-                        <div class="meta-value">
+                        <div class="mv">
                             ${election.server_id}
                         </div>
                     </div>
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             المقاعد
                         </div>
-                        <div class="meta-value">
+                        <div class="mv">
                             ${election.seats}
                         </div>
                     </div>
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             المرشحون
                         </div>
-                        <div class="meta-value">
-                            ${election.candidate_count}
+                        <div class="mv">
+                            ${
+                                election.candidate_count ??
+                                0
+                            }
                         </div>
                     </div>
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             المصوتون
                         </div>
-                        <div class="meta-value">
-                            ${election.voter_count}
+                        <div class="mv">
+                            ${
+                                election.voter_count ??
+                                0
+                            }
                         </div>
                     </div>
 
                     <div class="meta-box">
-                        <div class="meta-label">
+                        <div class="ml">
                             المشاركة
                         </div>
-                        <div class="meta-value">
-                            ${election.participation_rate}%
+                        <div class="mv">
+                            ${
+                                election.participation_rate ??
+                                0
+                            }%
                         </div>
                     </div>
 
@@ -2274,7 +2396,7 @@ window.openDetails =
 
                 <div class="box">
 
-                    <h3 class="box-title">
+                    <h3>
                         المرشحون
                     </h3>
 
@@ -2282,8 +2404,7 @@ window.openDetails =
                         candidates.length
                             ? candidates
                                 .map(
-                                    candidate =>
-                                        `
+                                    candidate => `
                                         <div class="candidate">
 
                                             <div>
@@ -2322,7 +2443,7 @@ window.openDetails =
                                             }
 
                                         </div>
-                                        `
+                                    `
                                 )
                                 .join("")
                             : `
@@ -2337,11 +2458,7 @@ window.openDetails =
                         election.effective_status === "draft" ||
                         election.effective_status === "scheduled"
                             ? `
-                                <div
-                                    style="
-                                        margin-top:18px;
-                                    "
-                                >
+                                <div style="margin-top:18px">
 
                                     <div class="form-group">
 
@@ -2350,15 +2467,15 @@ window.openDetails =
                                         </label>
 
                                         <input
-                                            type="text"
                                             id="candidateUidInput"
+                                            type="text"
                                             placeholder="UID"
                                         >
 
                                     </div>
 
                                     <button
-                                        class="btn-green"
+                                        class="green"
                                         onclick="addCandidate(
                                             '${escapeHtml(
                                                 election.election_id
@@ -2383,7 +2500,7 @@ window.openDetails =
 
                 <div class="box">
 
-                    <h3 class="box-title">
+                    <h3>
                         النتائج
                     </h3>
 
@@ -2392,11 +2509,11 @@ window.openDetails =
 
                         <div class="stat">
 
-                            <div class="stat-label">
+                            <div class="l">
                                 المصوتون
                             </div>
 
-                            <div class="stat-value">
+                            <div class="n">
                                 ${
                                     resultsData.stats
                                         ?.voters ??
@@ -2409,11 +2526,11 @@ window.openDetails =
 
                         <div class="stat">
 
-                            <div class="stat-label">
+                            <div class="l">
                                 المؤهلون
                             </div>
 
-                            <div class="stat-value">
+                            <div class="n">
                                 ${
                                     resultsData.stats
                                         ?.eligible ??
@@ -2426,11 +2543,11 @@ window.openDetails =
 
                         <div class="stat">
 
-                            <div class="stat-label">
+                            <div class="l">
                                 المشاركة
                             </div>
 
-                            <div class="stat-value">
+                            <div class="n">
                                 ${
                                     resultsData.stats
                                         ?.participation_rate ??
@@ -2443,11 +2560,11 @@ window.openDetails =
 
                         <div class="stat">
 
-                            <div class="stat-label">
+                            <div class="l">
                                 المقاعد
                             </div>
 
-                            <div class="stat-value">
+                            <div class="n">
                                 ${
                                     election.seats
                                 }
@@ -2462,11 +2579,10 @@ window.openDetails =
                         results.length
                             ? results
                                 .map(
-                                    row =>
-                                        `
+                                    row => `
                                         <div class="result">
 
-                                            <div class="result-top">
+                                            <div class="r-top">
 
                                                 <span>
                                                     ${escapeHtml(
@@ -2476,18 +2592,16 @@ window.openDetails =
 
                                                 <span>
                                                     ${row.votes}
-                                                    صوت
-                                                    —
+                                                    صوت —
                                                     ${row.percentage}%
                                                 </span>
 
                                             </div>
 
-
                                             <div class="bar">
 
                                                 <div
-                                                    class="bar-fill"
+                                                    class="fill"
                                                     style="
                                                         width:${Math.min(
                                                             Number(
@@ -2501,7 +2615,7 @@ window.openDetails =
                                             </div>
 
                                         </div>
-                                        `
+                                    `
                                 )
                                 .join("")
                             : `
@@ -2516,26 +2630,27 @@ window.openDetails =
 
                 <div class="box">
 
-                    <h3 class="box-title">
+                    <h3>
                         المصوتون
                     </h3>
 
-                    <p
+                    <div
                         style="
                             color:#806f5b;
-                            font-size:12px;
+                            font-size:11px;
                             line-height:1.8;
+                            margin-bottom:10px;
                         "
                     >
-                        يظهر من قام بالتصويت ووقت تصويته فقط.
-                        لا يتم كشف المرشح الذي اختاره الناخب.
-                    </p>
+                        تظهر هوية من صوّت ووقت تصويته فقط.
+                        لا يتم عرض اختيار الناخب.
+                    </div>
 
 
                     ${
                         voters.length
                             ? `
-                                <div class="table-wrap">
+                                <div class="table">
 
                                     <table>
 
@@ -2561,35 +2676,36 @@ window.openDetails =
 
                                         <tbody>
 
-                                            ${voters
-                                                .map(
-                                                    voter =>
+                                            ${
+                                                voters
+                                                    .map(
+                                                        voter => `
+                                                            <tr>
+
+                                                                <td>
+                                                                    ${escapeHtml(
+                                                                        voter.uid
+                                                                    )}
+                                                                </td>
+
+                                                                <td>
+                                                                    ${escapeHtml(
+                                                                        voter.nickname ||
+                                                                        "-"
+                                                                    )}
+                                                                </td>
+
+                                                                <td dir="ltr">
+                                                                    ${formatDate(
+                                                                        voter.created_at
+                                                                    )}
+                                                                </td>
+
+                                                            </tr>
                                                         `
-                                                        <tr>
-
-                                                            <td>
-                                                                ${escapeHtml(
-                                                                    voter.uid
-                                                                )}
-                                                            </td>
-
-                                                            <td>
-                                                                ${escapeHtml(
-                                                                    voter.nickname ||
-                                                                    "-"
-                                                                )}
-                                                            </td>
-
-                                                            <td dir="ltr">
-                                                                ${formatDate(
-                                                                    voter.created_at
-                                                                )}
-                                                            </td>
-
-                                                        </tr>
-                                                        `
-                                                )
-                                                .join("")}
+                                                    )
+                                                    .join("")
+                                            }
 
                                         </tbody>
 
@@ -2605,13 +2721,13 @@ window.openDetails =
                     }
 
                 </div>
+
             `;
 
 
             el("modalBody")
                 .innerHTML =
                 html;
-
 
         } catch (error) {
 
@@ -2631,40 +2747,33 @@ window.openDetails =
    CLOSE MODAL
 ========================================================= */
 
-el("closeModal")
-    .addEventListener(
-        "click",
-        () => {
+el("closeModal")?.addEventListener(
+    "click",
+    () => {
 
+        el("electionModal")
+            .classList.remove("show");
+    }
+);
+
+
+el("electionModal")?.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
             el("electionModal")
-                .classList.remove(
-                    "show"
-                );
+        ) {
+            el("electionModal")
+                .classList.remove("show");
         }
-    );
-
-
-el("electionModal")
-    .addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                el("electionModal")
-            ) {
-
-                el("electionModal")
-                    .classList.remove(
-                        "show"
-                    );
-            }
-        }
-    );
+    }
+);
 
 
 /* =========================================================
-   ADD CANDIDATE
+   CANDIDATES
 ========================================================= */
 
 window.addCandidate =
@@ -2672,19 +2781,16 @@ window.addCandidate =
         electionId
     ) {
 
-        const input =
-            el("candidateUidInput");
-
-
         const uid =
-            input.value.trim();
-
+            el("candidateUidInput")
+                ?.value
+                .trim();
 
         if (!uid) {
 
             showMessage(
                 el("candidateMessage"),
-                "أدخل UID."
+                "أدخل UID اللاعب."
             );
 
             return;
@@ -2728,9 +2834,6 @@ window.addCandidate =
             }
 
 
-            input.value = "";
-
-
             await openDetails(
                 electionId
             );
@@ -2745,10 +2848,6 @@ window.addCandidate =
     };
 
 
-/* =========================================================
-   DELETE CANDIDATE
-========================================================= */
-
 window.deleteCandidate =
     async function(
         electionId,
@@ -2757,7 +2856,7 @@ window.deleteCandidate =
 
         if (
             !confirm(
-                "حذف هذا المرشح؟"
+                "هل تريد حذف هذا المرشح؟"
             )
         ) {
             return;
@@ -2799,7 +2898,6 @@ window.deleteCandidate =
                 electionId
             );
 
-
         } catch {
 
             alert(
@@ -2814,13 +2912,13 @@ window.deleteCandidate =
 ========================================================= */
 
 el("validatePlayersButton")
-    .addEventListener(
+    ?.addEventListener(
         "click",
         () => {
 
             showMessage(
                 el("playersMessage"),
-                "رفع ملفات اللاعبين لم يتم ربطه بالـAPI بعد."
+                "قسم رفع اللاعبين جاهز في الواجهة، لكن API فحص واستيراد CSV/Excel لم يتم تفعيله بعد."
             );
         }
     );
