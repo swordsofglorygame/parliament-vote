@@ -157,6 +157,10 @@ async function apiFetch(path, options = {}) {
 
 function forceLogout(message = "") {
     adminSessionToken = null;
+    adminEmail = "";
+
+    localStorage.removeItem("admin_session_token");
+    localStorage.removeItem("admin_email");
 
     const dashboardCard = el("dashboardCard");
     const loginCard = el("loginCard");
@@ -254,9 +258,22 @@ el("loginForm")?.addEventListener(
             adminSessionToken =
                 data.token;
 
+            adminEmail =
+                email;
+
+            localStorage.setItem(
+                "admin_session_token",
+                adminSessionToken
+            );
+
+            localStorage.setItem(
+                "admin_email",
+                adminEmail
+            );
+
             el("adminEmailDisplay")
                 .textContent =
-                email;
+                adminEmail;
 
             el("adminPassword")
                 .value = "";
@@ -2930,7 +2947,95 @@ el("validatePlayersButton")
 
 
 /* =========================================================
+   RESTORE ADMIN SESSION AFTER REFRESH
+========================================================= */
+
+async function restoreAdminSession() {
+    const token =
+        localStorage.getItem("admin_session_token");
+
+    const savedEmail =
+        localStorage.getItem("admin_email") || "";
+
+    if (!token) {
+        return;
+    }
+
+    adminSessionToken = token;
+    adminEmail = savedEmail;
+
+    try {
+        const response =
+            await fetch(
+                `${API_URL}/admin/test`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization:
+                            `Bearer ${adminSessionToken}`
+                    }
+                }
+            );
+
+        let data = null;
+
+        try {
+            data = await response.json();
+        } catch {
+            data = null;
+        }
+
+        if (
+            !response.ok ||
+            !data?.success
+        ) {
+            forceLogout();
+            return;
+        }
+
+        const loginCard =
+            el("loginCard");
+
+        const dashboardCard =
+            el("dashboardCard");
+
+        if (loginCard) {
+            loginCard.style.display =
+                "none";
+        }
+
+        if (dashboardCard) {
+            dashboardCard.style.display =
+                "block";
+        }
+
+        const emailDisplay =
+            el("adminEmailDisplay");
+
+        if (emailDisplay) {
+            emailDisplay.textContent =
+                adminEmail;
+        }
+
+        await refreshAll();
+
+    } catch (error) {
+
+        console.error(
+            "Session restore error:",
+            error
+        );
+
+        /*
+         * لا نحذف الجلسة عند وجود خطأ شبكة مؤقت.
+         */
+    }
+}
+
+
+/* =========================================================
    INITIAL
 ========================================================= */
 
 updateChoiceLimits();
+restoreAdminSession();
