@@ -90,6 +90,7 @@ function showMessage(
 
 
 function hideMessage(element) {
+
     if (!element) return;
 
     element.style.display = "none";
@@ -98,6 +99,7 @@ function hideMessage(element) {
 
 
 function escapeHtml(value) {
+
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -111,9 +113,14 @@ function formatDate(value) {
 
     if (!value) return "-";
 
-    const date = new Date(value);
+    const date =
+        new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
         return String(value);
     }
 
@@ -293,9 +300,12 @@ async function api(
     let data = null;
 
     try {
+
         data =
             await response.json();
+
     } catch {
+
         data = null;
     }
 
@@ -321,7 +331,9 @@ function createNavigation() {
     }
 
     const nav =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     nav.id =
         "votingNavigation";
@@ -333,9 +345,12 @@ function createNavigation() {
 
 
     const back =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
     back.type = "button";
+
     back.textContent =
         "رجوع إلى التصويتات";
 
@@ -349,10 +364,14 @@ function createNavigation() {
 
 
     const logout =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
     logout.type = "button";
-    logout.textContent = "خروج";
+
+    logout.textContent =
+        "خروج";
 
     logout.style.width = "auto";
     logout.style.marginTop = "0";
@@ -363,8 +382,11 @@ function createNavigation() {
     );
 
 
-    nav.appendChild(back);
-    nav.appendChild(logout);
+    nav.append(
+        back,
+        logout
+    );
+
 
     electionCard.insertBefore(
         nav,
@@ -373,7 +395,9 @@ function createNavigation() {
 }
 
 
-function showNavigation(show = true) {
+function showNavigation(
+    show = true
+) {
 
     createNavigation();
 
@@ -383,84 +407,15 @@ function showNavigation(show = true) {
         );
 
     nav.style.display =
-        show ? "flex" : "none";
+        show
+            ? "flex"
+            : "none";
 }
 
 
 /* =========================================================
-   VOTING LIST
+   SECTION TITLE
 ========================================================= */
-
-async function loadVotingList() {
-
-    if (!currentPlayer) {
-        return;
-    }
-
-    hideMessage(electionMessage);
-
-    electionTitle.textContent =
-        "عمليات التصويت";
-
-    electionInfo.textContent =
-        "جاري تحميل عمليات التصويت...";
-
-    candidatesContainer.innerHTML =
-        "";
-
-    showNavigation(true);
-
-    try {
-
-        const {
-            response,
-            data
-        } =
-            await api(
-                `/elections?server_id=${encodeURIComponent(
-                    currentPlayer.server_id
-                )}&uid=${encodeURIComponent(
-                    currentPlayer.uid
-                )}`
-            );
-
-        if (
-            !response.ok ||
-            !data?.success
-        ) {
-
-            showMessage(
-                electionMessage,
-                data?.message ||
-                "تعذر تحميل عمليات التصويت."
-            );
-
-            return;
-        }
-
-
-        currentElections =
-            Array.isArray(
-                data.elections
-            )
-                ? data.elections
-                : [];
-
-
-        renderVotingList();
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            electionMessage,
-            "حدث خطأ أثناء الاتصال بالخادم."
-        );
-    }
-}
-
 
 function makeSectionTitle(
     text
@@ -486,6 +441,10 @@ function makeSectionTitle(
     return title;
 }
 
+
+/* =========================================================
+   ELECTION CARD
+========================================================= */
 
 function makeElectionCard(
     election,
@@ -514,7 +473,9 @@ function makeElectionCard(
 
 
     const title =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     title.textContent =
         election.title ||
@@ -534,7 +495,9 @@ function makeElectionCard(
 
 
     const description =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     description.textContent =
         election.description ||
@@ -554,7 +517,9 @@ function makeElectionCard(
 
 
     const details =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     details.style.fontSize =
         "12px";
@@ -566,7 +531,9 @@ function makeElectionCard(
         "#918068";
 
 
-    if (mode === "open") {
+    if (
+        mode === "open"
+    ) {
 
         const hasVoted =
             Boolean(
@@ -578,14 +545,21 @@ function makeElectionCard(
                 )
             );
 
+
         details.innerHTML = `
             المقاعد:
-            ${escapeHtml(election.seats)}
+            ${escapeHtml(
+                election.seats
+            )}
             —
             الاختيارات:
-            ${escapeHtml(election.min_choices)}
+            ${escapeHtml(
+                election.min_choices
+            )}
             إلى
-            ${escapeHtml(election.max_choices)}
+            ${escapeHtml(
+                election.max_choices
+            )}
             <br>
             البداية:
             ${escapeHtml(
@@ -609,7 +583,9 @@ function makeElectionCard(
             }
         `;
 
-    } else if (mode === "scheduled") {
+    } else if (
+        mode === "scheduled"
+    ) {
 
         details.innerHTML = `
             البداية:
@@ -653,13 +629,20 @@ function makeElectionCard(
     }
 
 
-    const button =
-        document.createElement("button");
+    card.append(
+        title,
+        description,
+        details
+    );
 
-    button.type = "button";
 
+    /* =====================================================
+       OPEN
+    ===================================================== */
 
-    if (mode === "open") {
+    if (
+        mode === "open"
+    ) {
 
         const hasVoted =
             Boolean(
@@ -671,53 +654,167 @@ function makeElectionCard(
                 )
             );
 
-        button.textContent =
+
+        const voteButton =
+            document.createElement(
+                "button"
+            );
+
+        voteButton.type =
+            "button";
+
+        voteButton.textContent =
             hasVoted
                 ? "عرض تصويتي"
                 : "دخول للتصويت";
 
-        button.addEventListener(
+        voteButton.style.marginTop =
+            "12px";
+
+        voteButton.addEventListener(
             "click",
-            () => openVoting(election)
+            () =>
+                openVoting(
+                    election
+                )
         );
+
+
+        card.appendChild(
+            voteButton
+        );
+
+
+        /*
+         * results_available يأتي من الـBackend
+         * ويعكس إعداد الإدارة.
+         */
+        if (
+            election.results_available ===
+            true
+        ) {
+
+            const resultsButton =
+                document.createElement(
+                    "button"
+                );
+
+            resultsButton.type =
+                "button";
+
+            resultsButton.textContent =
+                "عرض النتائج الحالية";
+
+            resultsButton.style.marginTop =
+                "8px";
+
+            resultsButton.addEventListener(
+                "click",
+                () =>
+                    showResults(
+                        election.election_id
+                    )
+            );
+
+
+            card.appendChild(
+                resultsButton
+            );
+        }
+
+
+    /* =====================================================
+       CLOSED
+    ===================================================== */
 
     } else if (
         mode === "closed"
     ) {
 
-        button.textContent =
-            "عرض النتائج";
+        const resultsButton =
+            document.createElement(
+                "button"
+            );
 
-        button.addEventListener(
-            "click",
-            () =>
-                showResults(
-                    election.election_id
-                )
+        resultsButton.type =
+            "button";
+
+        resultsButton.style.marginTop =
+            "12px";
+
+
+        /*
+         * لو الأدمن مخفي النتائج،
+         * يظهر الزر معطلاً.
+         */
+        if (
+            election.results_available ===
+            false
+        ) {
+
+            resultsButton.textContent =
+                "النتائج مخفية";
+
+            resultsButton.disabled =
+                true;
+
+        } else {
+
+            resultsButton.textContent =
+                "عرض النتائج";
+
+            resultsButton.addEventListener(
+                "click",
+                () =>
+                    showResults(
+                        election.election_id
+                    )
+            );
+        }
+
+
+        card.appendChild(
+            resultsButton
         );
+
+
+    /* =====================================================
+       SCHEDULED
+    ===================================================== */
 
     } else {
 
-        button.textContent =
+        const scheduledButton =
+            document.createElement(
+                "button"
+            );
+
+        scheduledButton.type =
+            "button";
+
+        scheduledButton.textContent =
             "مجدولة";
 
-        button.disabled =
+        scheduledButton.disabled =
             true;
+
+        scheduledButton.style.marginTop =
+            "12px";
+
+
+        card.appendChild(
+            scheduledButton
+        );
     }
 
-
-    button.style.marginTop =
-        "12px";
-
-
-    card.appendChild(title);
-    card.appendChild(description);
-    card.appendChild(details);
-    card.appendChild(button);
 
     return card;
 }
 
+
+/* =========================================================
+   RENDER ELECTION LIST
+========================================================= */
 
 function renderVotingList() {
 
@@ -729,49 +826,54 @@ function renderVotingList() {
     const closed = [];
 
 
-    currentElections.forEach(
-        election => {
+    for (
+        const election
+        of currentElections
+    ) {
 
-            const state =
-                getElectionTimeState(
-                    election
-                );
+        const state =
+            getElectionTimeState(
+                election
+            );
 
-            if (
-                state === "open"
-            ) {
 
-                open.push(
-                    election
-                );
+        if (
+            state === "open"
+        ) {
 
-            } else if (
-                state === "scheduled"
-            ) {
+            open.push(
+                election
+            );
 
-                scheduled.push(
-                    election
-                );
+        } else if (
+            state === "scheduled"
+        ) {
 
-            } else if (
-                state === "closed"
-            ) {
+            scheduled.push(
+                election
+            );
 
-                closed.push(
-                    election
-                );
-            }
+        } else if (
+            state === "closed"
+        ) {
+
+            closed.push(
+                election
+            );
         }
-    );
+    }
 
 
-    if (open.length) {
+    if (
+        open.length
+    ) {
 
         candidatesContainer.appendChild(
             makeSectionTitle(
                 "التصويتات الجارية"
             )
         );
+
 
         open.forEach(
             election =>
@@ -785,13 +887,16 @@ function renderVotingList() {
     }
 
 
-    if (scheduled.length) {
+    if (
+        scheduled.length
+    ) {
 
         candidatesContainer.appendChild(
             makeSectionTitle(
                 "التصويتات المجدولة"
             )
         );
+
 
         scheduled.forEach(
             election =>
@@ -805,13 +910,16 @@ function renderVotingList() {
     }
 
 
-    if (closed.length) {
+    if (
+        closed.length
+    ) {
 
         candidatesContainer.appendChild(
             makeSectionTitle(
                 "التصويتات المنتهية والنتائج"
             )
         );
+
 
         closed.forEach(
             election =>
@@ -849,6 +957,102 @@ function renderVotingList() {
 
 
 /* =========================================================
+   LOAD ELECTIONS
+========================================================= */
+
+async function loadVotingList() {
+
+    if (!currentPlayer) {
+        return;
+    }
+
+
+    currentElection =
+        null;
+
+    clearEndTimer();
+
+    hideMessage(
+        electionMessage
+    );
+
+
+    electionTitle.textContent =
+        "عمليات التصويت";
+
+
+    electionInfo.textContent =
+        "جاري تحميل عمليات التصويت...";
+
+
+    candidatesContainer.innerHTML =
+        "";
+
+
+    showNavigation(
+        true
+    );
+
+
+    try {
+
+        const {
+            response,
+            data
+        } =
+            await api(
+                `/elections?server_id=${encodeURIComponent(
+                    currentPlayer.server_id
+                )}&uid=${encodeURIComponent(
+                    currentPlayer.uid
+                )}`
+            );
+
+
+        if (
+            !response.ok ||
+            !data?.success
+        ) {
+
+            showMessage(
+                electionMessage,
+                data?.message ||
+                "تعذر تحميل عمليات التصويت."
+            );
+
+            return;
+        }
+
+
+        currentElections =
+            Array.isArray(
+                data.elections
+            )
+                ? data.elections
+                : [];
+
+
+        renderVotingList();
+
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            error
+        );
+
+
+        showMessage(
+            electionMessage,
+            "حدث خطأ أثناء الاتصال بالخادم."
+        );
+    }
+}
+
+
+/* =========================================================
    OPEN VOTING
 ========================================================= */
 
@@ -862,7 +1066,9 @@ async function openVoting(
         );
 
 
-    if (state === "closed") {
+    if (
+        state === "closed"
+    ) {
 
         await showResults(
             election.election_id
@@ -872,7 +1078,9 @@ async function openVoting(
     }
 
 
-    if (state !== "open") {
+    if (
+        state !== "open"
+    ) {
 
         showMessage(
             electionMessage,
@@ -886,13 +1094,14 @@ async function openVoting(
     currentElection =
         election;
 
+
     clearRefreshTimer();
     clearEndTimer();
 
 
     const end =
         Date.parse(
-            election.end_at
+            election.end_at || ""
         );
 
 
@@ -920,17 +1129,23 @@ async function openVoting(
         election.title ||
         "عملية تصويت";
 
+
     electionInfo.textContent =
         "جاري تحميل المرشحين...";
 
+
     candidatesContainer.innerHTML =
         "";
+
 
     hideMessage(
         electionMessage
     );
 
-    showNavigation(true);
+
+    showNavigation(
+        true
+    );
 
 
     try {
@@ -943,7 +1158,9 @@ async function openVoting(
                 : [];
 
 
-        if (!candidates.length) {
+        if (
+            !candidates.length
+        ) {
 
             const {
                 response,
@@ -969,11 +1186,20 @@ async function openVoting(
                     )
                         ? data.candidates
                         : [];
+
+
+                currentElection = {
+                    ...currentElection,
+                    ...data.election,
+                    candidates
+                };
             }
         }
 
 
-        if (!candidates.length) {
+        if (
+            !candidates.length
+        ) {
 
             showMessage(
                 electionMessage,
@@ -985,14 +1211,20 @@ async function openVoting(
 
 
         renderVotingForm(
+            currentElection ||
             election,
             candidates
         );
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         showMessage(
             electionMessage,
@@ -1000,6 +1232,12 @@ async function openVoting(
         );
     }
 }
+
+
+/* =========================================================
+   VOTING FORM
+========================================================= */
+
 function renderVotingForm(
     election,
     candidates
@@ -1012,7 +1250,8 @@ function renderVotingForm(
 
 
     if (
-        currentState === "closed"
+        currentState ===
+        "closed"
     ) {
 
         showResults(
@@ -1071,6 +1310,7 @@ function renderVotingForm(
                     "div"
                 );
 
+
             box.style.marginBottom =
                 "12px";
 
@@ -1091,6 +1331,7 @@ function renderVotingForm(
                 document.createElement(
                     "label"
                 );
+
 
             label.style.display =
                 "flex";
@@ -1114,6 +1355,7 @@ function renderVotingForm(
                 document.createElement(
                     "input"
                 );
+
 
             checkbox.type =
                 "checkbox";
@@ -1146,6 +1388,7 @@ function renderVotingForm(
                     "span"
                 );
 
+
             name.textContent =
                 candidate.nickname;
 
@@ -1156,17 +1399,16 @@ function renderVotingForm(
                 "16px";
 
 
-            label.appendChild(
-                checkbox
-            );
-
-            label.appendChild(
+            label.append(
+                checkbox,
                 name
             );
+
 
             box.appendChild(
                 label
             );
+
 
             candidatesContainer.appendChild(
                 box
@@ -1175,12 +1417,15 @@ function renderVotingForm(
     );
 
 
-    if (hasVoted) {
+    if (
+        hasVoted
+    ) {
 
         const notice =
             document.createElement(
                 "div"
             );
+
 
         notice.style.marginTop =
             "14px";
@@ -1203,9 +1448,11 @@ function renderVotingForm(
         notice.textContent =
             "تم تسجيل تصويتك. لا يمكن تعديل التصويت.";
 
+
         candidatesContainer.appendChild(
             notice
         );
+
 
         return;
     }
@@ -1216,16 +1463,19 @@ function renderVotingForm(
             "button"
         );
 
+
     submit.type =
         "button";
 
     submit.textContent =
         "تأكيد التصويت";
 
+
     submit.addEventListener(
         "click",
         submitVote
     );
+
 
     candidatesContainer.appendChild(
         submit
@@ -1261,19 +1511,15 @@ async function submitVote() {
     }
 
 
-    const selected =
+    const candidateIds =
         Array.from(
             document.querySelectorAll(
                 'input[name="candidate"]:checked'
             )
-        );
-
-
-    const candidateIds =
-        selected.map(
-            checkbox =>
+        ).map(
+            input =>
                 Number(
-                    checkbox.value
+                    input.value
                 )
         );
 
@@ -1296,15 +1542,19 @@ async function submitVote() {
 
     const button =
         Array.from(
-            candidatesContainer
-                .querySelectorAll(
-                    "button"
-                )
+            candidatesContainer.querySelectorAll(
+                "button"
+            )
         ).at(-1);
 
 
-    if (button) {
-        button.disabled = true;
+    if (
+        button
+    ) {
+
+        button.disabled =
+            true;
+
         button.textContent =
             "جاري تسجيل التصويت...";
     }
@@ -1319,7 +1569,8 @@ async function submitVote() {
             await api(
                 "/vote",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
@@ -1328,6 +1579,7 @@ async function submitVote() {
 
                     body:
                         JSON.stringify({
+
                             uid:
                                 currentPlayer.uid,
 
@@ -1355,11 +1607,18 @@ async function submitVote() {
                 "تعذر تسجيل التصويت."
             );
 
-            if (button) {
-                button.disabled = false;
+
+            if (
+                button
+            ) {
+
+                button.disabled =
+                    false;
+
                 button.textContent =
                     "تأكيد التصويت";
             }
+
 
             return;
         }
@@ -1373,13 +1632,15 @@ async function submitVote() {
 
         currentElection = {
             ...currentElection,
-            has_voted: true
+            has_voted:
+                true
         };
 
 
         renderVotingForm(
             currentElection,
-            currentElection.candidates || []
+            currentElection.candidates ||
+            []
         );
 
 
@@ -1390,17 +1651,28 @@ async function submitVote() {
         );
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         showMessage(
             electionMessage,
             "حدث خطأ أثناء الاتصال بالخادم."
         );
 
-        if (button) {
-            button.disabled = false;
+
+        if (
+            button
+        ) {
+
+            button.disabled =
+                false;
+
             button.textContent =
                 "تأكيد التصويت";
         }
@@ -1419,7 +1691,9 @@ async function showResults(
     clearEndTimer();
     clearRefreshTimer();
 
-    currentElection = null;
+    currentElection =
+        null;
+
 
     try {
 
@@ -1449,14 +1723,41 @@ async function showResults(
         }
 
 
+        /*
+         * حماية إضافية للواجهة:
+         * القرار الحقيقي يأتي من الـBackend،
+         * لكن لا نعرض النتيجة أثناء التصويت إذا
+         * أخبرنا الخادم أنها مخفية.
+         */
+        if (
+            data?.results_visible_during_voting ===
+                false &&
+            data?.election?.status ===
+                "open"
+        ) {
+
+            showMessage(
+                electionMessage,
+                "نتائج التصويت مخفية حاليًا."
+            );
+
+            return;
+        }
+
+
         renderResults(
             data
         );
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         showMessage(
             electionMessage,
@@ -1466,12 +1767,18 @@ async function showResults(
 }
 
 
+/* =========================================================
+   RENDER RESULTS
+========================================================= */
+
 function renderResults(
     data
 ) {
 
     showNavigation(
-        Boolean(currentPlayer)
+        Boolean(
+            currentPlayer
+        )
     );
 
 
@@ -1480,14 +1787,104 @@ function renderResults(
         "نتائج التصويت";
 
 
+    const status =
+        data.election?.status;
+
+
     electionInfo.textContent =
-        `انتهت عملية التصويت في ${formatDate(
-            data.election?.end_at
-        )}.`;
+        status === "open"
+            ? "نتائج التصويت الحالية."
+            : `نتائج التصويت — النهاية: ${formatDate(
+                data.election?.end_at
+            )}`;
 
 
     candidatesContainer.innerHTML =
         "";
+
+
+    /*
+     * نعرض عدد المصوتين فقط.
+     * لا نعرض:
+     * - غير المصوتين
+     * - المؤهلين
+     * - نسبة المشاركة
+     */
+    const stats =
+        data.stats || {};
+
+
+    const statsBox =
+        document.createElement(
+            "div"
+        );
+
+
+    statsBox.style.display =
+        "grid";
+
+    statsBox.style.gridTemplateColumns =
+        "1fr";
+
+    statsBox.style.gap =
+        "10px";
+
+    statsBox.style.marginBottom =
+        "18px";
+
+
+    const stat =
+        document.createElement(
+            "div"
+        );
+
+
+    stat.style.padding =
+        "14px";
+
+    stat.style.border =
+        "1px solid rgba(190,145,70,.3)";
+
+    stat.style.borderRadius =
+        "12px";
+
+    stat.style.textAlign =
+        "center";
+
+
+    stat.innerHTML = `
+        <div
+            style="
+                color:#917e62;
+                font-size:12px;
+                margin-bottom:6px
+            "
+        >
+            المصوتون
+        </div>
+
+        <div
+            style="
+                color:#d9ad5b;
+                font-size:22px;
+                font-weight:bold
+            "
+        >
+            ${escapeHtml(
+                stats.voters ?? 0
+            )}
+        </div>
+    `;
+
+
+    statsBox.appendChild(
+        stat
+    );
+
+
+    candidatesContainer.appendChild(
+        statsBox
+    );
 
 
     const results =
@@ -1498,98 +1895,15 @@ function renderResults(
             : [];
 
 
-    const stats =
-        data.stats || {};
-
-
-    const statsBox =
-        document.createElement(
-            "div"
-        );
-
-    statsBox.style.display =
-        "grid";
-
-    statsBox.style.gridTemplateColumns =
-        "repeat(auto-fit,minmax(130px,1fr))";
-
-    statsBox.style.gap =
-        "10px";
-
-    statsBox.style.marginBottom =
-        "18px";
-
-
-    const statsList = [
-    [
-        "المصوتون",
-        stats.voters ?? 0
-    ]
-];
-
-
-    statsList.forEach(
-        ([label, value]) => {
-
-            const box =
-                document.createElement(
-                    "div"
-                );
-
-            box.style.padding =
-                "14px";
-
-            box.style.border =
-                "1px solid rgba(190,145,70,.3)";
-
-            box.style.borderRadius =
-                "12px";
-
-            box.style.textAlign =
-                "center";
-
-
-            box.innerHTML = `
-                <div
-                    style="
-                        color:#917e62;
-                        font-size:12px;
-                        margin-bottom:6px;
-                    "
-                >
-                    ${escapeHtml(label)}
-                </div>
-
-                <div
-                    style="
-                        color:#d9ad5b;
-                        font-size:22px;
-                        font-weight:bold;
-                    "
-                >
-                    ${escapeHtml(value)}
-                </div>
-            `;
-
-
-            statsBox.appendChild(
-                box
-            );
-        }
-    );
-
-
-    candidatesContainer.appendChild(
-        statsBox
-    );
-
-
-    if (!results.length) {
+    if (
+        !results.length
+    ) {
 
         const empty =
             document.createElement(
                 "div"
             );
+
 
         empty.style.padding =
             "20px";
@@ -1609,19 +1923,25 @@ function renderResults(
         empty.textContent =
             "لا توجد أصوات مسجلة.";
 
+
         candidatesContainer.appendChild(
             empty
         );
 
+
     } else {
 
         results.forEach(
-            (row, index) => {
+            (
+                row,
+                index
+            ) => {
 
                 const item =
                     document.createElement(
                         "div"
                     );
+
 
                 item.style.marginBottom =
                     "12px";
@@ -1642,17 +1962,30 @@ function renderResults(
                     ) || 0;
 
 
+                const safePercent =
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            percent
+                        )
+                    );
+
+
                 item.innerHTML = `
                     <div
                         style="
                             display:flex;
                             justify-content:space-between;
                             gap:10px;
-                            margin-bottom:8px;
+                            margin-bottom:8px
                         "
                     >
+
                         <strong
-                            style="color:#f5ead7"
+                            style="
+                                color:#f5ead7
+                            "
                         >
                             ${index + 1}.
                             ${escapeHtml(
@@ -1660,10 +1993,11 @@ function renderResults(
                             )}
                         </strong>
 
+
                         <span
                             style="
                                 color:#d9ad5b;
-                                font-weight:bold;
+                                font-weight:bold
                             "
                         >
                             ${escapeHtml(
@@ -1674,33 +2008,31 @@ function renderResults(
                                 percent
                             )}%
                         </span>
+
                     </div>
+
 
                     <div
                         style="
                             height:10px;
                             background:#261c12;
                             border-radius:999px;
-                            overflow:hidden;
+                            overflow:hidden
                         "
                     >
+
                         <div
                             style="
-                                width:${Math.max(
-                                    0,
-                                    Math.min(
-                                        100,
-                                        percent
-                                    )
-                                )}%;
+                                width:${safePercent}%;
                                 height:100%;
                                 background:linear-gradient(
                                     90deg,
                                     #d4a54f,
                                     #9a6b25
-                                );
+                                )
                             "
                         ></div>
+
                     </div>
                 `;
 
@@ -1713,32 +2045,41 @@ function renderResults(
     }
 
 
-    if (currentPlayer) {
+    if (
+        currentPlayer
+    ) {
 
         const back =
             document.createElement(
                 "button"
             );
 
-        back.type = "button";
+
+        back.type =
+            "button";
+
         back.textContent =
             "رجوع إلى التصويتات";
 
         back.style.marginTop =
             "14px";
 
+
         back.addEventListener(
             "click",
             showVotingList
         );
+
 
         candidatesContainer.appendChild(
             back
         );
     }
 }
+
+
 /* =========================================================
-   RETURN TO VOTING LIST
+   RETURN
 ========================================================= */
 
 function showVotingList() {
@@ -1747,10 +2088,13 @@ function showVotingList() {
         return;
     }
 
+
     clearEndTimer();
+
 
     currentElection =
         null;
+
 
     loadVotingList();
 }
@@ -1765,35 +2109,55 @@ function logoutPlayer() {
     clearEndTimer();
     clearRefreshTimer();
 
-    currentPlayer = null;
-    currentElection = null;
-    currentElections = [];
+
+    currentPlayer =
+        null;
+
+    currentElection =
+        null;
+
+    currentElections =
+        [];
+
 
     clearPlayerStorage();
 
-    uidInput.value = "";
-    ridInput.value = "";
+
+    uidInput.value =
+        "";
+
+    ridInput.value =
+        "";
+
 
     electionTitle.textContent =
         "نظام التصويت";
 
+
     electionInfo.textContent =
         "أدخل بيانات حسابك للتحقق من أهليتك والمشاركة في التصويت.";
 
+
     candidatesContainer.innerHTML =
         "";
+
 
     hideMessage(
         electionMessage
     );
 
+
     electionCard.style.display =
         "none";
+
 
     verificationCard.style.display =
         "block";
 
-    showNavigation(false);
+
+    showNavigation(
+        false
+    );
 }
 
 
@@ -1806,6 +2170,7 @@ form.addEventListener(
     async event => {
 
         event.preventDefault();
+
 
         hideMessage(
             message
@@ -1857,7 +2222,8 @@ form.addEventListener(
                 await api(
                     "/verify",
                     {
-                        method: "POST",
+                        method:
+                            "POST",
 
                         headers: {
                             "Content-Type":
@@ -1917,14 +2283,20 @@ form.addEventListener(
             await loadVotingList();
 
 
-        } catch (error) {
+        } catch (
+            error
+        ) {
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             showMessage(
                 message,
                 "حدث خطأ أثناء الاتصال بالخادم."
             );
+
 
         } finally {
 
@@ -1952,6 +2324,7 @@ async function restorePlayerSession() {
         !saved?.uid ||
         !saved?.rid
     ) {
+
         return;
     }
 
@@ -1965,7 +2338,8 @@ async function restorePlayerSession() {
             await api(
                 "/verify",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
@@ -1990,6 +2364,7 @@ async function restorePlayerSession() {
         ) {
 
             clearPlayerStorage();
+
             return;
         }
 
@@ -2013,6 +2388,7 @@ async function restorePlayerSession() {
         verificationCard.style.display =
             "none";
 
+
         electionCard.style.display =
             "block";
 
@@ -2020,7 +2396,9 @@ async function restorePlayerSession() {
         await loadVotingList();
 
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         console.error(
             "Session restore:",
@@ -2041,9 +2419,14 @@ function getPublicResultId() {
             window.location.search
         );
 
+
     return (
-        params.get("results") ||
-        params.get("result") ||
+        params.get(
+            "results"
+        ) ||
+        params.get(
+            "result"
+        ) ||
         null
     );
 }
@@ -2063,11 +2446,14 @@ async function loadPublicResults() {
     verificationCard.style.display =
         "none";
 
+
     electionCard.style.display =
         "block";
 
 
-    showNavigation(false);
+    showNavigation(
+        false
+    );
 
 
     await showResults(
@@ -2116,14 +2502,20 @@ document.addEventListener(
 
         createNavigation();
 
+
         const isPublic =
             await loadPublicResults();
 
-        if (isPublic) {
+
+        if (
+            isPublic
+        ) {
             return;
         }
 
+
         startAutoRefresh();
+
 
         await restorePlayerSession();
     }
