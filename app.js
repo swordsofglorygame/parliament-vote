@@ -951,8 +951,6 @@ function renderVotingList() {
     }
 
 
-    electionInfo.textContent =
-        `الجارية: ${open.length} — المجدولة: ${scheduled.length} — المنتهية: ${closed.length}`;
 }
 
 
