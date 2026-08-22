@@ -1254,11 +1254,11 @@ async function openVoting(
                 response,
                 data
             } =
-                await api(
-                    `/election?server_id=${encodeURIComponent(
-                        currentPlayer.server_id
-                    )}`
-                );
+await api(
+    `/election?server_id=${encodeURIComponent(
+        currentPlayer.server_id
+    )}`
+);
 
 
             if (
