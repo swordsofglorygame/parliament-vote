@@ -823,28 +823,131 @@ function makeElectionCard(
  */
 function renderVotingList() {
 
-    candidatesContainer.innerHTML =
-        "";
+    candidatesContainer.innerHTML = "";
 
-    const openElections =
-        currentElections.filter(
-            election =>
-                getElectionTimeState(
-                    election
-                ) === "open"
+    const open = [];
+    const closed = [];
+
+
+    for (
+        const election of currentElections
+    ) {
+
+        const state =
+            getElectionTimeState(
+                election
+            );
+
+
+        /*
+         * الجارية تظهر دائمًا.
+         */
+        if (
+            state === "open"
+        ) {
+
+            open.push(
+                election
+            );
+
+            continue;
+        }
+
+
+        /*
+         * المنتهية تظهر أيضًا
+         * حتى يستطيع اللاعب الوصول للنتائج.
+         *
+         * لا نعرض المجدولة.
+         */
+        if (
+            state === "closed"
+        ) {
+
+            closed.push(
+                election
+            );
+        }
+    }
+
+
+    /*
+     * =====================================================
+     * التصويتات الجارية
+     * =====================================================
+     */
+
+    if (
+        open.length
+    ) {
+
+        candidatesContainer.appendChild(
+            makeSectionTitle(
+                "التصويتات الجارية"
+            )
         );
 
 
+        open.forEach(
+            election => {
+
+                candidatesContainer.appendChild(
+                    makeElectionCard(
+                        election,
+                        "open"
+                    )
+                );
+            }
+        );
+    }
+
+
+    /*
+     * =====================================================
+     * التصويتات السابقة والنتائج
+     * =====================================================
+     */
+
     if (
-        !openElections.length
+        closed.length
+    ) {
+
+        candidatesContainer.appendChild(
+            makeSectionTitle(
+                "التصويتات السابقة والنتائج"
+            )
+        );
+
+
+        closed.forEach(
+            election => {
+
+                candidatesContainer.appendChild(
+                    makeElectionCard(
+                        election,
+                        "closed"
+                    )
+                );
+            }
+        );
+    }
+
+
+    /*
+     * لا توجد لا جارية ولا منتهية.
+     */
+    if (
+        !open.length &&
+        !closed.length
     ) {
 
         electionInfo.textContent =
-            "لا توجد عمليات تصويت جارية حاليًا.";
+            "لا توجد عمليات تصويت متاحة حاليًا.";
+
 
         showMessage(
             electionMessage,
-            "لا توجد عمليات تصويت جارية حاليًا."
+            "لا توجد عمليات تصويت متاحة حاليًا."
         );
 
         return;
@@ -856,28 +959,29 @@ function renderVotingList() {
     );
 
 
-    electionInfo.textContent =
-        `يوجد ${openElections.length} عملية تصويت جارية حاليًا.`;
+    /*
+     * المجدولة لا تدخل في العرض نهائيًا.
+     */
+    if (
+        open.length &&
+        closed.length
+    ) {
 
+        electionInfo.textContent =
+            `الجارية: ${open.length} — السابقة: ${closed.length}`;
 
-    candidatesContainer.appendChild(
-        makeSectionTitle(
-            "التصويتات الجارية"
-        )
-    );
+    } else if (
+        open.length
+    ) {
 
+        electionInfo.textContent =
+            `الجارية: ${open.length}`;
 
-    openElections.forEach(
-        election => {
+    } else {
 
-            candidatesContainer.appendChild(
-                makeElectionCard(
-                    election,
-                    "open"
-                )
-            );
-        }
-    );
+        electionInfo.textContent =
+            `التصويتات السابقة: ${closed.length}`;
+    }
 }
 /* =========================================================
    LOAD ELECTIONS
