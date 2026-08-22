@@ -1250,15 +1250,17 @@ async function openVoting(
             !candidates.length
         ) {
 
-            const {
-                response,
-                data
-            } =
-await api(
-    `/election?server_id=${encodeURIComponent(
-        currentPlayer.server_id
-    )}`
-);
+        const {
+    response,
+    data
+} =
+    await api(
+        `/election?server_id=${encodeURIComponent(
+            currentPlayer.server_id
+        )}&election_id=${encodeURIComponent(
+            election.election_id
+        )}`
+    );
 
 
             if (
