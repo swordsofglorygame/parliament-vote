@@ -753,7 +753,7 @@ function makeElectionCard(
         ) {
 
             resultsButton.textContent =
-                "النتائج مخفية";
+                "انتهى التصويت";
 
             resultsButton.disabled =
                 true;
