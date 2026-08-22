@@ -816,144 +816,69 @@ function makeElectionCard(
    RENDER ELECTION LIST
 ========================================================= */
 
+/*
+ * اللاعب يرى التصويتات الجارية فقط.
+ *
+ * التصويتات المجدولة والمنتهية لا تظهر له إطلاقًا.
+ */
 function renderVotingList() {
 
     candidatesContainer.innerHTML =
         "";
 
-    const open = [];
-    const scheduled = [];
-    const closed = [];
-
-
-    for (
-        const election
-        of currentElections
-    ) {
-
-        const state =
-            getElectionTimeState(
-                election
-            );
-
-
-        if (
-            state === "open"
-        ) {
-
-            open.push(
-                election
-            );
-
-        } else if (
-            state === "scheduled"
-        ) {
-
-            scheduled.push(
-                election
-            );
-
-        } else if (
-            state === "closed"
-        ) {
-
-            closed.push(
-                election
-            );
-        }
-    }
-
-
-    if (
-        open.length
-    ) {
-
-        candidatesContainer.appendChild(
-            makeSectionTitle(
-                "التصويتات الجارية"
-            )
-        );
-
-
-        open.forEach(
+    const openElections =
+        currentElections.filter(
             election =>
-                candidatesContainer.appendChild(
-                    makeElectionCard(
-                        election,
-                        "open"
-                    )
-                )
+                getElectionTimeState(
+                    election
+                ) === "open"
         );
-    }
 
 
     if (
-        scheduled.length
-    ) {
-
-        candidatesContainer.appendChild(
-            makeSectionTitle(
-                "التصويتات المجدولة"
-            )
-        );
-
-
-        scheduled.forEach(
-            election =>
-                candidatesContainer.appendChild(
-                    makeElectionCard(
-                        election,
-                        "scheduled"
-                    )
-                )
-        );
-    }
-
-
-    if (
-        closed.length
-    ) {
-
-        candidatesContainer.appendChild(
-            makeSectionTitle(
-                "التصويتات المنتهية والنتائج"
-            )
-        );
-
-
-        closed.forEach(
-            election =>
-                candidatesContainer.appendChild(
-                    makeElectionCard(
-                        election,
-                        "closed"
-                    )
-                )
-        );
-    }
-
-
-    if (
-        !open.length &&
-        !scheduled.length &&
-        !closed.length
+        !openElections.length
     ) {
 
         electionInfo.textContent =
-            "لا توجد عمليات تصويت متاحة حاليًا.";
+            "لا توجد عمليات تصويت جارية حاليًا.";
 
         showMessage(
             electionMessage,
-            "لا توجد عمليات تصويت متاحة حاليًا."
+            "لا توجد عمليات تصويت جارية حاليًا."
         );
 
         return;
     }
 
 
+    hideMessage(
+        electionMessage
+    );
+
+
+    electionInfo.textContent =
+        `يوجد ${openElections.length} عملية تصويت جارية حاليًا.`;
+
+
+    candidatesContainer.appendChild(
+        makeSectionTitle(
+            "التصويتات الجارية"
+        )
+    );
+
+
+    openElections.forEach(
+        election => {
+
+            candidatesContainer.appendChild(
+                makeElectionCard(
+                    election,
+                    "open"
+                )
+            );
+        }
+    );
 }
-
-
 /* =========================================================
    LOAD ELECTIONS
 ========================================================= */
@@ -968,7 +893,9 @@ async function loadVotingList() {
     currentElection =
         null;
 
+
     clearEndTimer();
+
 
     hideMessage(
         electionMessage
@@ -1012,6 +939,9 @@ async function loadVotingList() {
             !data?.success
         ) {
 
+            electionInfo.textContent =
+                "تعذر تحميل عمليات التصويت.";
+
             showMessage(
                 electionMessage,
                 data?.message ||
@@ -1042,9 +972,13 @@ async function loadVotingList() {
         );
 
 
+        electionInfo.textContent =
+            "تعذر الاتصال بخادم التصويت.";
+
+
         showMessage(
             electionMessage,
-            "حدث خطأ أثناء الاتصال بالخادم."
+            "حدث خطأ أثناء تحميل عمليات التصويت."
         );
     }
 }
@@ -1064,13 +998,30 @@ async function openVoting(
         );
 
 
+    /*
+     * التصويت المنتهي لا يدخل إلى نموذج التصويت.
+     */
     if (
         state === "closed"
     ) {
 
-        await showResults(
-            election.election_id
-        );
+        if (
+            election.results_available ===
+            true
+        ) {
+
+            await showResults(
+                election.election_id
+            );
+
+        } else {
+
+            showMessage(
+                electionMessage,
+                "انتهى التصويت والنتائج غير متاحة حاليًا."
+            );
+        }
+
 
         return;
     }
@@ -1109,14 +1060,49 @@ async function openVoting(
 
         endTimer =
             setTimeout(
-                () =>
-                    showResults(
-                        election.election_id
-                    ),
+                async () => {
+
+                    /*
+                     * بعد انتهاء التصويت،
+                     * نعرض النتائج فقط إذا سمح الأدمن.
+                     */
+                    if (
+                        currentElection &&
+                        currentElection.election_id ===
+                            election.election_id
+                    ) {
+
+                        if (
+                            election.results_available ===
+                            true
+                        ) {
+
+                            await showResults(
+                                election.election_id
+                            );
+
+                        } else {
+
+                            clearEndTimer();
+
+                            currentElection =
+                                null;
+
+                            await loadVotingList();
+
+                            showMessage(
+                                electionMessage,
+                                "انتهى التصويت."
+                            );
+                        }
+                    }
+
+                },
+
                 Math.max(
                     end -
-                        Date.now() +
-                        1000,
+                    Date.now() +
+                    1000,
                     1000
                 )
             );
@@ -1252,9 +1238,33 @@ function renderVotingForm(
         "closed"
     ) {
 
-        showResults(
-            election.election_id
-        );
+        if (
+            election.results_available ===
+            true
+        ) {
+
+            showResults(
+                election.election_id
+            );
+
+        } else {
+
+            electionTitle.textContent =
+                election.title ||
+                "عملية تصويت";
+
+            electionInfo.textContent =
+                "انتهى التصويت.";
+
+            candidatesContainer.innerHTML =
+                "";
+
+            showMessage(
+                electionMessage,
+                "انتهى التصويت والنتائج غير متاحة حاليًا."
+            );
+        }
+
 
         return;
     }
@@ -1415,6 +1425,10 @@ function renderVotingForm(
     );
 
 
+    /*
+     * اللاعب بعد التصويت يرى اختياراته
+     * لكن لا يستطيع تعديلها.
+     */
     if (
         hasVoted
     ) {
@@ -1501,9 +1515,23 @@ async function submitVote() {
         ) !== "open"
     ) {
 
-        await showResults(
-            currentElection.election_id
-        );
+        if (
+            currentElection.results_available ===
+            true
+        ) {
+
+            await showResults(
+                currentElection.election_id
+            );
+
+        } else {
+
+            showMessage(
+                electionMessage,
+                "انتهى التصويت."
+            );
+        }
+
 
         return;
     }
@@ -1676,8 +1704,6 @@ async function submitVote() {
         }
     }
 }
-
-
 /* =========================================================
    RESULTS
 ========================================================= */
@@ -1722,10 +1748,8 @@ async function showResults(
 
 
         /*
-         * حماية إضافية للواجهة:
-         * القرار الحقيقي يأتي من الـBackend،
-         * لكن لا نعرض النتيجة أثناء التصويت إذا
-         * أخبرنا الخادم أنها مخفية.
+         * حماية إضافية للواجهة.
+         * القرار النهائي يأتي من الـBackend.
          */
         if (
             data?.results_visible_during_voting ===
@@ -1803,6 +1827,7 @@ function renderResults(
 
     /*
      * نعرض عدد المصوتين فقط.
+     *
      * لا نعرض:
      * - غير المصوتين
      * - المؤهلين
@@ -2178,6 +2203,7 @@ form.addEventListener(
         const uid =
             uidInput.value.trim();
 
+
         const rid =
             ridInput.value.trim();
 
@@ -2206,6 +2232,7 @@ form.addEventListener(
 
         verifyButton.disabled =
             true;
+
 
         verifyButton.textContent =
             "جاري التحقق...";
@@ -2476,6 +2503,12 @@ function startAutoRefresh() {
         setInterval(
             async () => {
 
+                /*
+                 * لا نعمل refresh أثناء
+                 * التصويت نفسه أو أثناء عرض النتائج.
+                 *
+                 * نحدّث قائمة التصويتات فقط.
+                 */
                 if (
                     currentPlayer &&
                     !currentElection
@@ -2508,6 +2541,7 @@ document.addEventListener(
         if (
             isPublic
         ) {
+
             return;
         }
 
